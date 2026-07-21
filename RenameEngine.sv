@@ -629,7 +629,7 @@ module RenameEngine(
      {f_rat_1},
      {f_rat_0}};
   wire             is_mispredict = io_br_resolve_valid & io_br_resolve_mispredict;
-  wire             fire0 = io_dec0_fire & ~io_flush & ~is_mispredict;
+  wire             fire0 = io_dec0_fire & ~is_mispredict;
   wire             do_snap0 = fire0 & io_dec0_is_br;
   wire [6:0]       _mask_alloc0_bit_T = 7'h1 << br_tag0;
   wire [3:0]       _global_mask_T =
@@ -847,7 +847,7 @@ module RenameEngine(
       snap_lsq_tail_3 <= 4'h0;
     end
     else begin
-      automatic logic             fire1 = io_dec1_fire & ~io_flush & ~is_mispredict;
+      automatic logic             fire1 = io_dec1_fire & ~is_mispredict;
       automatic logic             do_alloc0 = fire0 & need_reg0;
       automatic logic             do_alloc1 = fire1 & need_reg1;
       automatic logic             do_snap1 = fire1 & io_dec1_is_br;

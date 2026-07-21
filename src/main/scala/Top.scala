@@ -451,15 +451,25 @@ class mycpu_top extends RawModule {
         val q_req_id       = agu_icache_q.io.deq.bits.req_id
         val q_cacop_op     = agu_icache_q.io.deq.bits.cacop_op
 
+        // =====================================================================
+        // ★ 终极防线：ICache 响应通道打拍 (斩断 14ns 关键路径)
+        // 完全复刻 DCache 在 LSQ 中的成功经验！
+        // =====================================================================
+        val icache_data_ok_pipe = RegNext(icache.io.cpu.data_ok, false.B)
+        val icache_rdata_pipe   = RegNext(icache.io.cpu.rdata)
+        val icache_ret_id_pipe  = RegNext(icache.io.cpu.ret_id)
+
         // 1. 挂起状态追踪 (Pending Tracking - 完美还原原始防线)
         val if_pending = RegInit(false.B)
         val if_fire = if_req_valid && if_stage.io.inst_sram.addr_ok
-        val if_done = if_stage.io.inst_sram.data_ok
+        // ★ 使用打拍后的 data_ok 来解除 pending
+        val if_done = icache_data_ok_pipe && if_pending 
         when(if_fire && !if_done) { if_pending := true.B } 
         .elsewhen(if_done && !if_fire) { if_pending := false.B }
 
         val agu_pending = RegInit(false.B)
-        val agu_done = icache.io.cpu.data_ok && agu_pending
+        // ★ 使用打拍后的 data_ok 来解除 pending
+        val agu_done = icache_data_ok_pipe && agu_pending
 
         // 2. 仲裁逻辑 (Arbitration)
         val agu_icache_req_reg = RegNext(agu_icache_req, false.B)
@@ -497,9 +507,12 @@ class mycpu_top extends RawModule {
         icache.io.cpu.cacop_op := Mux(actual_agu_req, q_cacop_op, 0.U)
 
         // 4. ★ 响应精准分发
+        // 4. ★ 响应精准分发
         if_stage.io.inst_sram.addr_ok := icache.io.cpu.addr_ok && actual_if_req
-        if_stage.io.inst_sram.data_ok := icache.io.cpu.data_ok && if_pending
-        if_stage.io.inst_sram.rdata   := icache.io.cpu.rdata
+        
+        // ★ 将打拍后的安全信号喂给前端取指模块！
+        if_stage.io.inst_sram.data_ok := icache_data_ok_pipe && if_pending
+        if_stage.io.inst_sram.rdata   := icache_rdata_pipe
 
         bridge.io.inst_cache <> icache.io.axi
 
@@ -564,15 +577,15 @@ class mycpu_top extends RawModule {
         // 因为数据异步返回时，前端可能在发呆，cacop_is_icache 会读到前世的幽灵垃圾！
         // 必须通过 ICache 自己是否在 Pending 来做独立判定！
         // ★ 修复 2：彻底解耦返回通道！让数据自己说话！
-        val is_icache_resp = icache.io.cpu.data_ok && agu_pending
+        // 2. 响应通道 (data_ok/rdata/ret_id)
+        // ★ 修复 2：彻底解耦返回通道！让数据自己说话！
+        val is_icache_resp = icache_data_ok_pipe && agu_pending // ★ 同样使用打拍后的信号
         val is_dcache_resp = dcache.io.cpu.data_ok
 
         // 异步回来的数据，只认自己的 data_ok，跟指令状态彻底脱钩！
         exec_engine.io.data_sram.data_ok := is_dcache_resp || is_icache_resp
-        exec_engine.io.data_sram.rdata   := Mux(is_dcache_resp, dcache.io.cpu.rdata, icache.io.cpu.rdata)
-        
-        // 这行是你当前新代码里用来传 Ticket 的，一并改掉
-        exec_engine.io.lsq_ret_id        := Mux(is_dcache_resp, dcache.io.cpu.ret_id, icache.io.cpu.ret_id)
+        exec_engine.io.data_sram.rdata   := Mux(is_dcache_resp, dcache.io.cpu.rdata, icache_rdata_pipe)     // ★ 替换为打拍数据
+        exec_engine.io.lsq_ret_id        := Mux(is_dcache_resp, dcache.io.cpu.ret_id, icache_ret_id_pipe)   // ★ 替换为打拍ID
 
 
         // ---------------- AXI 与 Debug 连线 ----------------

@@ -48,16 +48,20 @@ class DualFetchBuffer(depth: Int = 8) extends Module {
         val t0 = tail
         val t1 = wrapAdd(tail, 1.U)
         
+        // ★ 第一刀：将嵌套的 MUX 拍平为并行独立的 Write Enable (触发底层的 CE 端口)
         for (i <- 0 until depth) {
-            when(enq0 && enq1) {
-                when(i.U === t0) { buffer(i) := io.in0.bits }
-                .elsewhen(i.U === t1) { buffer(i) := io.in1.bits }
-            } .elsewhen(enq0) {
-                when(i.U === t0) { buffer(i) := io.in0.bits }
+            val we0 = enq0 && (i.U === t0)
+            val we1 = enq1 && (i.U === t1)
+            
+            when(we0) {
+                buffer(i) := io.in0.bits
+            } .elsewhen(we1) {
+                buffer(i) := io.in1.bits
             }
         }
         
-        val do_enq_cnt = Mux(enq0 && enq1, 2.U, Mux(enq0, 1.U, 0.U))
+        // ★ 第二刀：优化 count 计算，移除 AND 门
+        val do_enq_cnt = Mux(enq1, 2.U, Mux(enq0, 1.U, 0.U))
         tail := wrapAdd(tail, do_enq_cnt)
         count := count + do_enq_cnt - io.out.pop
     }
@@ -140,76 +144,62 @@ class StageIF extends Module {
     val inst_buffer   = Reg(UInt(64.W))
 
     // ==========================================
-    // ★ 零气泡 BTB 预测引擎 (512 项) - 物理映射终极优化版
+    // ★ 零气泡 BTB 预测引擎 (512 项)
     // ==========================================
-    // 1. 仅对 Valid 阵列使用带复位的寄存器 (完美收敛为 512 个 FF)
     val btb_valid = RegInit(VecInit(Seq.fill(512)(false.B)))
 
-    // ==========================================
-    // ★ 返回地址栈 (RAS - 16 Depth)
-    // ==========================================
-    // 使用带复位的寄存器，防止 X 态。16个UInt(32.W)只消耗512个FF，极其便宜。
+    // ★ 修复：RAS 深度极小，直接用 RegInit，彻底杜绝幽灵弹栈引发的 X 态爆炸！
     val ras = RegInit(VecInit(Seq.fill(16)(0.U(32.W))))
     val tos = RegInit(0.U(4.W))
 
-    // 2. 将 Payload 放入纯净的异步 Mem (综合器会自动推断为 LUTRAM，0 个 FF 消耗！)
     class BtbPayload extends Bundle {
         val tag      = UInt(21.W)
         val target   = UInt(32.W)
         val bpu_type = UInt(2.W)
     }
     val btb_payload = Mem(512, new BtbPayload())
+
     // ==========================================
     // ★ GShare 方向预测引擎 (1024 项 BHT + 10 位 GHR)
     // ==========================================
     val ghr = RegInit(0.U(10.W))
-    // Branch History Table: 1024 个 2-bit 饱和计数器
-    // ★ 修复致命 X 态爆炸：将 BHT 改为带初始化的寄存器阵列！
-    // 1024 项 * 2bit = 2048 个 FF，在 FPGA 上占用极小，综合完全无压力。
-    // 初始值设为 1.U，代表 "Weakly Not Taken" (弱不跳转)，这是分支预测界的黄金初始状态。
-    val bht = RegInit(VecInit(Seq.fill(1024)(1.U(2.W))))
+    // ★ 修复：保留 Mem 以拯救时序，外挂一层 Valid 护盾屏蔽仿真 X 态！
+    val bht = Mem(1024, UInt(2.W))
+    val bht_valid = RegInit(VecInit(Seq.fill(1024)(false.B))) 
 
     val allow_req = !wait_data_reg && !buf_valid && !discard_reg
-    // =====================================================================
-    // ★ 斩断 19ns 终极长径：将全局 Flush 彻底移出 Cache 请求的组合逻辑链！
-    // 允许 IF 在被 Flush 的当拍发出“幽灵取指”，反正底部的 discard_reg 会完美丢弃垃圾数据！
-    // =====================================================================
     val req_valid = allow_req
     val addr_handshaked = req_valid && io.inst_sram.addr_ok
 
     // ------------------------------------------
     // 训练逻辑：ALU 后端发来的 BHT 饱和更新
     // ------------------------------------------
-    // 只有条件分支才需要训练 BHT 计数器
     when(io.bpu_update.valid && io.bpu_update.bits.bpu_type === BpuType.COND) {
         val update_hash = io.bpu_update.bits.pc(11, 2) ^ io.bpu_update.bits.ghr
-        val old_ctr = bht(update_hash)
         
-        // 2-bit 饱和加减法
+        // ★ 拦截 X 态：如果没被写过，强制认为是 1.U (弱不跳转)
+        val raw_old_ctr = bht(update_hash)
+        val old_ctr = Mux(bht_valid(update_hash), raw_old_ctr, 1.U(2.W))
+        
         val new_ctr = Mux(io.bpu_update.bits.taken,
-            Mux(old_ctr === 3.U, 3.U, old_ctr + 1.U), // 跳：+1，最大到3(Strongly Taken)
-            Mux(old_ctr === 0.U, 0.U, old_ctr - 1.U)) // 不跳：-1，最小到0(Strongly Not Taken)
+            Mux(old_ctr === 3.U, 3.U, old_ctr + 1.U), 
+            Mux(old_ctr === 0.U, 0.U, old_ctr - 1.U)) 
             
         bht(update_hash) := new_ctr
+        bht_valid(update_hash) := true.B 
     }
-    // ==========================================
-    // 训练逻辑：为 GShare 铺路的非破坏性更新
-    // ==========================================
+
+    // ------------------------------------------
+    // 训练逻辑：BTB 非破坏性更新
+    // ------------------------------------------
     when(io.bpu_update.valid) {
         val w_idx = io.bpu_update.bits.pc(10, 2)
-        
-        // ★ 核心理念转变：BTB 是地址备忘录，不是方向判官！
-        // 只要真实发生了跳转 (taken 为 true)，我们就记录它的目标地址。
-        // 如果没有跳转 (fall-through)，我们【绝对不】把 valid 置为 false！
-        // 这样地址永远存在里面，等未来加上 GShare，GShare 说不跳时，MUX 就会忽略这个地址。
         when(io.bpu_update.bits.taken) {
             btb_valid(w_idx) := true.B
-            
             val write_data = Wire(new BtbPayload())
             write_data.tag      := io.bpu_update.bits.pc(31, 11)
             write_data.target   := io.bpu_update.bits.target
             write_data.bpu_type := io.bpu_update.bits.bpu_type
-            
             btb_payload(w_idx) := write_data
         }
     }
@@ -221,46 +211,44 @@ class StageIF extends Module {
     val idx1 = (pc_reg(10, 2) + 1.U)(8, 0)
     val tag_match = pc_reg(31, 11)
 
-    // BTB 查表
     val payload0 = btb_payload(idx0)
     val payload1 = btb_payload(idx1)
     val hit0 = btb_valid(idx0) && (payload0.tag === tag_match)
     val hit1 = btb_valid(idx1) && (payload1.tag === tag_match) && !is_cross_line
 
-    // ★ GShare 查表 (PC 与 GHR 异或)
     val hash0 = pc_reg(11, 2) ^ ghr
     val hash1 = (pc_reg(11, 2) + 1.U)(9, 0) ^ ghr
-    val bht_out0 = bht(hash0)
-    val bht_out1 = bht(hash1)
+    val raw_bht_out0 = bht(hash0)
+    val raw_bht_out1 = bht(hash1)
+    
+    // ★ 拦截 X 态读取
+    val bht_out0 = Mux(bht_valid(hash0), raw_bht_out0, 1.U(2.W))
+    val bht_out1 = Mux(bht_valid(hash1), raw_bht_out1, 1.U(2.W))
 
-    // 只有 BTB 命中了，并且查明是条件分支，我们才去问 GShare
     val is_cond0 = hit0 && (payload0.bpu_type === BpuType.COND)
     val is_cond1 = hit1 && (payload1.bpu_type === BpuType.COND)
-
-    // ★ 识别 CALL 与 RET
     val is_call0 = hit0 && (payload0.bpu_type === BpuType.CALL)
     val is_ret0  = hit0 && (payload0.bpu_type === BpuType.RET)
 
-    // 终极判决逻辑：条件分支看 GShare，非条件看 BTB。
     val pred_taken0  = Mux(is_cond0, bht_out0(1), hit0)
     
     val is_call1 = hit1 && (payload1.bpu_type === BpuType.CALL) && !pred_taken0
     val is_ret1  = hit1 && (payload1.bpu_type === BpuType.RET) && !pred_taken0
 
-    // ★ 组合逻辑计算推测栈顶 (必须用截断锁死 4 位宽防止报错)
     val tos_after_0 = Mux(is_call0, tos + 1.U, Mux(is_ret0, tos - 1.U, tos))(3, 0)
     val tos_after_1 = Mux(is_call1, tos_after_0 + 1.U, Mux(is_ret1, tos_after_0 - 1.U, tos_after_0))(3, 0)
 
-    // 从 RAS 偷窥返回地址
-    // ★ 修复超标量同拍 RAW 冒险：引入组合逻辑旁路 (Bypass)
-    val call_ret_pc0 = pc_reg + 4.U // 指令 0 如果是 CALL，它即将压栈的值
+    val call_ret_pc0 = pc_reg + 4.U 
     
-    val ras_pop_addr0 = ras((tos - 1.U)(3, 0))
-    // 如果槽位 0 是 CALL，槽位 1 的 RET 绝对不能去读物理寄存器，必须直接在空中截获 call_ret_pc0！
-    val ras_pop_addr1 = Mux(is_call0, call_ret_pc0, ras((tos_after_0 - 1.U)(3, 0)))
+    // ★ RAS 超前并行计算 (斩断串行依赖)
+    val ras_val_tos_minus_1 = ras((tos - 1.U)(3, 0)) 
+    val ras_val_tos_minus_2 = ras((tos - 2.U)(3, 0)) 
 
-    
-    // ★ MUX 强力干预：如果是 RET，一脚踢开 BTB，强行采用 RAS 弹出的地址！
+    val ras_pop_addr0 = ras_val_tos_minus_1
+    val ras_pop_addr1 = Mux(is_call0, call_ret_pc0, 
+                        Mux(is_ret0,  ras_val_tos_minus_2, 
+                                      ras_val_tos_minus_1))
+
     val pred_target0 = Mux(is_ret0, ras_pop_addr0, payload0.target)
     val pred_type0   = payload0.bpu_type
 
@@ -268,7 +256,6 @@ class StageIF extends Module {
     val pred_target1 = Mux(is_ret1, ras_pop_addr1, payload1.target)
     val pred_type1   = payload1.bpu_type
 
-    // 掰弯下一拍的 PC！
     val next_pc_base = pc_reg + pc_step
     val btb_target_pc = Mux(pred_taken0, pred_target0, Mux(pred_taken1, pred_target1, next_pc_base))
 
@@ -412,8 +399,8 @@ class StageIF extends Module {
     val has_exc0 = align_err0 || current_exc
     val has_exc1 = align_err1 || current_exc
 
-    val safe_inst0 = Mux(has_exc0, "h03400000".U(32.W), final_rdata(31, 0))
-    val safe_inst1 = Mux(has_exc1, "h03400000".U(32.W), final_rdata(63, 32))
+    val safe_inst0 = final_rdata(31, 0)
+    val safe_inst1 = final_rdata(63, 32)
 
     val current_pred0_taken  = Mux(addr_handshaked && !wait_data_reg && !buf_valid, pred_taken0, pred_buf(0).taken)
     val current_pred0_target = Mux(addr_handshaked && !wait_data_reg && !buf_valid, pred_target0, pred_buf(0).target)

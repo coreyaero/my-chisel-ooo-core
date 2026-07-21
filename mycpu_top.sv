@@ -895,36 +895,46 @@ module mycpu_top(
     _exec_engine_io_cdb0_valid & _exec_engine_io_cdb0_bits_regWriteEn;
   wire         prf_io_we2 =
     _exec_engine_io_cdb1_valid & _exec_engine_io_cdb1_bits_regWriteEn;
+  reg          icache_data_ok_pipe;
+  reg  [63:0]  icache_rdata_pipe;
+  reg  [7:0]   icache_ret_id_pipe;
   reg          if_pending;
+  wire         if_done = icache_data_ok_pipe & if_pending;
   reg          agu_pending;
-  wire         agu_done = _icache_io_cpu_data_ok & agu_pending;
+  wire         agu_done = icache_data_ok_pipe & agu_pending;
   reg          agu_icache_req_reg;
   wire         actual_if_req =
     _if_stage_io_inst_sram_req & ~agu_pending & ~agu_icache_req_reg;
   wire         actual_agu_req = _agu_icache_q_io_deq_valid & ~if_pending & ~actual_if_req;
   wire         agu_fire = actual_agu_req & _icache_io_cpu_addr_ok;
   wire         if_stage_io_inst_sram_addr_ok = _icache_io_cpu_addr_ok & actual_if_req;
-  wire         if_stage_io_inst_sram_data_ok = _icache_io_cpu_data_ok & if_pending;
   always @(posedge aclk or posedge _reset_high_T) begin
     if (_reset_high_T) begin
+      icache_data_ok_pipe <= 1'h0;
       if_pending <= 1'h0;
       agu_pending <= 1'h0;
       agu_icache_req_reg <= 1'h0;
     end
     else begin
+      icache_data_ok_pipe <= _icache_io_cpu_data_ok;
       if_pending <=
-        if_stage_io_inst_sram_addr_ok & ~if_stage_io_inst_sram_data_ok
-        | ~(if_stage_io_inst_sram_data_ok & ~if_stage_io_inst_sram_addr_ok) & if_pending;
+        if_stage_io_inst_sram_addr_ok & ~if_done
+        | ~(if_done & ~if_stage_io_inst_sram_addr_ok) & if_pending;
       agu_pending <= agu_fire & ~agu_done | ~(agu_done & ~agu_fire) & agu_pending;
       agu_icache_req_reg <= _agu_icache_q_io_deq_valid;
     end
   end // always @(posedge, posedge)
+  always @(posedge aclk) begin
+    icache_rdata_pipe <= _icache_io_cpu_rdata;
+    icache_ret_id_pipe <= _icache_io_cpu_ret_id;
+  end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
       if (_reset_high_T) begin
+        icache_data_ok_pipe = 1'h0;
         if_pending = 1'h0;
         agu_pending = 1'h0;
         agu_icache_req_reg = 1'h0;
@@ -1500,8 +1510,8 @@ module mycpu_top(
     .io_inst_sram_req              (_if_stage_io_inst_sram_req),
     .io_inst_sram_addr             (_if_stage_io_inst_sram_addr),
     .io_inst_sram_addr_ok          (if_stage_io_inst_sram_addr_ok),
-    .io_inst_sram_data_ok          (if_stage_io_inst_sram_data_ok),
-    .io_inst_sram_rdata            (_icache_io_cpu_rdata),
+    .io_inst_sram_data_ok          (if_done),
+    .io_inst_sram_rdata            (icache_rdata_pipe),
     .io_inst_uncached              (_if_stage_io_inst_uncached),
     .io_mmu_config_crmd_datf       (_csr_io_mmu_config_crmd_datf),
     .io_mmu_config_crmd_pg         (_csr_io_mmu_config_crmd_pg),
@@ -1831,7 +1841,7 @@ module mycpu_top(
     .io_timer_in                   (_timer_io_timer_out),
     .io_lsq_req_id                 (_exec_engine_io_lsq_req_id),
     .io_lsq_ret_id
-      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_ret_id : _icache_io_cpu_ret_id),
+      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_ret_id : icache_ret_id_pipe),
     .io_data_sram_req              (_exec_engine_io_data_sram_req),
     .io_data_sram_wr               (_exec_engine_io_data_sram_wr),
     .io_data_sram_wstrb            (_exec_engine_io_data_sram_wstrb),
@@ -1843,7 +1853,7 @@ module mycpu_top(
          : _lsq_dcache_q_io_enq_ready),
     .io_data_sram_data_ok          (_dcache_io_cpu_data_ok | agu_done),
     .io_data_sram_rdata
-      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_rdata : _icache_io_cpu_rdata),
+      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_rdata : icache_rdata_pipe),
     .io_data_uncached              (_exec_engine_io_data_uncached),
     .io_mmu_config_crmd_datm       (_csr_io_mmu_config_crmd_datm),
     .io_mmu_config_crmd_pg         (_csr_io_mmu_config_crmd_pg),

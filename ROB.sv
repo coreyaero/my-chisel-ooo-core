@@ -1614,7 +1614,7 @@ module ROB(
      {entries_1_tlbrd_we},
      {entries_0_tlbrd_we}};
   wire              _GEN_30 = _GEN_29[head];
-  wire              can_commit0 = _GEN_0 & _GEN_7[head];
+  wire              can_commit0 = _GEN_0 & _GEN_7[head] & ~io_flush;
   wire              h0_is_replay = _GEN_9 & _GEN_11 == 6'h3E;
   wire              take_int = io_has_int & can_commit0 & ~_GEN_9 & ~_GEN_13;
   wire              h0_real_exc = can_commit0 & _GEN_9 & ~h0_is_replay | take_int;
@@ -1636,7 +1636,8 @@ module ROB(
   reg  [3:0]        rand_idx;
   wire              io_tlb_we_0 =
     ~_real_refetch_T & can_commit0 & _GEN_26 | real_tlb_fill;
-  wire              do_replay = can_commit0 & h0_is_replay;
+  reg               io_wb_flush_REG;
+  reg  [31:0]       io_wb_target_pc_REG;
   always @(posedge clock or posedge reset) begin
     if (reset) begin
       entries_0_valid <= 1'h0;
@@ -2379,6 +2380,8 @@ module ROB(
       tail <= 5'h0;
       is_full <= 1'h0;
       rand_idx <= 4'h0;
+      io_wb_flush_REG <= 1'h0;
+      io_wb_target_pc_REG <= 32'h0;
     end
     else begin
       automatic logic [4:0] _tail_next2_T;
@@ -2768,6 +2771,7 @@ module ROB(
       automatic logic       _GEN_316 =
         io_lsq_violation_valid & io_lsq_violation_rob == 5'h1E;
       automatic logic       _GEN_317 = io_lsq_violation_valid & (&io_lsq_violation_rob);
+      automatic logic       do_replay = can_commit0 & h0_is_replay;
       automatic logic [4:0] _head_T_3;
       automatic logic       _GEN_318;
       automatic logic       _GEN_319;
@@ -7730,6 +7734,16 @@ module ROB(
              ? _tail_next2_T == head | is_full
              : fire0 & _is_full_for_2_T | is_full);
       rand_idx <= rand_idx + 4'h1;
+      io_wb_flush_REG <=
+        h0_real_exc | io_commit_ertn_0 | ~_real_refetch_T & can_commit0 & _GEN_15
+        | do_replay | can_commit0 & io_commit_csr_we_0 | can_commit0
+        & (io_tlb_we_0 | io_commit_tlbrd_we_0);
+      io_wb_target_pc_REG <=
+        h0_real_exc
+          ? ((&io_commit_ecode_0) ? io_csr_tlbrentryOut : io_csr_eentryOut)
+          : io_commit_ertn_0
+              ? io_csr_eraOut
+              : do_replay ? _GEN_17 : io_commit_pc_out_0 + 32'h4;
     end
   end // always @(posedge, posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -8478,6 +8492,8 @@ module ROB(
         tail = 5'h0;
         is_full = 1'h0;
         rand_idx = 4'h0;
+        io_wb_flush_REG = 1'h0;
+        io_wb_target_pc_REG = 32'h0;
       end
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -8505,16 +8521,8 @@ module ROB(
   assign io_commit1_wdata = _GEN_6[_head_T_6];
   assign io_commit1_paddr = _GEN_4[_head_T_6];
   assign io_commit1_old_p = _GEN_5[_head_T_6];
-  assign io_wb_flush =
-    h0_real_exc | io_commit_ertn_0 | ~_real_refetch_T & can_commit0 & _GEN_15 | do_replay
-    | can_commit0 & io_commit_csr_we_0 | can_commit0
-    & (io_tlb_we_0 | io_commit_tlbrd_we_0);
-  assign io_wb_target_pc =
-    h0_real_exc
-      ? ((&io_commit_ecode_0) ? io_csr_tlbrentryOut : io_csr_eentryOut)
-      : io_commit_ertn_0
-          ? io_csr_eraOut
-          : do_replay ? _GEN_17 : io_commit_pc_out_0 + 32'h4;
+  assign io_wb_flush = io_wb_flush_REG;
+  assign io_wb_target_pc = io_wb_target_pc_REG;
   assign io_commit_csr_we = io_commit_csr_we_0;
   assign io_commit_csr_num = _GEN_22[head];
   assign io_commit_csr_wmask = _GEN_23[head];

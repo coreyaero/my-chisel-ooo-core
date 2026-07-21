@@ -323,7 +323,7 @@ class ROB extends Module {
     
     val is_ghost0   = !e0_real_valid
     // ★ 核心改动：删除了 || h0_is_wbing，指令必须在 ROB 里沉淀一拍才能提交！
-    val can_commit0 = e0_real_valid && e0.done 
+    val can_commit0 = e0_real_valid && e0.done && !io.flush
 
     val h0_is_replay = h0_raw_exc && (h0_raw_ecode === "h3E".U)
     val take_int     = io.has_int && can_commit0 && !is_ghost0 && !h0_raw_exc && !h0_raw_ertn
@@ -346,7 +346,7 @@ class ROB extends Module {
     val is_ghost1   = !e1_real_valid
     val h1_serialize = e1_real_valid && (h1_raw_exc || h1_raw_csr_we || h1_raw_tlb_we || h1_raw_tlb_fill || h1_raw_tlbrd_we || h1_raw_ertn || h1_raw_refetch || h1_raw_cacop)
     
-    val can_commit1 = e1_real_valid && e1.done && !h0_serialize && !h1_serialize && can_commit0
+    val can_commit1 = e1_real_valid && e1.done && !h0_serialize && !h1_serialize && can_commit0 && !io.flush
 
     // --- 端口 0 输出 ---
     io.commit_valid := !is_empty && can_commit0
@@ -405,12 +405,18 @@ class ROB extends Module {
     val is_csr_write = can_commit0 && io.commit_csr_we
     val is_tlb_write = can_commit0 && (real_tlb_we || real_tlb_fill || io.commit_tlbrd_we)
     val sync_flush   = is_csr_write || is_tlb_write
-
-    io.wb_flush := h0_real_exc || io.commit_ertn || real_refetch || do_replay || sync_flush
     
-    io.wb_target_pc := Mux(h0_real_exc, Mux(io.commit_ecode === "h3F".U, io.csr_tlbrentryOut, io.csr_eentryOut),
-                       Mux(io.commit_ertn, io.csr_eraOut,
-                       Mux(do_replay, raw_exc_addr, e0.pc + 4.U)))
+    // 1. 提取出当拍内部使用的组合逻辑信号
+    val rob_flush_comb = h0_real_exc || io.commit_ertn || real_refetch || do_replay || sync_flush
+
+    // 2. 提取目标 PC 的组合逻辑
+    val rob_target_pc_comb = Mux(h0_real_exc, Mux(io.commit_ecode === "h3F".U, io.csr_tlbrentryOut, io.csr_eentryOut),
+                           Mux(io.commit_ertn, io.csr_eraOut,
+                           Mux(do_replay, raw_exc_addr, e0.pc + 4.U)))
+
+    // 3. ★ 斩断世纪大路径！将发往全芯片的冲刷信号打一拍！
+    io.wb_flush     := RegNext(rob_flush_comb, false.B)
+    io.wb_target_pc := RegNext(rob_target_pc_comb, 0.U(32.W))
 
     // --- 头指针推演 ---
     // ★ 直接使用寄存器的 valid 状态，绝不去组合逻辑预测“当拍即将被杀的指令”。

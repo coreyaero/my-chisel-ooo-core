@@ -5,6 +5,7 @@ PRF.sv
 IssueQueue.sv
 ROB.sv
 btb_payload_512x55.sv
+bht_1024x2.sv
 StageIF.sv
 Decoder.sv
 StageID.sv

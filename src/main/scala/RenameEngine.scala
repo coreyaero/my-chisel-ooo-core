@@ -151,8 +151,8 @@ class RenameEngine extends Module {
     // ==========================================
     val is_mispredict = io.br_resolve.valid && io.br_resolve.mispredict
     // ★ 核心修复：必须看到外面的 fire 信号（成功挤进 ROB/IQ），才允许消耗寄存器！
-    val fire0 = io.dec0_fire && !io.flush && !is_mispredict
-    val fire1 = io.dec1_fire && !io.flush && !is_mispredict
+    val fire0 = io.dec0_fire && !is_mispredict
+    val fire1 = io.dec1_fire && !is_mispredict
 
     val do_alloc0 = fire0 && need_reg0
     val do_alloc1 = fire1 && need_reg1

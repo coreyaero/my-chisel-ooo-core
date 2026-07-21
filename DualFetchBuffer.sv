@@ -212,295 +212,189 @@ module DualFetchBuffer(
   wire [2:0]       _io_out_inst1_sum_T = head + 3'h1;
   always @(posedge clock) begin
     automatic logic enq0;
-    automatic logic _do_enq_cnt_T;
+    automatic logic enq1;
     enq0 = io_in0_valid & in_ready;
-    _do_enq_cnt_T = enq0 & io_in1_valid;
+    enq1 = io_in1_valid & in_ready;
     if (io_flush) begin
     end
     else begin
-      automatic logic _GEN_8;
-      automatic logic _GEN_9;
-      automatic logic _GEN_10;
-      automatic logic _GEN_11;
-      automatic logic _GEN_12;
-      automatic logic _GEN_13;
-      automatic logic _GEN_14;
-      _GEN_8 = tail == 3'h0;
-      _GEN_9 = tail == 3'h1;
-      _GEN_10 = tail == 3'h2;
-      _GEN_11 = tail == 3'h3;
-      _GEN_12 = tail == 3'h4;
-      _GEN_13 = tail == 3'h5;
-      _GEN_14 = tail == 3'h6;
-      if (_do_enq_cnt_T) begin
-        automatic logic [2:0] _t1_sum_T;
-        _t1_sum_T = tail + 3'h1;
-        if (_GEN_8) begin
-          buffer_0_pc <= io_in0_bits_pc;
-          buffer_0_inst <= io_in0_bits_inst;
-          buffer_0_hasException <= io_in0_bits_hasException;
-          buffer_0_ecode <= io_in0_bits_ecode;
-          buffer_0_pred_taken <= io_in0_bits_pred_taken;
-          buffer_0_pred_target <= io_in0_bits_pred_target;
-          buffer_0_bpu_type <= io_in0_bits_bpu_type;
-          buffer_0_ghr <= io_in0_bits_ghr;
-          buffer_0_ras_tos <= io_in0_bits_ras_tos;
-        end
-        else if (_t1_sum_T == 3'h0) begin
-          buffer_0_pc <= io_in1_bits_pc;
-          buffer_0_inst <= io_in1_bits_inst;
-          buffer_0_hasException <= io_in1_bits_hasException;
-          buffer_0_ecode <= io_in1_bits_ecode;
-          buffer_0_pred_taken <= io_in1_bits_pred_taken;
-          buffer_0_pred_target <= io_in1_bits_pred_target;
-          buffer_0_bpu_type <= io_in1_bits_bpu_type;
-          buffer_0_ghr <= io_in1_bits_ghr;
-          buffer_0_ras_tos <= io_in1_bits_ras_tos;
-        end
-        if (_GEN_9) begin
-          buffer_1_pc <= io_in0_bits_pc;
-          buffer_1_inst <= io_in0_bits_inst;
-          buffer_1_hasException <= io_in0_bits_hasException;
-          buffer_1_ecode <= io_in0_bits_ecode;
-          buffer_1_pred_taken <= io_in0_bits_pred_taken;
-          buffer_1_pred_target <= io_in0_bits_pred_target;
-          buffer_1_bpu_type <= io_in0_bits_bpu_type;
-          buffer_1_ghr <= io_in0_bits_ghr;
-          buffer_1_ras_tos <= io_in0_bits_ras_tos;
-        end
-        else if (_t1_sum_T == 3'h1) begin
-          buffer_1_pc <= io_in1_bits_pc;
-          buffer_1_inst <= io_in1_bits_inst;
-          buffer_1_hasException <= io_in1_bits_hasException;
-          buffer_1_ecode <= io_in1_bits_ecode;
-          buffer_1_pred_taken <= io_in1_bits_pred_taken;
-          buffer_1_pred_target <= io_in1_bits_pred_target;
-          buffer_1_bpu_type <= io_in1_bits_bpu_type;
-          buffer_1_ghr <= io_in1_bits_ghr;
-          buffer_1_ras_tos <= io_in1_bits_ras_tos;
-        end
-        if (_GEN_10) begin
-          buffer_2_pc <= io_in0_bits_pc;
-          buffer_2_inst <= io_in0_bits_inst;
-          buffer_2_hasException <= io_in0_bits_hasException;
-          buffer_2_ecode <= io_in0_bits_ecode;
-          buffer_2_pred_taken <= io_in0_bits_pred_taken;
-          buffer_2_pred_target <= io_in0_bits_pred_target;
-          buffer_2_bpu_type <= io_in0_bits_bpu_type;
-          buffer_2_ghr <= io_in0_bits_ghr;
-          buffer_2_ras_tos <= io_in0_bits_ras_tos;
-        end
-        else if (_t1_sum_T == 3'h2) begin
-          buffer_2_pc <= io_in1_bits_pc;
-          buffer_2_inst <= io_in1_bits_inst;
-          buffer_2_hasException <= io_in1_bits_hasException;
-          buffer_2_ecode <= io_in1_bits_ecode;
-          buffer_2_pred_taken <= io_in1_bits_pred_taken;
-          buffer_2_pred_target <= io_in1_bits_pred_target;
-          buffer_2_bpu_type <= io_in1_bits_bpu_type;
-          buffer_2_ghr <= io_in1_bits_ghr;
-          buffer_2_ras_tos <= io_in1_bits_ras_tos;
-        end
-        if (_GEN_11) begin
-          buffer_3_pc <= io_in0_bits_pc;
-          buffer_3_inst <= io_in0_bits_inst;
-          buffer_3_hasException <= io_in0_bits_hasException;
-          buffer_3_ecode <= io_in0_bits_ecode;
-          buffer_3_pred_taken <= io_in0_bits_pred_taken;
-          buffer_3_pred_target <= io_in0_bits_pred_target;
-          buffer_3_bpu_type <= io_in0_bits_bpu_type;
-          buffer_3_ghr <= io_in0_bits_ghr;
-          buffer_3_ras_tos <= io_in0_bits_ras_tos;
-        end
-        else if (_t1_sum_T == 3'h3) begin
-          buffer_3_pc <= io_in1_bits_pc;
-          buffer_3_inst <= io_in1_bits_inst;
-          buffer_3_hasException <= io_in1_bits_hasException;
-          buffer_3_ecode <= io_in1_bits_ecode;
-          buffer_3_pred_taken <= io_in1_bits_pred_taken;
-          buffer_3_pred_target <= io_in1_bits_pred_target;
-          buffer_3_bpu_type <= io_in1_bits_bpu_type;
-          buffer_3_ghr <= io_in1_bits_ghr;
-          buffer_3_ras_tos <= io_in1_bits_ras_tos;
-        end
-        if (_GEN_12) begin
-          buffer_4_pc <= io_in0_bits_pc;
-          buffer_4_inst <= io_in0_bits_inst;
-          buffer_4_hasException <= io_in0_bits_hasException;
-          buffer_4_ecode <= io_in0_bits_ecode;
-          buffer_4_pred_taken <= io_in0_bits_pred_taken;
-          buffer_4_pred_target <= io_in0_bits_pred_target;
-          buffer_4_bpu_type <= io_in0_bits_bpu_type;
-          buffer_4_ghr <= io_in0_bits_ghr;
-          buffer_4_ras_tos <= io_in0_bits_ras_tos;
-        end
-        else if (_t1_sum_T == 3'h4) begin
-          buffer_4_pc <= io_in1_bits_pc;
-          buffer_4_inst <= io_in1_bits_inst;
-          buffer_4_hasException <= io_in1_bits_hasException;
-          buffer_4_ecode <= io_in1_bits_ecode;
-          buffer_4_pred_taken <= io_in1_bits_pred_taken;
-          buffer_4_pred_target <= io_in1_bits_pred_target;
-          buffer_4_bpu_type <= io_in1_bits_bpu_type;
-          buffer_4_ghr <= io_in1_bits_ghr;
-          buffer_4_ras_tos <= io_in1_bits_ras_tos;
-        end
-        if (_GEN_13) begin
-          buffer_5_pc <= io_in0_bits_pc;
-          buffer_5_inst <= io_in0_bits_inst;
-          buffer_5_hasException <= io_in0_bits_hasException;
-          buffer_5_ecode <= io_in0_bits_ecode;
-          buffer_5_pred_taken <= io_in0_bits_pred_taken;
-          buffer_5_pred_target <= io_in0_bits_pred_target;
-          buffer_5_bpu_type <= io_in0_bits_bpu_type;
-          buffer_5_ghr <= io_in0_bits_ghr;
-          buffer_5_ras_tos <= io_in0_bits_ras_tos;
-        end
-        else if (_t1_sum_T == 3'h5) begin
-          buffer_5_pc <= io_in1_bits_pc;
-          buffer_5_inst <= io_in1_bits_inst;
-          buffer_5_hasException <= io_in1_bits_hasException;
-          buffer_5_ecode <= io_in1_bits_ecode;
-          buffer_5_pred_taken <= io_in1_bits_pred_taken;
-          buffer_5_pred_target <= io_in1_bits_pred_target;
-          buffer_5_bpu_type <= io_in1_bits_bpu_type;
-          buffer_5_ghr <= io_in1_bits_ghr;
-          buffer_5_ras_tos <= io_in1_bits_ras_tos;
-        end
-        if (_GEN_14) begin
-          buffer_6_pc <= io_in0_bits_pc;
-          buffer_6_inst <= io_in0_bits_inst;
-          buffer_6_hasException <= io_in0_bits_hasException;
-          buffer_6_ecode <= io_in0_bits_ecode;
-          buffer_6_pred_taken <= io_in0_bits_pred_taken;
-          buffer_6_pred_target <= io_in0_bits_pred_target;
-          buffer_6_bpu_type <= io_in0_bits_bpu_type;
-          buffer_6_ghr <= io_in0_bits_ghr;
-          buffer_6_ras_tos <= io_in0_bits_ras_tos;
-        end
-        else if (_t1_sum_T == 3'h6) begin
-          buffer_6_pc <= io_in1_bits_pc;
-          buffer_6_inst <= io_in1_bits_inst;
-          buffer_6_hasException <= io_in1_bits_hasException;
-          buffer_6_ecode <= io_in1_bits_ecode;
-          buffer_6_pred_taken <= io_in1_bits_pred_taken;
-          buffer_6_pred_target <= io_in1_bits_pred_target;
-          buffer_6_bpu_type <= io_in1_bits_bpu_type;
-          buffer_6_ghr <= io_in1_bits_ghr;
-          buffer_6_ras_tos <= io_in1_bits_ras_tos;
-        end
-        if (&tail) begin
-          buffer_7_pc <= io_in0_bits_pc;
-          buffer_7_inst <= io_in0_bits_inst;
-          buffer_7_hasException <= io_in0_bits_hasException;
-          buffer_7_ecode <= io_in0_bits_ecode;
-          buffer_7_pred_taken <= io_in0_bits_pred_taken;
-          buffer_7_pred_target <= io_in0_bits_pred_target;
-          buffer_7_bpu_type <= io_in0_bits_bpu_type;
-          buffer_7_ghr <= io_in0_bits_ghr;
-          buffer_7_ras_tos <= io_in0_bits_ras_tos;
-        end
-        else if (&_t1_sum_T) begin
-          buffer_7_pc <= io_in1_bits_pc;
-          buffer_7_inst <= io_in1_bits_inst;
-          buffer_7_hasException <= io_in1_bits_hasException;
-          buffer_7_ecode <= io_in1_bits_ecode;
-          buffer_7_pred_taken <= io_in1_bits_pred_taken;
-          buffer_7_pred_target <= io_in1_bits_pred_target;
-          buffer_7_bpu_type <= io_in1_bits_bpu_type;
-          buffer_7_ghr <= io_in1_bits_ghr;
-          buffer_7_ras_tos <= io_in1_bits_ras_tos;
-        end
+      automatic logic [2:0] _t1_sum_T;
+      _t1_sum_T = tail + 3'h1;
+      if (enq0 & tail == 3'h0) begin
+        buffer_0_pc <= io_in0_bits_pc;
+        buffer_0_inst <= io_in0_bits_inst;
+        buffer_0_hasException <= io_in0_bits_hasException;
+        buffer_0_ecode <= io_in0_bits_ecode;
+        buffer_0_pred_taken <= io_in0_bits_pred_taken;
+        buffer_0_pred_target <= io_in0_bits_pred_target;
+        buffer_0_bpu_type <= io_in0_bits_bpu_type;
+        buffer_0_ghr <= io_in0_bits_ghr;
+        buffer_0_ras_tos <= io_in0_bits_ras_tos;
       end
-      else begin
-        if (enq0 & _GEN_8) begin
-          buffer_0_pc <= io_in0_bits_pc;
-          buffer_0_inst <= io_in0_bits_inst;
-          buffer_0_hasException <= io_in0_bits_hasException;
-          buffer_0_ecode <= io_in0_bits_ecode;
-          buffer_0_pred_taken <= io_in0_bits_pred_taken;
-          buffer_0_pred_target <= io_in0_bits_pred_target;
-          buffer_0_bpu_type <= io_in0_bits_bpu_type;
-          buffer_0_ghr <= io_in0_bits_ghr;
-          buffer_0_ras_tos <= io_in0_bits_ras_tos;
-        end
-        if (enq0 & _GEN_9) begin
-          buffer_1_pc <= io_in0_bits_pc;
-          buffer_1_inst <= io_in0_bits_inst;
-          buffer_1_hasException <= io_in0_bits_hasException;
-          buffer_1_ecode <= io_in0_bits_ecode;
-          buffer_1_pred_taken <= io_in0_bits_pred_taken;
-          buffer_1_pred_target <= io_in0_bits_pred_target;
-          buffer_1_bpu_type <= io_in0_bits_bpu_type;
-          buffer_1_ghr <= io_in0_bits_ghr;
-          buffer_1_ras_tos <= io_in0_bits_ras_tos;
-        end
-        if (enq0 & _GEN_10) begin
-          buffer_2_pc <= io_in0_bits_pc;
-          buffer_2_inst <= io_in0_bits_inst;
-          buffer_2_hasException <= io_in0_bits_hasException;
-          buffer_2_ecode <= io_in0_bits_ecode;
-          buffer_2_pred_taken <= io_in0_bits_pred_taken;
-          buffer_2_pred_target <= io_in0_bits_pred_target;
-          buffer_2_bpu_type <= io_in0_bits_bpu_type;
-          buffer_2_ghr <= io_in0_bits_ghr;
-          buffer_2_ras_tos <= io_in0_bits_ras_tos;
-        end
-        if (enq0 & _GEN_11) begin
-          buffer_3_pc <= io_in0_bits_pc;
-          buffer_3_inst <= io_in0_bits_inst;
-          buffer_3_hasException <= io_in0_bits_hasException;
-          buffer_3_ecode <= io_in0_bits_ecode;
-          buffer_3_pred_taken <= io_in0_bits_pred_taken;
-          buffer_3_pred_target <= io_in0_bits_pred_target;
-          buffer_3_bpu_type <= io_in0_bits_bpu_type;
-          buffer_3_ghr <= io_in0_bits_ghr;
-          buffer_3_ras_tos <= io_in0_bits_ras_tos;
-        end
-        if (enq0 & _GEN_12) begin
-          buffer_4_pc <= io_in0_bits_pc;
-          buffer_4_inst <= io_in0_bits_inst;
-          buffer_4_hasException <= io_in0_bits_hasException;
-          buffer_4_ecode <= io_in0_bits_ecode;
-          buffer_4_pred_taken <= io_in0_bits_pred_taken;
-          buffer_4_pred_target <= io_in0_bits_pred_target;
-          buffer_4_bpu_type <= io_in0_bits_bpu_type;
-          buffer_4_ghr <= io_in0_bits_ghr;
-          buffer_4_ras_tos <= io_in0_bits_ras_tos;
-        end
-        if (enq0 & _GEN_13) begin
-          buffer_5_pc <= io_in0_bits_pc;
-          buffer_5_inst <= io_in0_bits_inst;
-          buffer_5_hasException <= io_in0_bits_hasException;
-          buffer_5_ecode <= io_in0_bits_ecode;
-          buffer_5_pred_taken <= io_in0_bits_pred_taken;
-          buffer_5_pred_target <= io_in0_bits_pred_target;
-          buffer_5_bpu_type <= io_in0_bits_bpu_type;
-          buffer_5_ghr <= io_in0_bits_ghr;
-          buffer_5_ras_tos <= io_in0_bits_ras_tos;
-        end
-        if (enq0 & _GEN_14) begin
-          buffer_6_pc <= io_in0_bits_pc;
-          buffer_6_inst <= io_in0_bits_inst;
-          buffer_6_hasException <= io_in0_bits_hasException;
-          buffer_6_ecode <= io_in0_bits_ecode;
-          buffer_6_pred_taken <= io_in0_bits_pred_taken;
-          buffer_6_pred_target <= io_in0_bits_pred_target;
-          buffer_6_bpu_type <= io_in0_bits_bpu_type;
-          buffer_6_ghr <= io_in0_bits_ghr;
-          buffer_6_ras_tos <= io_in0_bits_ras_tos;
-        end
-        if (enq0 & (&tail)) begin
-          buffer_7_pc <= io_in0_bits_pc;
-          buffer_7_inst <= io_in0_bits_inst;
-          buffer_7_hasException <= io_in0_bits_hasException;
-          buffer_7_ecode <= io_in0_bits_ecode;
-          buffer_7_pred_taken <= io_in0_bits_pred_taken;
-          buffer_7_pred_target <= io_in0_bits_pred_target;
-          buffer_7_bpu_type <= io_in0_bits_bpu_type;
-          buffer_7_ghr <= io_in0_bits_ghr;
-          buffer_7_ras_tos <= io_in0_bits_ras_tos;
-        end
+      else if (enq1 & _t1_sum_T == 3'h0) begin
+        buffer_0_pc <= io_in1_bits_pc;
+        buffer_0_inst <= io_in1_bits_inst;
+        buffer_0_hasException <= io_in1_bits_hasException;
+        buffer_0_ecode <= io_in1_bits_ecode;
+        buffer_0_pred_taken <= io_in1_bits_pred_taken;
+        buffer_0_pred_target <= io_in1_bits_pred_target;
+        buffer_0_bpu_type <= io_in1_bits_bpu_type;
+        buffer_0_ghr <= io_in1_bits_ghr;
+        buffer_0_ras_tos <= io_in1_bits_ras_tos;
+      end
+      if (enq0 & tail == 3'h1) begin
+        buffer_1_pc <= io_in0_bits_pc;
+        buffer_1_inst <= io_in0_bits_inst;
+        buffer_1_hasException <= io_in0_bits_hasException;
+        buffer_1_ecode <= io_in0_bits_ecode;
+        buffer_1_pred_taken <= io_in0_bits_pred_taken;
+        buffer_1_pred_target <= io_in0_bits_pred_target;
+        buffer_1_bpu_type <= io_in0_bits_bpu_type;
+        buffer_1_ghr <= io_in0_bits_ghr;
+        buffer_1_ras_tos <= io_in0_bits_ras_tos;
+      end
+      else if (enq1 & _t1_sum_T == 3'h1) begin
+        buffer_1_pc <= io_in1_bits_pc;
+        buffer_1_inst <= io_in1_bits_inst;
+        buffer_1_hasException <= io_in1_bits_hasException;
+        buffer_1_ecode <= io_in1_bits_ecode;
+        buffer_1_pred_taken <= io_in1_bits_pred_taken;
+        buffer_1_pred_target <= io_in1_bits_pred_target;
+        buffer_1_bpu_type <= io_in1_bits_bpu_type;
+        buffer_1_ghr <= io_in1_bits_ghr;
+        buffer_1_ras_tos <= io_in1_bits_ras_tos;
+      end
+      if (enq0 & tail == 3'h2) begin
+        buffer_2_pc <= io_in0_bits_pc;
+        buffer_2_inst <= io_in0_bits_inst;
+        buffer_2_hasException <= io_in0_bits_hasException;
+        buffer_2_ecode <= io_in0_bits_ecode;
+        buffer_2_pred_taken <= io_in0_bits_pred_taken;
+        buffer_2_pred_target <= io_in0_bits_pred_target;
+        buffer_2_bpu_type <= io_in0_bits_bpu_type;
+        buffer_2_ghr <= io_in0_bits_ghr;
+        buffer_2_ras_tos <= io_in0_bits_ras_tos;
+      end
+      else if (enq1 & _t1_sum_T == 3'h2) begin
+        buffer_2_pc <= io_in1_bits_pc;
+        buffer_2_inst <= io_in1_bits_inst;
+        buffer_2_hasException <= io_in1_bits_hasException;
+        buffer_2_ecode <= io_in1_bits_ecode;
+        buffer_2_pred_taken <= io_in1_bits_pred_taken;
+        buffer_2_pred_target <= io_in1_bits_pred_target;
+        buffer_2_bpu_type <= io_in1_bits_bpu_type;
+        buffer_2_ghr <= io_in1_bits_ghr;
+        buffer_2_ras_tos <= io_in1_bits_ras_tos;
+      end
+      if (enq0 & tail == 3'h3) begin
+        buffer_3_pc <= io_in0_bits_pc;
+        buffer_3_inst <= io_in0_bits_inst;
+        buffer_3_hasException <= io_in0_bits_hasException;
+        buffer_3_ecode <= io_in0_bits_ecode;
+        buffer_3_pred_taken <= io_in0_bits_pred_taken;
+        buffer_3_pred_target <= io_in0_bits_pred_target;
+        buffer_3_bpu_type <= io_in0_bits_bpu_type;
+        buffer_3_ghr <= io_in0_bits_ghr;
+        buffer_3_ras_tos <= io_in0_bits_ras_tos;
+      end
+      else if (enq1 & _t1_sum_T == 3'h3) begin
+        buffer_3_pc <= io_in1_bits_pc;
+        buffer_3_inst <= io_in1_bits_inst;
+        buffer_3_hasException <= io_in1_bits_hasException;
+        buffer_3_ecode <= io_in1_bits_ecode;
+        buffer_3_pred_taken <= io_in1_bits_pred_taken;
+        buffer_3_pred_target <= io_in1_bits_pred_target;
+        buffer_3_bpu_type <= io_in1_bits_bpu_type;
+        buffer_3_ghr <= io_in1_bits_ghr;
+        buffer_3_ras_tos <= io_in1_bits_ras_tos;
+      end
+      if (enq0 & tail == 3'h4) begin
+        buffer_4_pc <= io_in0_bits_pc;
+        buffer_4_inst <= io_in0_bits_inst;
+        buffer_4_hasException <= io_in0_bits_hasException;
+        buffer_4_ecode <= io_in0_bits_ecode;
+        buffer_4_pred_taken <= io_in0_bits_pred_taken;
+        buffer_4_pred_target <= io_in0_bits_pred_target;
+        buffer_4_bpu_type <= io_in0_bits_bpu_type;
+        buffer_4_ghr <= io_in0_bits_ghr;
+        buffer_4_ras_tos <= io_in0_bits_ras_tos;
+      end
+      else if (enq1 & _t1_sum_T == 3'h4) begin
+        buffer_4_pc <= io_in1_bits_pc;
+        buffer_4_inst <= io_in1_bits_inst;
+        buffer_4_hasException <= io_in1_bits_hasException;
+        buffer_4_ecode <= io_in1_bits_ecode;
+        buffer_4_pred_taken <= io_in1_bits_pred_taken;
+        buffer_4_pred_target <= io_in1_bits_pred_target;
+        buffer_4_bpu_type <= io_in1_bits_bpu_type;
+        buffer_4_ghr <= io_in1_bits_ghr;
+        buffer_4_ras_tos <= io_in1_bits_ras_tos;
+      end
+      if (enq0 & tail == 3'h5) begin
+        buffer_5_pc <= io_in0_bits_pc;
+        buffer_5_inst <= io_in0_bits_inst;
+        buffer_5_hasException <= io_in0_bits_hasException;
+        buffer_5_ecode <= io_in0_bits_ecode;
+        buffer_5_pred_taken <= io_in0_bits_pred_taken;
+        buffer_5_pred_target <= io_in0_bits_pred_target;
+        buffer_5_bpu_type <= io_in0_bits_bpu_type;
+        buffer_5_ghr <= io_in0_bits_ghr;
+        buffer_5_ras_tos <= io_in0_bits_ras_tos;
+      end
+      else if (enq1 & _t1_sum_T == 3'h5) begin
+        buffer_5_pc <= io_in1_bits_pc;
+        buffer_5_inst <= io_in1_bits_inst;
+        buffer_5_hasException <= io_in1_bits_hasException;
+        buffer_5_ecode <= io_in1_bits_ecode;
+        buffer_5_pred_taken <= io_in1_bits_pred_taken;
+        buffer_5_pred_target <= io_in1_bits_pred_target;
+        buffer_5_bpu_type <= io_in1_bits_bpu_type;
+        buffer_5_ghr <= io_in1_bits_ghr;
+        buffer_5_ras_tos <= io_in1_bits_ras_tos;
+      end
+      if (enq0 & tail == 3'h6) begin
+        buffer_6_pc <= io_in0_bits_pc;
+        buffer_6_inst <= io_in0_bits_inst;
+        buffer_6_hasException <= io_in0_bits_hasException;
+        buffer_6_ecode <= io_in0_bits_ecode;
+        buffer_6_pred_taken <= io_in0_bits_pred_taken;
+        buffer_6_pred_target <= io_in0_bits_pred_target;
+        buffer_6_bpu_type <= io_in0_bits_bpu_type;
+        buffer_6_ghr <= io_in0_bits_ghr;
+        buffer_6_ras_tos <= io_in0_bits_ras_tos;
+      end
+      else if (enq1 & _t1_sum_T == 3'h6) begin
+        buffer_6_pc <= io_in1_bits_pc;
+        buffer_6_inst <= io_in1_bits_inst;
+        buffer_6_hasException <= io_in1_bits_hasException;
+        buffer_6_ecode <= io_in1_bits_ecode;
+        buffer_6_pred_taken <= io_in1_bits_pred_taken;
+        buffer_6_pred_target <= io_in1_bits_pred_target;
+        buffer_6_bpu_type <= io_in1_bits_bpu_type;
+        buffer_6_ghr <= io_in1_bits_ghr;
+        buffer_6_ras_tos <= io_in1_bits_ras_tos;
+      end
+      if (enq0 & (&tail)) begin
+        buffer_7_pc <= io_in0_bits_pc;
+        buffer_7_inst <= io_in0_bits_inst;
+        buffer_7_hasException <= io_in0_bits_hasException;
+        buffer_7_ecode <= io_in0_bits_ecode;
+        buffer_7_pred_taken <= io_in0_bits_pred_taken;
+        buffer_7_pred_target <= io_in0_bits_pred_target;
+        buffer_7_bpu_type <= io_in0_bits_bpu_type;
+        buffer_7_ghr <= io_in0_bits_ghr;
+        buffer_7_ras_tos <= io_in0_bits_ras_tos;
+      end
+      else if (enq1 & (&_t1_sum_T)) begin
+        buffer_7_pc <= io_in1_bits_pc;
+        buffer_7_inst <= io_in1_bits_inst;
+        buffer_7_hasException <= io_in1_bits_hasException;
+        buffer_7_ecode <= io_in1_bits_ecode;
+        buffer_7_pred_taken <= io_in1_bits_pred_taken;
+        buffer_7_pred_target <= io_in1_bits_pred_target;
+        buffer_7_bpu_type <= io_in1_bits_bpu_type;
+        buffer_7_ghr <= io_in1_bits_ghr;
+        buffer_7_ras_tos <= io_in1_bits_ras_tos;
       end
     end
     if (reset) begin
@@ -510,7 +404,7 @@ module DualFetchBuffer(
     end
     else begin
       automatic logic [1:0] do_enq_cnt;
-      do_enq_cnt = _do_enq_cnt_T ? 2'h2 : {1'h0, enq0};
+      do_enq_cnt = enq1 ? 2'h2 : {1'h0, enq0};
       head <= io_flush ? 3'h0 : head + {1'h0, io_out_pop};
       tail <= io_flush ? 3'h0 : tail + {1'h0, do_enq_cnt};
       count <= io_flush ? 4'h0 : count + {2'h0, do_enq_cnt} - {2'h0, io_out_pop};
