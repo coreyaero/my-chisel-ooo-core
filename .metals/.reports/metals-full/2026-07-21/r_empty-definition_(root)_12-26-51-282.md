@@ -1,3 +1,25 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:disp_valid
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: disp_valid
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/iq/io/disp_valid.
+	 -chisel3/iq/io/disp_valid#
+	 -chisel3/iq/io/disp_valid().
+	 -chisel3/util/iq/io/disp_valid.
+	 -chisel3/util/iq/io/disp_valid#
+	 -chisel3/util/iq/io/disp_valid().
+	 -iq/io/disp_valid.
+	 -iq/io/disp_valid#
+	 -iq/io/disp_valid().
+	 -scala/Predef.iq.io.disp_valid.
+	 -scala/Predef.iq.io.disp_valid#
+	 -scala/Predef.iq.io.disp_valid().
+offset: 10291
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -73,6 +95,20 @@ class mycpu_top extends RawModule {
         
         // ★ 核心替换：双发射乱序大心脏登场！
         val exec_engine = Module(new ExecutionEngine())
+        // ==========================================================
+        // ★ 终极一刀：分支预测恢复全面打拍 (斩断 22 级世纪大回环！)
+        // ==========================================================
+        // 1. 核心状态恢复信号打拍 (带 0 初始化防上电跑飞)
+        val br_resolve_pipe = RegInit(0.U.asTypeOf(chiselTypeOf(exec_engine.io.br_resolve)))
+        br_resolve_pipe    := exec_engine.io.br_resolve
+        
+        // 2. 前端 PC 冲刷与重定向信号打拍
+        val ex_branch_req_pipe = RegNext(exec_engine.io.branch_req, false.B)
+        val ex_branch_pc_pipe  = RegNext(exec_engine.io.branch_pc, 0.U(32.W))
+        
+        // 3. BPU 分支预测器训练更新信号打拍
+        val bpu_update_pipe = RegInit(0.U.asTypeOf(chiselTypeOf(exec_engine.io.bpu_update)))
+        bpu_update_pipe    := exec_engine.io.bpu_update
         
         // ★ 新增：将 CSR 和 TLB 提至全局顶层！
         val csr        = Module(new CSR())
@@ -83,7 +119,7 @@ class mycpu_top extends RawModule {
         val dcache = Module(new Cache())
 
         // ---------------- BPU 训练大环路 ----------------
-        if_stage.io.bpu_update := exec_engine.io.bpu_update
+        if_stage.io.bpu_update := bpu_update_pipe
 
         // ==========================================
         // 全局 MMU 与中断配置
@@ -171,7 +207,7 @@ class mycpu_top extends RawModule {
 
         // 控制信号
         rename.io.flush      := ctrl.io.wb_flush
-        rename.io.br_resolve := exec_engine.io.br_resolve
+        rename.io.br_resolve := br_resolve_pipe
 
         // ★ 分配时必须同时看 LSQ 和所有模块是否有空位
         val can_disp0 = rob.io.alloc_ready && iq.io.disp_ready && rename.io.dec0_ready && (!need_lsq0 || exec_engine.io.lsq_alloc_ready)
@@ -222,9 +258,9 @@ class mycpu_top extends RawModule {
 
         // ================= IQ 连线 =================
         iq.io.flush      := ctrl.io.wb_flush
-        iq.io.br_resolve := exec_engine.io.br_resolve
+        iq.io.br_resolve := br_resolve_pipe
 
-        iq.io.disp_valid := d0_valid && can_disp0
+        iq.io.di@@sp_valid := d0_valid && can_disp0
         iq.io.disp_data  := renamed_d0
         iq.io.psrc1      := rename.io.dec0_psrc1
         iq.io.psrc2      := rename.io.dec0_psrc2
@@ -414,8 +450,8 @@ class mycpu_top extends RawModule {
         csr.io.tlbrd_in       := tlb_module.io.r_dat
 
         // ---------------- 控制流与 Flush ----------------
-        ctrl.io.ex_branch_req := exec_engine.io.branch_req
-        ctrl.io.ex_branch_pc  := exec_engine.io.branch_pc
+        ctrl.io.ex_branch_req := ex_branch_req_pipe
+        ctrl.io.ex_branch_pc  := ex_branch_pc_pipe
         ctrl.io.wb_flush      := rob.io.wb_flush
         ctrl.io.wb_target_pc  := rob.io.wb_target_pc
 
@@ -656,3 +692,9 @@ class mycpu_top extends RawModule {
         debug_wb_rf_wdata_1 := rob.io.commit1_wdata
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: disp_valid

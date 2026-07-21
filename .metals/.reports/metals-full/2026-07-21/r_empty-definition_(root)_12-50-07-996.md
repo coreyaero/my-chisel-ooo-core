@@ -1,3 +1,25 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:dec0_ready
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: dec0_ready
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/rename/io/dec0_ready.
+	 -chisel3/rename/io/dec0_ready#
+	 -chisel3/rename/io/dec0_ready().
+	 -chisel3/util/rename/io/dec0_ready.
+	 -chisel3/util/rename/io/dec0_ready#
+	 -chisel3/util/rename/io/dec0_ready().
+	 -rename/io/dec0_ready.
+	 -rename/io/dec0_ready#
+	 -rename/io/dec0_ready().
+	 -scala/Predef.rename.io.dec0_ready.
+	 -scala/Predef.rename.io.dec0_ready#
+	 -scala/Predef.rename.io.dec0_ready().
+offset: 7478
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -78,12 +100,21 @@ class mycpu_top extends RawModule {
         val csr        = Module(new CSR())
         val tlb_module = Module(new tlb())
 
+        // ==========================================================
+        // ★ 靶向微创：只对 Rename 和 BPU 的分支恢复打拍 (解决 22 级大回环，防止跑飞)
+        // ==========================================================
+        val rename_br_resolve_pipe = RegInit(0.U.asTypeOf(chiselTypeOf(exec_engine.io.br_resolve)))
+        rename_br_resolve_pipe    := exec_engine.io.br_resolve
+
+        val bpu_update_pipe = RegInit(0.U.asTypeOf(chiselTypeOf(exec_engine.io.bpu_update)))
+        bpu_update_pipe    := exec_engine.io.bpu_update
+
         val bridge = Module(new SramToAxiBridge())
         val icache = Module(new Cache())
         val dcache = Module(new Cache())
 
         // ---------------- BPU 训练大环路 ----------------
-        if_stage.io.bpu_update := exec_engine.io.bpu_update
+        if_stage.io.bpu_update := bpu_update_pipe
 
         // ==========================================
         // 全局 MMU 与中断配置
@@ -171,10 +202,10 @@ class mycpu_top extends RawModule {
 
         // 控制信号
         rename.io.flush      := ctrl.io.wb_flush
-        rename.io.br_resolve := exec_engine.io.br_resolve
+        rename.io.br_resolve := rename_br_resolve_pipe // ★ 唯一使用打拍信号的模块
 
         // ★ 分配时必须同时看 LSQ 和所有模块是否有空位
-        val can_disp0 = rob.io.alloc_ready && iq.io.disp_ready && rename.io.dec0_ready && (!need_lsq0 || exec_engine.io.lsq_alloc_ready)
+        val can_disp0 = rob.io.alloc_ready && iq.io.disp_ready && rename.io.dec0_r@@eady && (!need_lsq0 || exec_engine.io.lsq_alloc_ready)
         val can_disp1 = can_disp0 && rob.io.alloc1_ready && iq.io.disp1_ready && rename.io.dec1_ready && (!need_lsq1 || exec_engine.io.lsq_alloc_ready) && !lsq_conflict
 
         // ★ 反向握手：告诉 DispatchBuffer 可以弹出几个
@@ -656,3 +687,9 @@ class mycpu_top extends RawModule {
         debug_wb_rf_wdata_1 := rob.io.commit1_wdata
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: dec0_ready

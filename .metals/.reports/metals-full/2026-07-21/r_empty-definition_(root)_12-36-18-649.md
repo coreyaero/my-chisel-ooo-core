@@ -1,3 +1,25 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:alloc_idx
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: alloc_idx
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/rob/io/alloc_idx.
+	 -chisel3/rob/io/alloc_idx#
+	 -chisel3/rob/io/alloc_idx().
+	 -chisel3/util/rob/io/alloc_idx.
+	 -chisel3/util/rob/io/alloc_idx#
+	 -chisel3/util/rob/io/alloc_idx().
+	 -rob/io/alloc_idx.
+	 -rob/io/alloc_idx#
+	 -rob/io/alloc_idx().
+	 -scala/Predef.rob.io.alloc_idx.
+	 -scala/Predef.rob.io.alloc_idx#
+	 -scala/Predef.rob.io.alloc_idx().
+offset: 8457
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -78,12 +100,21 @@ class mycpu_top extends RawModule {
         val csr        = Module(new CSR())
         val tlb_module = Module(new tlb())
 
+        // ==========================================================
+        // ★ 靶向微创：只对 Rename 和 BPU 的分支恢复打拍 (解决 22 级大回环，防止跑飞)
+        // ==========================================================
+        val rename_br_resolve_pipe = RegInit(0.U.asTypeOf(chiselTypeOf(exec_engine.io.br_resolve)))
+        rename_br_resolve_pipe    := exec_engine.io.br_resolve
+
+        val bpu_update_pipe = RegInit(0.U.asTypeOf(chiselTypeOf(exec_engine.io.bpu_update)))
+        bpu_update_pipe    := exec_engine.io.bpu_update
+
         val bridge = Module(new SramToAxiBridge())
         val icache = Module(new Cache())
         val dcache = Module(new Cache())
 
         // ---------------- BPU 训练大环路 ----------------
-        if_stage.io.bpu_update := exec_engine.io.bpu_update
+        if_stage.io.bpu_update := bpu_update_pipe
 
         // ==========================================
         // 全局 MMU 与中断配置
@@ -192,7 +223,7 @@ class mycpu_top extends RawModule {
         exec_engine.io.lsq_alloc_valid := real_need_lsq0 || real_need_lsq1
         
         exec_engine.io.lsq_alloc_type  := Mux(real_need_lsq0, Mux(d0.resFromMem, 0.U, Mux(d0.memWe, 1.U, 2.U)), Mux(d1.resFromMem, 0.U, Mux(d1.memWe, 1.U, 2.U)))
-        exec_engine.io.lsq_alloc_rob   := Mux(real_need_lsq0, rob.io.alloc_idx, rob.io.alloc1_idx)
+        exec_engine.io.lsq_alloc_rob   := Mux(real_need_lsq0, rob.io.@@alloc_idx, rob.io.alloc1_idx)
         exec_engine.io.lsq_alloc_pc    := Mux(real_need_lsq0, d0.pc, d1.pc)
         exec_engine.io.lsq_alloc_pdest := Mux(real_need_lsq0, rename.io.dec0_pdest, rename.io.dec1_pdest)
         exec_engine.io.lsq_alloc_mask  := Mux(real_need_lsq0, rename.io.dec0_br_mask, rename.io.dec1_br_mask)
@@ -656,3 +687,9 @@ class mycpu_top extends RawModule {
         debug_wb_rf_wdata_1 := rob.io.commit1_wdata
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: alloc_idx

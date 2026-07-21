@@ -1,3 +1,25 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:mmu_config
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: mmu_config
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/csr/io/mmu_config.
+	 -chisel3/csr/io/mmu_config#
+	 -chisel3/csr/io/mmu_config().
+	 -chisel3/util/csr/io/mmu_config.
+	 -chisel3/util/csr/io/mmu_config#
+	 -chisel3/util/csr/io/mmu_config().
+	 -csr/io/mmu_config.
+	 -csr/io/mmu_config#
+	 -csr/io/mmu_config().
+	 -scala/Predef.csr.io.mmu_config.
+	 -scala/Predef.csr.io.mmu_config#
+	 -scala/Predef.csr.io.mmu_config().
+offset: 3945
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -73,6 +95,20 @@ class mycpu_top extends RawModule {
         
         // ★ 核心替换：双发射乱序大心脏登场！
         val exec_engine = Module(new ExecutionEngine())
+        // ==========================================================
+        // ★ 终极一刀：分支预测恢复全面打拍 (斩断 22 级世纪大回环！)
+        // ==========================================================
+        // 1. 核心状态恢复信号打拍 (带 0 初始化防上电跑飞)
+        val br_resolve_pipe = RegInit(0.U.asTypeOf(chiselTypeOf(exec_engine.io.br_resolve)))
+        br_resolve_pipe    := exec_engine.io.br_resolve
+        
+        // 2. 前端 PC 冲刷与重定向信号打拍
+        val ex_branch_req_pipe = RegNext(exec_engine.io.branch_req, false.B)
+        val ex_branch_pc_pipe  = RegNext(exec_engine.io.branch_pc, 0.U(32.W))
+        
+        // 3. BPU 分支预测器训练更新信号打拍
+        val bpu_update_pipe = RegInit(0.U.asTypeOf(chiselTypeOf(exec_engine.io.bpu_update)))
+        bpu_update_pipe    := exec_engine.io.bpu_update
         
         // ★ 新增：将 CSR 和 TLB 提至全局顶层！
         val csr        = Module(new CSR())
@@ -83,12 +119,12 @@ class mycpu_top extends RawModule {
         val dcache = Module(new Cache())
 
         // ---------------- BPU 训练大环路 ----------------
-        if_stage.io.bpu_update := exec_engine.io.bpu_update
+        if_stage.io.bpu_update := bpu_update_pipe
 
         // ==========================================
         // 全局 MMU 与中断配置
         // ==========================================
-        if_stage.io.mmu_config    := csr.io.mmu_config
+        if_stage.io.mmu_config    := csr.io.@@mmu_config
         exec_engine.io.mmu_config := csr.io.mmu_config
         csr.io.hw_int_in          := 0.U(8.W)
 
@@ -656,3 +692,9 @@ class mycpu_top extends RawModule {
         debug_wb_rf_wdata_1 := rob.io.commit1_wdata
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: mmu_config

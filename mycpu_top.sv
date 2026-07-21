@@ -872,6 +872,17 @@ module mycpu_top(
   wire         _ctrl_io_flush_if;
   wire         _ctrl_io_flush_id;
   wire         _reset_high_T = ~aresetn;
+  reg          rename_br_resolve_pipe_valid;
+  reg          rename_br_resolve_pipe_mispredict;
+  reg  [1:0]   rename_br_resolve_pipe_tag;
+  reg          bpu_update_pipe_valid;
+  reg  [31:0]  bpu_update_pipe_bits_pc;
+  reg  [31:0]  bpu_update_pipe_bits_target;
+  reg          bpu_update_pipe_bits_taken;
+  reg  [1:0]   bpu_update_pipe_bits_bpu_type;
+  reg  [9:0]   bpu_update_pipe_bits_ghr;
+  reg          bpu_update_pipe_bits_mispredict;
+  reg  [3:0]   bpu_update_pipe_bits_ras_tos;
   wire         fetch_buffer_reset = _reset_high_T | _ctrl_io_flush_id;
   wire         d0_valid = _disp_buf_io_out0_valid & ~_ctrl_io_flush_id;
   wire         d1_valid = _disp_buf_io_out1_valid & ~_ctrl_io_flush_id;
@@ -895,46 +906,69 @@ module mycpu_top(
     _exec_engine_io_cdb0_valid & _exec_engine_io_cdb0_bits_regWriteEn;
   wire         prf_io_we2 =
     _exec_engine_io_cdb1_valid & _exec_engine_io_cdb1_bits_regWriteEn;
-  reg          icache_data_ok_pipe;
-  reg  [63:0]  icache_rdata_pipe;
-  reg  [7:0]   icache_ret_id_pipe;
   reg          if_pending;
-  wire         if_done = icache_data_ok_pipe & if_pending;
   reg          agu_pending;
-  wire         agu_done = icache_data_ok_pipe & agu_pending;
+  wire         agu_done = _icache_io_cpu_data_ok & agu_pending;
   reg          agu_icache_req_reg;
   wire         actual_if_req =
     _if_stage_io_inst_sram_req & ~agu_pending & ~agu_icache_req_reg;
   wire         actual_agu_req = _agu_icache_q_io_deq_valid & ~if_pending & ~actual_if_req;
   wire         agu_fire = actual_agu_req & _icache_io_cpu_addr_ok;
   wire         if_stage_io_inst_sram_addr_ok = _icache_io_cpu_addr_ok & actual_if_req;
+  wire         if_stage_io_inst_sram_data_ok = _icache_io_cpu_data_ok & if_pending;
   always @(posedge aclk or posedge _reset_high_T) begin
     if (_reset_high_T) begin
-      icache_data_ok_pipe <= 1'h0;
+      rename_br_resolve_pipe_valid <= 1'h0;
+      rename_br_resolve_pipe_mispredict <= 1'h0;
+      rename_br_resolve_pipe_tag <= 2'h0;
+      bpu_update_pipe_valid <= 1'h0;
+      bpu_update_pipe_bits_pc <= 32'h0;
+      bpu_update_pipe_bits_target <= 32'h0;
+      bpu_update_pipe_bits_taken <= 1'h0;
+      bpu_update_pipe_bits_bpu_type <= 2'h0;
+      bpu_update_pipe_bits_ghr <= 10'h0;
+      bpu_update_pipe_bits_mispredict <= 1'h0;
+      bpu_update_pipe_bits_ras_tos <= 4'h0;
       if_pending <= 1'h0;
       agu_pending <= 1'h0;
       agu_icache_req_reg <= 1'h0;
     end
     else begin
-      icache_data_ok_pipe <= _icache_io_cpu_data_ok;
+      rename_br_resolve_pipe_valid <= _exec_engine_io_br_resolve_valid;
+      rename_br_resolve_pipe_mispredict <= _exec_engine_io_br_resolve_mispredict;
+      rename_br_resolve_pipe_tag <= _exec_engine_io_br_resolve_tag;
+      bpu_update_pipe_valid <= _exec_engine_io_bpu_update_valid;
+      bpu_update_pipe_bits_pc <= _exec_engine_io_bpu_update_bits_pc;
+      bpu_update_pipe_bits_target <= _exec_engine_io_bpu_update_bits_target;
+      bpu_update_pipe_bits_taken <= _exec_engine_io_bpu_update_bits_taken;
+      bpu_update_pipe_bits_bpu_type <= _exec_engine_io_bpu_update_bits_bpu_type;
+      bpu_update_pipe_bits_ghr <= _exec_engine_io_bpu_update_bits_ghr;
+      bpu_update_pipe_bits_mispredict <= _exec_engine_io_bpu_update_bits_mispredict;
+      bpu_update_pipe_bits_ras_tos <= _exec_engine_io_bpu_update_bits_ras_tos;
       if_pending <=
-        if_stage_io_inst_sram_addr_ok & ~if_done
-        | ~(if_done & ~if_stage_io_inst_sram_addr_ok) & if_pending;
+        if_stage_io_inst_sram_addr_ok & ~if_stage_io_inst_sram_data_ok
+        | ~(if_stage_io_inst_sram_data_ok & ~if_stage_io_inst_sram_addr_ok) & if_pending;
       agu_pending <= agu_fire & ~agu_done | ~(agu_done & ~agu_fire) & agu_pending;
       agu_icache_req_reg <= _agu_icache_q_io_deq_valid;
     end
   end // always @(posedge, posedge)
-  always @(posedge aclk) begin
-    icache_rdata_pipe <= _icache_io_cpu_rdata;
-    icache_ret_id_pipe <= _icache_io_cpu_ret_id;
-  end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
       if (_reset_high_T) begin
-        icache_data_ok_pipe = 1'h0;
+        rename_br_resolve_pipe_valid = 1'h0;
+        rename_br_resolve_pipe_mispredict = 1'h0;
+        rename_br_resolve_pipe_tag = 2'h0;
+        bpu_update_pipe_valid = 1'h0;
+        bpu_update_pipe_bits_pc = 32'h0;
+        bpu_update_pipe_bits_target = 32'h0;
+        bpu_update_pipe_bits_taken = 1'h0;
+        bpu_update_pipe_bits_bpu_type = 2'h0;
+        bpu_update_pipe_bits_ghr = 10'h0;
+        bpu_update_pipe_bits_mispredict = 1'h0;
+        bpu_update_pipe_bits_ras_tos = 4'h0;
         if_pending = 1'h0;
         agu_pending = 1'h0;
         agu_icache_req_reg = 1'h0;
@@ -962,9 +996,9 @@ module mycpu_top(
     .clock                    (aclk),
     .reset                    (_reset_high_T),
     .io_flush                 (_rob_io_wb_flush),
-    .io_br_resolve_valid      (_exec_engine_io_br_resolve_valid),
-    .io_br_resolve_mispredict (_exec_engine_io_br_resolve_mispredict),
-    .io_br_resolve_tag        (_exec_engine_io_br_resolve_tag),
+    .io_br_resolve_valid      (rename_br_resolve_pipe_valid),
+    .io_br_resolve_mispredict (rename_br_resolve_pipe_mispredict),
+    .io_br_resolve_tag        (rename_br_resolve_pipe_tag),
     .io_dec0_fire             (iq_io_disp_valid),
     .io_dec0_we               (_disp_buf_io_out0_bits_regWriteEn),
     .io_dec0_raddr1           (_disp_buf_io_out0_bits_src1_addr),
@@ -1510,8 +1544,8 @@ module mycpu_top(
     .io_inst_sram_req              (_if_stage_io_inst_sram_req),
     .io_inst_sram_addr             (_if_stage_io_inst_sram_addr),
     .io_inst_sram_addr_ok          (if_stage_io_inst_sram_addr_ok),
-    .io_inst_sram_data_ok          (if_done),
-    .io_inst_sram_rdata            (icache_rdata_pipe),
+    .io_inst_sram_data_ok          (if_stage_io_inst_sram_data_ok),
+    .io_inst_sram_rdata            (_icache_io_cpu_rdata),
     .io_inst_uncached              (_if_stage_io_inst_uncached),
     .io_mmu_config_crmd_datf       (_csr_io_mmu_config_crmd_datf),
     .io_mmu_config_crmd_pg         (_csr_io_mmu_config_crmd_pg),
@@ -1537,14 +1571,14 @@ module mycpu_top(
     .io_tlb_s0_plv                 (_tlb_module_io_s0_plv),
     .io_tlb_s0_mat                 (_tlb_module_io_s0_mat),
     .io_tlb_s0_v                   (_tlb_module_io_s0_v),
-    .io_bpu_update_valid           (_exec_engine_io_bpu_update_valid),
-    .io_bpu_update_bits_pc         (_exec_engine_io_bpu_update_bits_pc),
-    .io_bpu_update_bits_target     (_exec_engine_io_bpu_update_bits_target),
-    .io_bpu_update_bits_taken      (_exec_engine_io_bpu_update_bits_taken),
-    .io_bpu_update_bits_bpu_type   (_exec_engine_io_bpu_update_bits_bpu_type),
-    .io_bpu_update_bits_ghr        (_exec_engine_io_bpu_update_bits_ghr),
-    .io_bpu_update_bits_mispredict (_exec_engine_io_bpu_update_bits_mispredict),
-    .io_bpu_update_bits_ras_tos    (_exec_engine_io_bpu_update_bits_ras_tos)
+    .io_bpu_update_valid           (bpu_update_pipe_valid),
+    .io_bpu_update_bits_pc         (bpu_update_pipe_bits_pc),
+    .io_bpu_update_bits_target     (bpu_update_pipe_bits_target),
+    .io_bpu_update_bits_taken      (bpu_update_pipe_bits_taken),
+    .io_bpu_update_bits_bpu_type   (bpu_update_pipe_bits_bpu_type),
+    .io_bpu_update_bits_ghr        (bpu_update_pipe_bits_ghr),
+    .io_bpu_update_bits_mispredict (bpu_update_pipe_bits_mispredict),
+    .io_bpu_update_bits_ras_tos    (bpu_update_pipe_bits_ras_tos)
   );
   StageID id_stage (
     .io_in_valid0               (_fetch_buffer_io_out_valid0),
@@ -1841,7 +1875,7 @@ module mycpu_top(
     .io_timer_in                   (_timer_io_timer_out),
     .io_lsq_req_id                 (_exec_engine_io_lsq_req_id),
     .io_lsq_ret_id
-      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_ret_id : icache_ret_id_pipe),
+      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_ret_id : _icache_io_cpu_ret_id),
     .io_data_sram_req              (_exec_engine_io_data_sram_req),
     .io_data_sram_wr               (_exec_engine_io_data_sram_wr),
     .io_data_sram_wstrb            (_exec_engine_io_data_sram_wstrb),
@@ -1853,7 +1887,7 @@ module mycpu_top(
          : _lsq_dcache_q_io_enq_ready),
     .io_data_sram_data_ok          (_dcache_io_cpu_data_ok | agu_done),
     .io_data_sram_rdata
-      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_rdata : icache_rdata_pipe),
+      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_rdata : _icache_io_cpu_rdata),
     .io_data_uncached              (_exec_engine_io_data_uncached),
     .io_mmu_config_crmd_datm       (_csr_io_mmu_config_crmd_datm),
     .io_mmu_config_crmd_pg         (_csr_io_mmu_config_crmd_pg),
