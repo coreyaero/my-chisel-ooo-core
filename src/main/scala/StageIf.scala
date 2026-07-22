@@ -48,10 +48,14 @@ class DualFetchBuffer(depth: Int = 8) extends Module {
         val t0 = tail
         val t1 = wrapAdd(tail, 1.U)
         
-        // ★ 第一刀：将嵌套的 MUX 拍平为并行独立的 Write Enable (触发底层的 CE 端口)
+        // ★ 优化：在循环外统一进行 One-Hot 译码
+        val t0_oh = UIntToOH(t0, depth)
+        val t1_oh = UIntToOH(t1, depth)
+        
+        // 将嵌套的 MUX 拍平为并行独立的 Write Enable
         for (i <- 0 until depth) {
-            val we0 = enq0 && (i.U === t0)
-            val we1 = enq1 && (i.U === t1)
+            val we0 = enq0 && t0_oh(i)
+            val we1 = enq1 && t1_oh(i)
             
             when(we0) {
                 buffer(i) := io.in0.bits

@@ -218,9 +218,10 @@ module DualFetchBuffer(
     if (io_flush) begin
     end
     else begin
-      automatic logic [2:0] _t1_sum_T;
-      _t1_sum_T = tail + 3'h1;
-      if (enq0 & tail == 3'h0) begin
+      automatic logic [7:0] t0_oh = 8'h1 << tail;
+      automatic logic [7:0] t1_oh;
+      t1_oh = 8'h1 << tail + 3'h1;
+      if (enq0 & t0_oh[0]) begin
         buffer_0_pc <= io_in0_bits_pc;
         buffer_0_inst <= io_in0_bits_inst;
         buffer_0_hasException <= io_in0_bits_hasException;
@@ -231,7 +232,7 @@ module DualFetchBuffer(
         buffer_0_ghr <= io_in0_bits_ghr;
         buffer_0_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (enq1 & _t1_sum_T == 3'h0) begin
+      else if (enq1 & t1_oh[0]) begin
         buffer_0_pc <= io_in1_bits_pc;
         buffer_0_inst <= io_in1_bits_inst;
         buffer_0_hasException <= io_in1_bits_hasException;
@@ -242,7 +243,7 @@ module DualFetchBuffer(
         buffer_0_ghr <= io_in1_bits_ghr;
         buffer_0_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (enq0 & tail == 3'h1) begin
+      if (enq0 & t0_oh[1]) begin
         buffer_1_pc <= io_in0_bits_pc;
         buffer_1_inst <= io_in0_bits_inst;
         buffer_1_hasException <= io_in0_bits_hasException;
@@ -253,7 +254,7 @@ module DualFetchBuffer(
         buffer_1_ghr <= io_in0_bits_ghr;
         buffer_1_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (enq1 & _t1_sum_T == 3'h1) begin
+      else if (enq1 & t1_oh[1]) begin
         buffer_1_pc <= io_in1_bits_pc;
         buffer_1_inst <= io_in1_bits_inst;
         buffer_1_hasException <= io_in1_bits_hasException;
@@ -264,7 +265,7 @@ module DualFetchBuffer(
         buffer_1_ghr <= io_in1_bits_ghr;
         buffer_1_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (enq0 & tail == 3'h2) begin
+      if (enq0 & t0_oh[2]) begin
         buffer_2_pc <= io_in0_bits_pc;
         buffer_2_inst <= io_in0_bits_inst;
         buffer_2_hasException <= io_in0_bits_hasException;
@@ -275,7 +276,7 @@ module DualFetchBuffer(
         buffer_2_ghr <= io_in0_bits_ghr;
         buffer_2_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (enq1 & _t1_sum_T == 3'h2) begin
+      else if (enq1 & t1_oh[2]) begin
         buffer_2_pc <= io_in1_bits_pc;
         buffer_2_inst <= io_in1_bits_inst;
         buffer_2_hasException <= io_in1_bits_hasException;
@@ -286,7 +287,7 @@ module DualFetchBuffer(
         buffer_2_ghr <= io_in1_bits_ghr;
         buffer_2_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (enq0 & tail == 3'h3) begin
+      if (enq0 & t0_oh[3]) begin
         buffer_3_pc <= io_in0_bits_pc;
         buffer_3_inst <= io_in0_bits_inst;
         buffer_3_hasException <= io_in0_bits_hasException;
@@ -297,7 +298,7 @@ module DualFetchBuffer(
         buffer_3_ghr <= io_in0_bits_ghr;
         buffer_3_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (enq1 & _t1_sum_T == 3'h3) begin
+      else if (enq1 & t1_oh[3]) begin
         buffer_3_pc <= io_in1_bits_pc;
         buffer_3_inst <= io_in1_bits_inst;
         buffer_3_hasException <= io_in1_bits_hasException;
@@ -308,7 +309,7 @@ module DualFetchBuffer(
         buffer_3_ghr <= io_in1_bits_ghr;
         buffer_3_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (enq0 & tail == 3'h4) begin
+      if (enq0 & t0_oh[4]) begin
         buffer_4_pc <= io_in0_bits_pc;
         buffer_4_inst <= io_in0_bits_inst;
         buffer_4_hasException <= io_in0_bits_hasException;
@@ -319,7 +320,7 @@ module DualFetchBuffer(
         buffer_4_ghr <= io_in0_bits_ghr;
         buffer_4_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (enq1 & _t1_sum_T == 3'h4) begin
+      else if (enq1 & t1_oh[4]) begin
         buffer_4_pc <= io_in1_bits_pc;
         buffer_4_inst <= io_in1_bits_inst;
         buffer_4_hasException <= io_in1_bits_hasException;
@@ -330,7 +331,7 @@ module DualFetchBuffer(
         buffer_4_ghr <= io_in1_bits_ghr;
         buffer_4_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (enq0 & tail == 3'h5) begin
+      if (enq0 & t0_oh[5]) begin
         buffer_5_pc <= io_in0_bits_pc;
         buffer_5_inst <= io_in0_bits_inst;
         buffer_5_hasException <= io_in0_bits_hasException;
@@ -341,7 +342,7 @@ module DualFetchBuffer(
         buffer_5_ghr <= io_in0_bits_ghr;
         buffer_5_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (enq1 & _t1_sum_T == 3'h5) begin
+      else if (enq1 & t1_oh[5]) begin
         buffer_5_pc <= io_in1_bits_pc;
         buffer_5_inst <= io_in1_bits_inst;
         buffer_5_hasException <= io_in1_bits_hasException;
@@ -352,7 +353,7 @@ module DualFetchBuffer(
         buffer_5_ghr <= io_in1_bits_ghr;
         buffer_5_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (enq0 & tail == 3'h6) begin
+      if (enq0 & t0_oh[6]) begin
         buffer_6_pc <= io_in0_bits_pc;
         buffer_6_inst <= io_in0_bits_inst;
         buffer_6_hasException <= io_in0_bits_hasException;
@@ -363,7 +364,7 @@ module DualFetchBuffer(
         buffer_6_ghr <= io_in0_bits_ghr;
         buffer_6_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (enq1 & _t1_sum_T == 3'h6) begin
+      else if (enq1 & t1_oh[6]) begin
         buffer_6_pc <= io_in1_bits_pc;
         buffer_6_inst <= io_in1_bits_inst;
         buffer_6_hasException <= io_in1_bits_hasException;
@@ -374,7 +375,7 @@ module DualFetchBuffer(
         buffer_6_ghr <= io_in1_bits_ghr;
         buffer_6_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (enq0 & (&tail)) begin
+      if (enq0 & t0_oh[7]) begin
         buffer_7_pc <= io_in0_bits_pc;
         buffer_7_inst <= io_in0_bits_inst;
         buffer_7_hasException <= io_in0_bits_hasException;
@@ -385,7 +386,7 @@ module DualFetchBuffer(
         buffer_7_ghr <= io_in0_bits_ghr;
         buffer_7_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (enq1 & (&_t1_sum_T)) begin
+      else if (enq1 & t1_oh[7]) begin
         buffer_7_pc <= io_in1_bits_pc;
         buffer_7_inst <= io_in1_bits_inst;
         buffer_7_hasException <= io_in1_bits_hasException;

@@ -304,7 +304,8 @@ class Cache(implicit p: CacheConfig) extends Module {
 
     val cache_hit = way_hit.asUInt.orR && (!req_uncached || req_cacop_en)
     val hit_way   = OHToUInt(way_hit) // 命中时的路号 (One-Hot 编码安全转 UInt)
-    val hit_dirty = cache_hit && d_val(hit_way)
+    // 极速版：独热码按位与，绕开所有编码器！
+    val hit_dirty = cache_hit && (way_hit.asUInt & d_val.asUInt).orR
 
     // 针对“索引型 CACOP”，计算目标路是否有效且脏
     // 4 路配置下，通常由虚拟地址的低位 (offset 甚至 tag 的低位) 来选择 way
@@ -665,13 +666,22 @@ class Cache(implicit p: CacheConfig) extends Module {
     val wakeup_sub_idx = PriorityEncoder(sub_wakeup_vec)
     val active_sub = m_wake.sub_entries(wakeup_sub_idx)
 
+    // 1. 提取词偏移索引 (与原来一样)
     val req_word_idx = req_offset(p.offsetBits - 1, 2)
-    val sram_hit_word0 = array.io.r_data(hit_way)(req_word_idx)
-    
-    // ★ 终极防线：安全的越界回绕索引，防止 Chisel 编译器崩溃
     val is_req_last_word = (req_word_idx === (p.lineWords - 1).U)
     val safe_req_next_idx = Mux(is_req_last_word, 0.U, req_word_idx + 1.U)
-    val sram_hit_word1 = Mux(is_req_last_word, 0.U, array.io.r_data(hit_way)(safe_req_next_idx))
+
+    // ★ 优化核心：先从所有路中把目标 Word 挑出来 (与 Tag 比较并行！)
+    val way_words0 = Wire(Vec(p.ways, UInt(32.W)))
+    val way_words1 = Wire(Vec(p.ways, UInt(32.W)))
+    for (w <- 0 until p.ways) {
+        way_words0(w) := array.io.r_data(w)(req_word_idx)
+        way_words1(w) := Mux(is_req_last_word, 0.U, array.io.r_data(w)(safe_req_next_idx))
+    }
+    
+    // ★ 砍掉 OHToUInt！当 way_hit (Tag比较) 出结果时，直接 Mux1H 吐出数据
+    val sram_hit_word0 = Mux1H(way_hit, way_words0)
+    val sram_hit_word1 = Mux1H(way_hit, way_words1)
     
     val mshr_word_idx = active_sub.offset(p.offsetBits - 1, 2)
     val mshr_bypass_word0 = m_wake.line_buffer(mshr_word_idx)
