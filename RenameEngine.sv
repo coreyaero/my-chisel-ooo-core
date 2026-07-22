@@ -386,12 +386,9 @@ module RenameEngine(
   wire [63:0]      _spec_free_no_0_T_1 = 64'h1 << free_idx0;
   wire [62:0]      _spec_free_no_0_T_2 = ~(_spec_free_no_0_T_1[62:0]);
   wire [3:0]       _has_tag0_T =
-    {~(io_dec0_br_mask_0[3]),
-     ~(io_dec0_br_mask_0[2]),
-     ~(io_dec0_br_mask_0[1]),
-     ~(io_dec0_br_mask_0[0])};
-  wire [1:0]       _tag0_T_6 = io_dec0_br_mask_0[1] ? {1'h1, io_dec0_br_mask_0[2]} : 2'h1;
-  wire [1:0]       tag0 = io_dec0_br_mask_0[0] ? _tag0_T_6 : 2'h0;
+    {~(global_mask[3]), ~(global_mask[2]), ~(global_mask[1]), ~(global_mask[0])};
+  wire [1:0]       _tag0_T_6 = global_mask[1] ? {1'h1, global_mask[2]} : 2'h1;
+  wire [1:0]       tag0 = global_mask[0] ? _tag0_T_6 : 2'h0;
   wire [6:0]       _free_tags_no_0_T_1 = 7'h1 << tag0;
   wire [3:0]       _GEN_0 = ~(_free_tags_no_0_T_1[3:0]) & _has_tag0_T;
   wire             need_reg0 = io_dec0_we & (|io_dec0_waddr);
@@ -582,7 +579,7 @@ module RenameEngine(
                                                                                                                                                                                                                                                                          & _spec_free_no_0_T_2[62])})
            : free_idx0)
       : 6'h0;
-  wire [1:0]       br_tag0 = io_dec0_is_br & io_dec0_br_mask_0[0] ? _tag0_T_6 : 2'h0;
+  wire [1:0]       br_tag0 = io_dec0_is_br & global_mask[0] ? _tag0_T_6 : 2'h0;
   wire [1:0]       br_tag1 =
     io_dec1_is_br
       ? (io_dec0_is_br
@@ -591,10 +588,10 @@ module RenameEngine(
       : 2'h0;
   wire [4:0]       _GEN_1 =
     {~io_dec0_is_br,
-     ~(io_dec0_br_mask_0[3]),
-     ~(io_dec0_br_mask_0[2]),
-     ~(io_dec0_br_mask_0[1]),
-     ~(io_dec0_br_mask_0[0])};
+     ~(global_mask[3]),
+     ~(global_mask[2]),
+     ~(global_mask[1]),
+     ~(global_mask[0])};
   wire [31:0][5:0] _GEN_2 =
     {{f_rat_31},
      {f_rat_30},
@@ -628,9 +625,7 @@ module RenameEngine(
      {f_rat_2},
      {f_rat_1},
      {f_rat_0}};
-  wire             is_mispredict = io_br_resolve_valid & io_br_resolve_mispredict;
-  wire             fire0 = io_dec0_fire & ~is_mispredict;
-  wire             do_snap0 = fire0 & io_dec0_is_br;
+  wire             do_snap0 = io_dec0_fire & io_dec0_is_br;
   wire [6:0]       _mask_alloc0_bit_T = 7'h1 << br_tag0;
   wire [3:0]       _global_mask_T_1 =
     io_dec0_br_mask_0 | (do_snap0 ? _mask_alloc0_bit_T[3:0] : 4'h0);
@@ -888,10 +883,9 @@ module RenameEngine(
       delayed_is_mispredict <= 1'h0;
     end
     else begin
-      automatic logic        fire1 = io_dec1_fire & ~is_mispredict;
-      automatic logic        do_alloc0 = fire0 & need_reg0;
-      automatic logic        do_alloc1 = fire1 & need_reg1;
-      automatic logic        do_snap1 = fire1 & io_dec1_is_br;
+      automatic logic        do_alloc0 = io_dec0_fire & need_reg0;
+      automatic logic        do_alloc1 = io_dec1_fire & need_reg1;
+      automatic logic        do_snap1 = io_dec1_fire & io_dec1_is_br;
       automatic logic        _GEN_4;
       automatic logic        _GEN_5;
       automatic logic        _GEN_6;
@@ -2139,7 +2133,7 @@ module RenameEngine(
         _GEN_138 ? _global_mask_T_1 : _GEN_134 ? io_dec0_br_mask_0 : ~_GEN & snap_mask_2;
       snap_mask_3 <=
         _GEN_139 ? _global_mask_T_1 : _GEN_135 ? io_dec0_br_mask_0 : ~_GEN & snap_mask_3;
-      delayed_is_mispredict <= is_mispredict;
+      delayed_is_mispredict <= io_br_resolve_valid & io_br_resolve_mispredict;
     end
   end // always @(posedge, posedge)
   always @(posedge clock) begin

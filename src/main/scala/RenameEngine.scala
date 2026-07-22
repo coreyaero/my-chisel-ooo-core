@@ -96,8 +96,9 @@ class RenameEngine extends Module {
     val has_free1 = spec_free_no_0.orR
 
     val free_tags = WireDefault(VecInit(Seq.fill(4)(false.B)))
-    // ★ 这里改成用 current_clean_mask 取反！当拍释放，当拍复用！
-    for (i <- 0 until 4) { free_tags(i) := !current_clean_mask(i) } 
+    // ★ 斩断时序路径 1：分配 Tag 时，只看寄存器里存的 global_mask！
+    // 绝不看 ALU 当拍刚算出来的 current_clean_mask，让它晚一拍再复用，救活 2ns 违例！
+    for (i <- 0 until 4) { free_tags(i) := !global_mask(i) }
     val tag0 = PriorityEncoder(free_tags.asUInt)(1, 0) // 强制截为 2 位
     val free_tags_no_0 = free_tags.asUInt & ~(1.U(4.W) << tag0)
     val tag1 = PriorityEncoder(free_tags_no_0)(1, 0)   // 强制截为 2 位
@@ -151,9 +152,10 @@ class RenameEngine extends Module {
     // ==========================================
     val is_mispredict = io.br_resolve.valid && io.br_resolve.mispredict
 
-    // ★ 核心修复：必须看到外面的 fire 信号（成功挤进 ROB/IQ），才允许消耗寄存器！
-    val fire0 = io.dec0_fire && !is_mispredict
-    val fire1 = io.dec1_fire && !is_mispredict
+    // ★ 终极时序斩断：彻底移除 && !is_mispredict
+    // 让 ALU 的 32 位加法器 CARRY4 链彻底脱离 Rename 的当拍组合逻辑控制！
+    val fire0 = io.dec0_fire
+    val fire1 = io.dec1_fire
 
     val do_alloc0 = fire0 && need_reg0
     val do_alloc1 = fire1 && need_reg1
