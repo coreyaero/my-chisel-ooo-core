@@ -1,3 +1,25 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:commit_waddr
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: commit_waddr
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/rob/io/commit_waddr.
+	 -chisel3/rob/io/commit_waddr#
+	 -chisel3/rob/io/commit_waddr().
+	 -chisel3/util/rob/io/commit_waddr.
+	 -chisel3/util/rob/io/commit_waddr#
+	 -chisel3/util/rob/io/commit_waddr().
+	 -rob/io/commit_waddr.
+	 -rob/io/commit_waddr#
+	 -rob/io/commit_waddr().
+	 -scala/Predef.rob.io.commit_waddr.
+	 -scala/Predef.rob.io.commit_waddr#
+	 -scala/Predef.rob.io.commit_waddr().
+offset: 27950
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -143,11 +165,9 @@ class mycpu_top extends RawModule {
         val d0 = disp_buf.io.out0.bits
         val d1 = disp_buf.io.out1.bits
 
-        // ★ 终极时序隔离：绝不看包含 ALU 长线的 flush_id！
-        // 遇到异常 (wb_flush) 时，必须当拍拦截，保护流水线现场。
-        // 遇到分支预测失败时，放任幽灵指令进后端，由后端的 !(is_mispredict) 和 Rename 的 delayed 回档来完美击杀！
-        val d0_valid = disp_buf.io.out0.valid && !ctrl.io.wb_flush
-        val d1_valid = disp_buf.io.out1.valid && !ctrl.io.wb_flush
+        // ★ 新增：在冲刷当拍直接物理斩断 valid 信号，防止错路指令逃逸进入 Rename
+        val d0_valid = disp_buf.io.out0.valid && !ctrl.io.flush_id
+        val d1_valid = disp_buf.io.out1.valid && !ctrl.io.flush_id
 
         // ★ 发射限制与 LSQ 保护
         val need_lsq0 = d0.resFromMem || d0.memWe || d0.is_cacop
@@ -645,7 +665,7 @@ class mycpu_top extends RawModule {
         bready  := bridge.io.axi.bready
         
         // 这里沿用上一个对话我们写好的逻辑
-        val actual_we0 = Mux(!rob.io.commit_valid || rob.io.commit_waddr === 0.U, 0.U(4.W), Fill(4, rob.io.commit_we))
+        val actual_we0 = Mux(!rob.io.commit_valid || rob.io.commit@@_waddr === 0.U, 0.U(4.W), Fill(4, rob.io.commit_we))
         debug_wb_pc_0       := rob.io.commit_pc_out
         debug_wb_rf_we_0    := actual_we0
         debug_wb_rf_wnum_0  := rob.io.commit_waddr
@@ -658,3 +678,9 @@ class mycpu_top extends RawModule {
         debug_wb_rf_wdata_1 := rob.io.commit1_wdata
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: commit_waddr

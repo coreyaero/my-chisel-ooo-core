@@ -11,7 +11,7 @@ class DualFetchBuffer(depth: Int = 8) extends Module {
         val flush = Input(Bool())
         val in0   = Flipped(Decoupled(new PipelineData()))
         val in1   = Flipped(Decoupled(new PipelineData()))
-        val out   = new FetchQueueOut() // ★ 替换为双出接口
+        val out   = new FetchQueueOut()
     })
     
     val buffer = Reg(Vec(depth, new PipelineData()))
@@ -19,7 +19,6 @@ class DualFetchBuffer(depth: Int = 8) extends Module {
     val tail   = RegInit(0.U(log2Ceil(depth).W))
     val count  = RegInit(0.U((log2Ceil(depth) + 1).W))
 
-    // 只要有 2 个及以上的空位，就允许入队
     val in_ready = count <= (depth - 2).U
     io.in0.ready := in_ready
     io.in1.ready := in_ready
@@ -27,10 +26,8 @@ class DualFetchBuffer(depth: Int = 8) extends Module {
     val enq0 = io.in0.valid && io.in0.ready
     val enq1 = io.in1.valid && io.in1.ready
     
-
     def wrapAdd(ptr: UInt, add: UInt) = {
         val sum = ptr + add
-        // 强行截断，满足 Vec 的索引位宽要求，消除 W004 警告
         Mux(sum >= depth.U, sum - depth.U, sum)(log2Ceil(depth)-1, 0)
     }
 
@@ -42,20 +39,19 @@ class DualFetchBuffer(depth: Int = 8) extends Module {
     when(io.flush) {
         head := 0.U; tail := 0.U; count := 0.U
     } .otherwise {
-        // ★ 根据后级的消化能力动态弹栈
         head := wrapAdd(head, io.out.pop)
         
         val t0 = tail
         val t1 = wrapAdd(tail, 1.U)
         
-        // ★ 优化：在循环外统一进行 One-Hot 译码
         val t0_oh = UIntToOH(t0, depth)
         val t1_oh = UIntToOH(t1, depth)
         
-        // 将嵌套的 MUX 拍平为并行独立的 Write Enable
+        // ★ 核心手术点：解耦 Valid 与 CE 
+        // 只要队列未满，强制打开 CE 大门。Valid 信号仅用于控制指针的自增。
         for (i <- 0 until depth) {
-            val we0 = enq0 && t0_oh(i)
-            val we1 = enq1 && t1_oh(i)
+            val we0 = in_ready && t0_oh(i)
+            val we1 = in_ready && t1_oh(i)
             
             when(we0) {
                 buffer(i) := io.in0.bits
@@ -64,7 +60,6 @@ class DualFetchBuffer(depth: Int = 8) extends Module {
             }
         }
         
-        // ★ 第二刀：优化 count 计算，移除 AND 门
         val do_enq_cnt = Mux(enq1, 2.U, Mux(enq0, 1.U, 0.U))
         tail := wrapAdd(tail, do_enq_cnt)
         count := count + do_enq_cnt - io.out.pop

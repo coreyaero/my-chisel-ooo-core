@@ -873,8 +873,8 @@ module mycpu_top(
   wire         _ctrl_io_flush_id;
   wire         _reset_high_T = ~aresetn;
   wire         fetch_buffer_reset = _reset_high_T | _ctrl_io_flush_id;
-  wire         d0_valid = _disp_buf_io_out0_valid & ~_ctrl_io_flush_id;
-  wire         d1_valid = _disp_buf_io_out1_valid & ~_ctrl_io_flush_id;
+  wire         d0_valid = _disp_buf_io_out0_valid & ~_rob_io_wb_flush;
+  wire         d1_valid = _disp_buf_io_out1_valid & ~_rob_io_wb_flush;
   wire         need_lsq0 =
     _disp_buf_io_out0_bits_resFromMem | _disp_buf_io_out0_bits_memWe
     | _disp_buf_io_out0_bits_is_cacop;
