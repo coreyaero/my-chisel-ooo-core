@@ -6,7 +6,7 @@ module ALU(
   output [31:0] io_res
 );
 
-  wire        adderCin = io_aluOp[0] | io_aluOp[1] | io_aluOp[2] | io_aluOp[3];
+  wire        adderCin = io_aluOp[1] | io_aluOp[2] | io_aluOp[3];
   wire [32:0] _adderRes_T_1 =
     {1'h0, io_src1} + {1'h0, {32{adderCin}} ^ io_src2} + {32'h0, adderCin};
   wire [62:0] sllRes = {31'h0, io_src1} << io_src2[4:0];

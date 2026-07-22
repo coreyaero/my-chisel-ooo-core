@@ -150,6 +150,7 @@ class RenameEngine extends Module {
     // 状态流转控制
     // ==========================================
     val is_mispredict = io.br_resolve.valid && io.br_resolve.mispredict
+
     // ★ 核心修复：必须看到外面的 fire 信号（成功挤进 ROB/IQ），才允许消耗寄存器！
     val fire0 = io.dec0_fire && !is_mispredict
     val fire1 = io.dec1_fire && !is_mispredict
@@ -218,6 +219,16 @@ class RenameEngine extends Module {
         // 如果 dec0 是访存指令，它当拍一定占了一个坑，dec1 的快照必须算上它！
         snap_lsq_tail(br_tag1)  := io.current_lsq_tail + io.dec0_need_lsq.asUInt 
     }
+    // =========================================================================
+    // ★ 终极逻辑隔离：直接抓取纯寄存器 (snap_free)，彻底避开 ALU 与分配逻辑的纠缠！
+    // =========================================================================
+    val delayed_is_mispredict = RegNext(is_mispredict, false.B)
+    
+    // 手动组合纯寄存器 (snap_free) 和 极快的提交信号 (combined_commit_mask)
+    // 综合工具会立刻发现它跟 ALU 没有半毛钱关系，18级逻辑链瞬间斩断！
+    val delayed_snap_free     = RegNext(snap_free(res_tag) | combined_commit_mask)
+    val delayed_snap_mask     = RegNext(snap_mask(res_tag) & mask_clear_bit)
+    val delayed_snap_f_rat    = RegNext(snap_f_rat(res_tag))
 
     when(io.flush) {
         // 彻底丢掉难读的 Mux 和 undefined 的 do_commit。
@@ -225,11 +236,15 @@ class RenameEngine extends Module {
         for (i <- 0 until 32) { next_f_rat(i) := next_c_rat(i) } 
         spec_free_bits := next_commit_free 
         global_mask    := 0.U(4.W)
-    } .elsewhen(is_mispredict) {
-        for (i <- 0 until 32) { next_f_rat(i) := snap_f_rat(res_tag)(i) }
-        spec_free_bits := next_snap_free(res_tag) 
-        global_mask    := next_snap_mask(res_tag) 
+    } .elsewhen(delayed_is_mispredict) { // ★ 改为延迟一拍恢复
+        for (i <- 0 until 32) { next_f_rat(i) := delayed_snap_f_rat(i) }
+        // ★ delayed_snap_free 已经包含了 T 拍的 Commit，这里再 OR 上 T+1 拍的 Commit，绝不漏掉任何写回！
+        spec_free_bits := delayed_snap_free | combined_commit_mask 
+        // ★ 修复死锁：恢复快照的同时，必须扣除当拍可能正确解算的其他老分支的 Tag！
+        global_mask    := delayed_snap_mask & mask_clear_bit
     } .otherwise {
+        // ★ 在 T 拍 (is_mispredict 为高时)，因为 fire0/1 被压低，do_alloc 自动为 false
+        // 这里会自动安全地只执行 commit_mask 的清除，安全度过 T 拍！
         spec_free_bits := normal_spec_free
         global_mask    := current_clean_mask | mask_alloc0_bit | mask_alloc1_bit
     }

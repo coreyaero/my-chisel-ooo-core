@@ -632,10 +632,50 @@ module RenameEngine(
   wire             fire0 = io_dec0_fire & ~is_mispredict;
   wire             do_snap0 = fire0 & io_dec0_is_br;
   wire [6:0]       _mask_alloc0_bit_T = 7'h1 << br_tag0;
-  wire [3:0]       _global_mask_T =
+  wire [3:0]       _global_mask_T_1 =
     io_dec0_br_mask_0 | (do_snap0 ? _mask_alloc0_bit_T[3:0] : 4'h0);
   wire [3:0][3:0]  _GEN_3 =
     {{snap_lsq_tail_3}, {snap_lsq_tail_2}, {snap_lsq_tail_1}, {snap_lsq_tail_0}};
+  wire             do_commit0 = io_commit_valid & io_commit_we & (|io_commit_raddr);
+  wire             do_commit1 = io_commit1_valid & io_commit1_we & (|io_commit1_raddr);
+  wire [63:0]      combined_commit_mask =
+    (do_commit0 & (|io_commit_old_p) ? 64'h1 << io_commit_old_p : 64'h0)
+    | (do_commit1 & (|io_commit1_old_p) ? 64'h1 << io_commit1_old_p : 64'h0);
+  reg              delayed_is_mispredict;
+  reg  [63:0]      delayed_snap_free;
+  reg  [6:0]       delayed_snap_mask;
+  reg  [5:0]       delayed_snap_f_rat_0;
+  reg  [5:0]       delayed_snap_f_rat_1;
+  reg  [5:0]       delayed_snap_f_rat_2;
+  reg  [5:0]       delayed_snap_f_rat_3;
+  reg  [5:0]       delayed_snap_f_rat_4;
+  reg  [5:0]       delayed_snap_f_rat_5;
+  reg  [5:0]       delayed_snap_f_rat_6;
+  reg  [5:0]       delayed_snap_f_rat_7;
+  reg  [5:0]       delayed_snap_f_rat_8;
+  reg  [5:0]       delayed_snap_f_rat_9;
+  reg  [5:0]       delayed_snap_f_rat_10;
+  reg  [5:0]       delayed_snap_f_rat_11;
+  reg  [5:0]       delayed_snap_f_rat_12;
+  reg  [5:0]       delayed_snap_f_rat_13;
+  reg  [5:0]       delayed_snap_f_rat_14;
+  reg  [5:0]       delayed_snap_f_rat_15;
+  reg  [5:0]       delayed_snap_f_rat_16;
+  reg  [5:0]       delayed_snap_f_rat_17;
+  reg  [5:0]       delayed_snap_f_rat_18;
+  reg  [5:0]       delayed_snap_f_rat_19;
+  reg  [5:0]       delayed_snap_f_rat_20;
+  reg  [5:0]       delayed_snap_f_rat_21;
+  reg  [5:0]       delayed_snap_f_rat_22;
+  reg  [5:0]       delayed_snap_f_rat_23;
+  reg  [5:0]       delayed_snap_f_rat_24;
+  reg  [5:0]       delayed_snap_f_rat_25;
+  reg  [5:0]       delayed_snap_f_rat_26;
+  reg  [5:0]       delayed_snap_f_rat_27;
+  reg  [5:0]       delayed_snap_f_rat_28;
+  reg  [5:0]       delayed_snap_f_rat_29;
+  reg  [5:0]       delayed_snap_f_rat_30;
+  reg  [5:0]       delayed_snap_f_rat_31;
   always @(posedge clock or posedge reset) begin
     if (reset) begin
       f_rat_0 <= 6'h0;
@@ -845,299 +885,251 @@ module RenameEngine(
       snap_lsq_tail_1 <= 4'h0;
       snap_lsq_tail_2 <= 4'h0;
       snap_lsq_tail_3 <= 4'h0;
+      delayed_is_mispredict <= 1'h0;
     end
     else begin
-      automatic logic             fire1 = io_dec1_fire & ~is_mispredict;
-      automatic logic             do_alloc0 = fire0 & need_reg0;
-      automatic logic             do_alloc1 = fire1 & need_reg1;
-      automatic logic             do_snap1 = fire1 & io_dec1_is_br;
-      automatic logic             do_commit0 =
-        io_commit_valid & io_commit_we & (|io_commit_raddr);
-      automatic logic             do_commit1 =
-        io_commit1_valid & io_commit1_we & (|io_commit1_raddr);
-      automatic logic [63:0]      combined_commit_mask =
-        (do_commit0 & (|io_commit_old_p) ? 64'h1 << io_commit_old_p : 64'h0)
-        | (do_commit1 & (|io_commit1_old_p) ? 64'h1 << io_commit1_old_p : 64'h0);
-      automatic logic             _GEN_4;
-      automatic logic             _GEN_5;
-      automatic logic             _GEN_6;
-      automatic logic             _GEN_7;
-      automatic logic             _GEN_8;
-      automatic logic             _GEN_9;
-      automatic logic             _GEN_10;
-      automatic logic             _GEN_11;
-      automatic logic             _GEN_12;
-      automatic logic             _GEN_13;
-      automatic logic             _GEN_14;
-      automatic logic             _GEN_15;
-      automatic logic             _GEN_16;
-      automatic logic             _GEN_17;
-      automatic logic             _GEN_18;
-      automatic logic             _GEN_19;
-      automatic logic             _GEN_20;
-      automatic logic             _GEN_21;
-      automatic logic             _GEN_22;
-      automatic logic             _GEN_23;
-      automatic logic             _GEN_24;
-      automatic logic             _GEN_25;
-      automatic logic             _GEN_26;
-      automatic logic             _GEN_27;
-      automatic logic             _GEN_28;
-      automatic logic             _GEN_29;
-      automatic logic             _GEN_30;
-      automatic logic             _GEN_31;
-      automatic logic             _GEN_32;
-      automatic logic             _GEN_33;
-      automatic logic             _GEN_34;
-      automatic logic             _GEN_35;
-      automatic logic             _GEN_36 = do_commit1 & io_commit1_raddr == 5'h0;
-      automatic logic [5:0]       next_c_rat_0;
-      automatic logic             _GEN_37 = do_commit1 & io_commit1_raddr == 5'h1;
-      automatic logic [5:0]       next_c_rat_1;
-      automatic logic             _GEN_38 = do_commit1 & io_commit1_raddr == 5'h2;
-      automatic logic [5:0]       next_c_rat_2;
-      automatic logic             _GEN_39 = do_commit1 & io_commit1_raddr == 5'h3;
-      automatic logic [5:0]       next_c_rat_3;
-      automatic logic             _GEN_40 = do_commit1 & io_commit1_raddr == 5'h4;
-      automatic logic [5:0]       next_c_rat_4;
-      automatic logic             _GEN_41 = do_commit1 & io_commit1_raddr == 5'h5;
-      automatic logic [5:0]       next_c_rat_5;
-      automatic logic             _GEN_42 = do_commit1 & io_commit1_raddr == 5'h6;
-      automatic logic [5:0]       next_c_rat_6;
-      automatic logic             _GEN_43 = do_commit1 & io_commit1_raddr == 5'h7;
-      automatic logic [5:0]       next_c_rat_7;
-      automatic logic             _GEN_44 = do_commit1 & io_commit1_raddr == 5'h8;
-      automatic logic [5:0]       next_c_rat_8;
-      automatic logic             _GEN_45 = do_commit1 & io_commit1_raddr == 5'h9;
-      automatic logic [5:0]       next_c_rat_9;
-      automatic logic             _GEN_46 = do_commit1 & io_commit1_raddr == 5'hA;
-      automatic logic [5:0]       next_c_rat_10;
-      automatic logic             _GEN_47 = do_commit1 & io_commit1_raddr == 5'hB;
-      automatic logic [5:0]       next_c_rat_11;
-      automatic logic             _GEN_48 = do_commit1 & io_commit1_raddr == 5'hC;
-      automatic logic [5:0]       next_c_rat_12;
-      automatic logic             _GEN_49 = do_commit1 & io_commit1_raddr == 5'hD;
-      automatic logic [5:0]       next_c_rat_13;
-      automatic logic             _GEN_50 = do_commit1 & io_commit1_raddr == 5'hE;
-      automatic logic [5:0]       next_c_rat_14;
-      automatic logic             _GEN_51 = do_commit1 & io_commit1_raddr == 5'hF;
-      automatic logic [5:0]       next_c_rat_15;
-      automatic logic             _GEN_52 = do_commit1 & io_commit1_raddr == 5'h10;
-      automatic logic [5:0]       next_c_rat_16;
-      automatic logic             _GEN_53 = do_commit1 & io_commit1_raddr == 5'h11;
-      automatic logic [5:0]       next_c_rat_17;
-      automatic logic             _GEN_54 = do_commit1 & io_commit1_raddr == 5'h12;
-      automatic logic [5:0]       next_c_rat_18;
-      automatic logic             _GEN_55 = do_commit1 & io_commit1_raddr == 5'h13;
-      automatic logic [5:0]       next_c_rat_19;
-      automatic logic             _GEN_56 = do_commit1 & io_commit1_raddr == 5'h14;
-      automatic logic [5:0]       next_c_rat_20;
-      automatic logic             _GEN_57 = do_commit1 & io_commit1_raddr == 5'h15;
-      automatic logic [5:0]       next_c_rat_21;
-      automatic logic             _GEN_58 = do_commit1 & io_commit1_raddr == 5'h16;
-      automatic logic [5:0]       next_c_rat_22;
-      automatic logic             _GEN_59 = do_commit1 & io_commit1_raddr == 5'h17;
-      automatic logic [5:0]       next_c_rat_23;
-      automatic logic             _GEN_60 = do_commit1 & io_commit1_raddr == 5'h18;
-      automatic logic [5:0]       next_c_rat_24;
-      automatic logic             _GEN_61 = do_commit1 & io_commit1_raddr == 5'h19;
-      automatic logic [5:0]       next_c_rat_25;
-      automatic logic             _GEN_62 = do_commit1 & io_commit1_raddr == 5'h1A;
-      automatic logic [5:0]       next_c_rat_26;
-      automatic logic             _GEN_63 = do_commit1 & io_commit1_raddr == 5'h1B;
-      automatic logic [5:0]       next_c_rat_27;
-      automatic logic             _GEN_64 = do_commit1 & io_commit1_raddr == 5'h1C;
-      automatic logic [5:0]       next_c_rat_28;
-      automatic logic             _GEN_65 = do_commit1 & io_commit1_raddr == 5'h1D;
-      automatic logic [5:0]       next_c_rat_29;
-      automatic logic             _GEN_66 = do_commit1 & io_commit1_raddr == 5'h1E;
-      automatic logic [5:0]       next_c_rat_30;
-      automatic logic             _GEN_67 = do_commit1 & (&io_commit1_raddr);
-      automatic logic [5:0]       next_c_rat_31;
-      automatic logic             _GEN_68;
-      automatic logic             _GEN_69;
-      automatic logic             _GEN_70;
-      automatic logic             _GEN_71;
-      automatic logic             _GEN_72;
-      automatic logic             _GEN_73;
-      automatic logic             _GEN_74;
-      automatic logic             _GEN_75;
-      automatic logic             _GEN_76;
-      automatic logic             _GEN_77;
-      automatic logic             _GEN_78;
-      automatic logic             _GEN_79;
-      automatic logic             _GEN_80;
-      automatic logic             _GEN_81;
-      automatic logic             _GEN_82;
-      automatic logic             _GEN_83;
-      automatic logic             _GEN_84;
-      automatic logic             _GEN_85;
-      automatic logic             _GEN_86;
-      automatic logic             _GEN_87;
-      automatic logic             _GEN_88;
-      automatic logic             _GEN_89;
-      automatic logic             _GEN_90;
-      automatic logic             _GEN_91;
-      automatic logic             _GEN_92;
-      automatic logic             _GEN_93;
-      automatic logic             _GEN_94;
-      automatic logic             _GEN_95;
-      automatic logic             _GEN_96;
-      automatic logic             _GEN_97;
-      automatic logic             _GEN_98;
-      automatic logic             _GEN_99;
-      automatic logic             _GEN_100;
-      automatic logic [5:0]       _GEN_101;
-      automatic logic             _GEN_102;
-      automatic logic [5:0]       _GEN_103;
-      automatic logic             _GEN_104;
-      automatic logic [5:0]       _GEN_105;
-      automatic logic             _GEN_106;
-      automatic logic [5:0]       _GEN_107;
-      automatic logic             _GEN_108;
-      automatic logic [5:0]       _GEN_109;
-      automatic logic             _GEN_110;
-      automatic logic [5:0]       _GEN_111;
-      automatic logic             _GEN_112;
-      automatic logic [5:0]       _GEN_113;
-      automatic logic             _GEN_114;
-      automatic logic [5:0]       _GEN_115;
-      automatic logic             _GEN_116;
-      automatic logic [5:0]       _GEN_117;
-      automatic logic             _GEN_118;
-      automatic logic [5:0]       _GEN_119;
-      automatic logic             _GEN_120;
-      automatic logic [5:0]       _GEN_121;
-      automatic logic             _GEN_122;
-      automatic logic [5:0]       _GEN_123;
-      automatic logic             _GEN_124;
-      automatic logic [5:0]       _GEN_125;
-      automatic logic             _GEN_126;
-      automatic logic [5:0]       _GEN_127;
-      automatic logic             _GEN_128;
-      automatic logic [5:0]       _GEN_129;
-      automatic logic             _GEN_130;
-      automatic logic [5:0]       _GEN_131;
-      automatic logic             _GEN_132;
-      automatic logic [5:0]       _GEN_133;
-      automatic logic             _GEN_134;
-      automatic logic [5:0]       _GEN_135;
-      automatic logic             _GEN_136;
-      automatic logic [5:0]       _GEN_137;
-      automatic logic             _GEN_138;
-      automatic logic [5:0]       _GEN_139;
-      automatic logic             _GEN_140;
-      automatic logic [5:0]       _GEN_141;
-      automatic logic             _GEN_142;
-      automatic logic [5:0]       _GEN_143;
-      automatic logic             _GEN_144;
-      automatic logic [5:0]       _GEN_145;
-      automatic logic             _GEN_146;
-      automatic logic [5:0]       _GEN_147;
-      automatic logic             _GEN_148;
-      automatic logic [5:0]       _GEN_149;
-      automatic logic             _GEN_150;
-      automatic logic [5:0]       _GEN_151;
-      automatic logic             _GEN_152;
-      automatic logic [5:0]       _GEN_153;
-      automatic logic             _GEN_154;
-      automatic logic [5:0]       _GEN_155;
-      automatic logic             _GEN_156;
-      automatic logic [5:0]       _GEN_157;
-      automatic logic             _GEN_158;
-      automatic logic [5:0]       _GEN_159;
-      automatic logic             _GEN_160;
-      automatic logic [5:0]       _GEN_161;
-      automatic logic             _GEN_162;
-      automatic logic [5:0]       _GEN_163;
-      automatic logic [63:0]      _next_snap_free_T;
-      automatic logic [63:0]      normal_spec_free;
-      automatic logic [63:0]      next_commit_free;
-      automatic logic [5:0]       snap0_f_0;
-      automatic logic [5:0]       snap0_f_1;
-      automatic logic [5:0]       snap0_f_2;
-      automatic logic [5:0]       snap0_f_3;
-      automatic logic [5:0]       snap0_f_4;
-      automatic logic [5:0]       snap0_f_5;
-      automatic logic [5:0]       snap0_f_6;
-      automatic logic [5:0]       snap0_f_7;
-      automatic logic [5:0]       snap0_f_8;
-      automatic logic [5:0]       snap0_f_9;
-      automatic logic [5:0]       snap0_f_10;
-      automatic logic [5:0]       snap0_f_11;
-      automatic logic [5:0]       snap0_f_12;
-      automatic logic [5:0]       snap0_f_13;
-      automatic logic [5:0]       snap0_f_14;
-      automatic logic [5:0]       snap0_f_15;
-      automatic logic [5:0]       snap0_f_16;
-      automatic logic [5:0]       snap0_f_17;
-      automatic logic [5:0]       snap0_f_18;
-      automatic logic [5:0]       snap0_f_19;
-      automatic logic [5:0]       snap0_f_20;
-      automatic logic [5:0]       snap0_f_21;
-      automatic logic [5:0]       snap0_f_22;
-      automatic logic [5:0]       snap0_f_23;
-      automatic logic [5:0]       snap0_f_24;
-      automatic logic [5:0]       snap0_f_25;
-      automatic logic [5:0]       snap0_f_26;
-      automatic logic [5:0]       snap0_f_27;
-      automatic logic [5:0]       snap0_f_28;
-      automatic logic [5:0]       snap0_f_29;
-      automatic logic [5:0]       snap0_f_30;
-      automatic logic [5:0]       snap0_f_31;
-      automatic logic             _GEN_164;
-      automatic logic             _GEN_165;
-      automatic logic             _GEN_166;
-      automatic logic             _GEN_167;
-      automatic logic [63:0]      _next_snap_free_T_1;
-      automatic logic             _GEN_168 = do_snap1 & br_tag1 == 2'h0;
-      automatic logic             _GEN_169 = do_snap1 & br_tag1 == 2'h1;
-      automatic logic             _GEN_170 = do_snap1 & br_tag1 == 2'h2;
-      automatic logic             _GEN_171 = do_snap1 & (&br_tag1);
-      automatic logic [63:0]      next_snap_free_0;
-      automatic logic [63:0]      next_snap_free_1;
-      automatic logic [63:0]      next_snap_free_2;
-      automatic logic [63:0]      next_snap_free_3;
-      automatic logic [3:0]       next_snap_mask_0;
-      automatic logic [3:0]       next_snap_mask_1;
-      automatic logic [3:0]       next_snap_mask_2;
-      automatic logic [3:0]       next_snap_mask_3;
-      automatic logic [3:0]       _snap_lsq_tail_T;
-      automatic logic [3:0][5:0]  _GEN_172;
-      automatic logic [3:0][5:0]  _GEN_173;
-      automatic logic [3:0][5:0]  _GEN_174;
-      automatic logic [3:0][5:0]  _GEN_175;
-      automatic logic [3:0][5:0]  _GEN_176;
-      automatic logic [3:0][5:0]  _GEN_177;
-      automatic logic [3:0][5:0]  _GEN_178;
-      automatic logic [3:0][5:0]  _GEN_179;
-      automatic logic [3:0][5:0]  _GEN_180;
-      automatic logic [3:0][5:0]  _GEN_181;
-      automatic logic [3:0][5:0]  _GEN_182;
-      automatic logic [3:0][5:0]  _GEN_183;
-      automatic logic [3:0][5:0]  _GEN_184;
-      automatic logic [3:0][5:0]  _GEN_185;
-      automatic logic [3:0][5:0]  _GEN_186;
-      automatic logic [3:0][5:0]  _GEN_187;
-      automatic logic [3:0][5:0]  _GEN_188;
-      automatic logic [3:0][5:0]  _GEN_189;
-      automatic logic [3:0][5:0]  _GEN_190;
-      automatic logic [3:0][5:0]  _GEN_191;
-      automatic logic [3:0][5:0]  _GEN_192;
-      automatic logic [3:0][5:0]  _GEN_193;
-      automatic logic [3:0][5:0]  _GEN_194;
-      automatic logic [3:0][5:0]  _GEN_195;
-      automatic logic [3:0][5:0]  _GEN_196;
-      automatic logic [3:0][5:0]  _GEN_197;
-      automatic logic [3:0][5:0]  _GEN_198;
-      automatic logic [3:0][5:0]  _GEN_199;
-      automatic logic [3:0][5:0]  _GEN_200;
-      automatic logic [3:0][5:0]  _GEN_201;
-      automatic logic [3:0][5:0]  _GEN_202;
-      automatic logic [3:0][5:0]  _GEN_203;
-      automatic logic [3:0][63:0] _GEN_204;
-      automatic logic [6:0]       _mask_alloc1_bit_T = 7'h1 << br_tag1;
-      automatic logic [3:0][3:0]  _GEN_205;
+      automatic logic        fire1 = io_dec1_fire & ~is_mispredict;
+      automatic logic        do_alloc0 = fire0 & need_reg0;
+      automatic logic        do_alloc1 = fire1 & need_reg1;
+      automatic logic        do_snap1 = fire1 & io_dec1_is_br;
+      automatic logic        _GEN_4;
+      automatic logic        _GEN_5;
+      automatic logic        _GEN_6;
+      automatic logic        _GEN_7;
+      automatic logic        _GEN_8;
+      automatic logic        _GEN_9;
+      automatic logic        _GEN_10;
+      automatic logic        _GEN_11;
+      automatic logic        _GEN_12;
+      automatic logic        _GEN_13;
+      automatic logic        _GEN_14;
+      automatic logic        _GEN_15;
+      automatic logic        _GEN_16;
+      automatic logic        _GEN_17;
+      automatic logic        _GEN_18;
+      automatic logic        _GEN_19;
+      automatic logic        _GEN_20;
+      automatic logic        _GEN_21;
+      automatic logic        _GEN_22;
+      automatic logic        _GEN_23;
+      automatic logic        _GEN_24;
+      automatic logic        _GEN_25;
+      automatic logic        _GEN_26;
+      automatic logic        _GEN_27;
+      automatic logic        _GEN_28;
+      automatic logic        _GEN_29;
+      automatic logic        _GEN_30;
+      automatic logic        _GEN_31;
+      automatic logic        _GEN_32;
+      automatic logic        _GEN_33;
+      automatic logic        _GEN_34;
+      automatic logic        _GEN_35;
+      automatic logic        _GEN_36 = do_commit1 & io_commit1_raddr == 5'h0;
+      automatic logic [5:0]  next_c_rat_0;
+      automatic logic        _GEN_37 = do_commit1 & io_commit1_raddr == 5'h1;
+      automatic logic [5:0]  next_c_rat_1;
+      automatic logic        _GEN_38 = do_commit1 & io_commit1_raddr == 5'h2;
+      automatic logic [5:0]  next_c_rat_2;
+      automatic logic        _GEN_39 = do_commit1 & io_commit1_raddr == 5'h3;
+      automatic logic [5:0]  next_c_rat_3;
+      automatic logic        _GEN_40 = do_commit1 & io_commit1_raddr == 5'h4;
+      automatic logic [5:0]  next_c_rat_4;
+      automatic logic        _GEN_41 = do_commit1 & io_commit1_raddr == 5'h5;
+      automatic logic [5:0]  next_c_rat_5;
+      automatic logic        _GEN_42 = do_commit1 & io_commit1_raddr == 5'h6;
+      automatic logic [5:0]  next_c_rat_6;
+      automatic logic        _GEN_43 = do_commit1 & io_commit1_raddr == 5'h7;
+      automatic logic [5:0]  next_c_rat_7;
+      automatic logic        _GEN_44 = do_commit1 & io_commit1_raddr == 5'h8;
+      automatic logic [5:0]  next_c_rat_8;
+      automatic logic        _GEN_45 = do_commit1 & io_commit1_raddr == 5'h9;
+      automatic logic [5:0]  next_c_rat_9;
+      automatic logic        _GEN_46 = do_commit1 & io_commit1_raddr == 5'hA;
+      automatic logic [5:0]  next_c_rat_10;
+      automatic logic        _GEN_47 = do_commit1 & io_commit1_raddr == 5'hB;
+      automatic logic [5:0]  next_c_rat_11;
+      automatic logic        _GEN_48 = do_commit1 & io_commit1_raddr == 5'hC;
+      automatic logic [5:0]  next_c_rat_12;
+      automatic logic        _GEN_49 = do_commit1 & io_commit1_raddr == 5'hD;
+      automatic logic [5:0]  next_c_rat_13;
+      automatic logic        _GEN_50 = do_commit1 & io_commit1_raddr == 5'hE;
+      automatic logic [5:0]  next_c_rat_14;
+      automatic logic        _GEN_51 = do_commit1 & io_commit1_raddr == 5'hF;
+      automatic logic [5:0]  next_c_rat_15;
+      automatic logic        _GEN_52 = do_commit1 & io_commit1_raddr == 5'h10;
+      automatic logic [5:0]  next_c_rat_16;
+      automatic logic        _GEN_53 = do_commit1 & io_commit1_raddr == 5'h11;
+      automatic logic [5:0]  next_c_rat_17;
+      automatic logic        _GEN_54 = do_commit1 & io_commit1_raddr == 5'h12;
+      automatic logic [5:0]  next_c_rat_18;
+      automatic logic        _GEN_55 = do_commit1 & io_commit1_raddr == 5'h13;
+      automatic logic [5:0]  next_c_rat_19;
+      automatic logic        _GEN_56 = do_commit1 & io_commit1_raddr == 5'h14;
+      automatic logic [5:0]  next_c_rat_20;
+      automatic logic        _GEN_57 = do_commit1 & io_commit1_raddr == 5'h15;
+      automatic logic [5:0]  next_c_rat_21;
+      automatic logic        _GEN_58 = do_commit1 & io_commit1_raddr == 5'h16;
+      automatic logic [5:0]  next_c_rat_22;
+      automatic logic        _GEN_59 = do_commit1 & io_commit1_raddr == 5'h17;
+      automatic logic [5:0]  next_c_rat_23;
+      automatic logic        _GEN_60 = do_commit1 & io_commit1_raddr == 5'h18;
+      automatic logic [5:0]  next_c_rat_24;
+      automatic logic        _GEN_61 = do_commit1 & io_commit1_raddr == 5'h19;
+      automatic logic [5:0]  next_c_rat_25;
+      automatic logic        _GEN_62 = do_commit1 & io_commit1_raddr == 5'h1A;
+      automatic logic [5:0]  next_c_rat_26;
+      automatic logic        _GEN_63 = do_commit1 & io_commit1_raddr == 5'h1B;
+      automatic logic [5:0]  next_c_rat_27;
+      automatic logic        _GEN_64 = do_commit1 & io_commit1_raddr == 5'h1C;
+      automatic logic [5:0]  next_c_rat_28;
+      automatic logic        _GEN_65 = do_commit1 & io_commit1_raddr == 5'h1D;
+      automatic logic [5:0]  next_c_rat_29;
+      automatic logic        _GEN_66 = do_commit1 & io_commit1_raddr == 5'h1E;
+      automatic logic [5:0]  next_c_rat_30;
+      automatic logic        _GEN_67 = do_commit1 & (&io_commit1_raddr);
+      automatic logic [5:0]  next_c_rat_31;
+      automatic logic        _GEN_68;
+      automatic logic        _GEN_69;
+      automatic logic        _GEN_70;
+      automatic logic        _GEN_71;
+      automatic logic        _GEN_72;
+      automatic logic        _GEN_73;
+      automatic logic        _GEN_74;
+      automatic logic        _GEN_75;
+      automatic logic        _GEN_76;
+      automatic logic        _GEN_77;
+      automatic logic        _GEN_78;
+      automatic logic        _GEN_79;
+      automatic logic        _GEN_80;
+      automatic logic        _GEN_81;
+      automatic logic        _GEN_82;
+      automatic logic        _GEN_83;
+      automatic logic        _GEN_84;
+      automatic logic        _GEN_85;
+      automatic logic        _GEN_86;
+      automatic logic        _GEN_87;
+      automatic logic        _GEN_88;
+      automatic logic        _GEN_89;
+      automatic logic        _GEN_90;
+      automatic logic        _GEN_91;
+      automatic logic        _GEN_92;
+      automatic logic        _GEN_93;
+      automatic logic        _GEN_94;
+      automatic logic        _GEN_95;
+      automatic logic        _GEN_96;
+      automatic logic        _GEN_97;
+      automatic logic        _GEN_98;
+      automatic logic        _GEN_99;
+      automatic logic        _GEN_100;
+      automatic logic        _GEN_101;
+      automatic logic        _GEN_102;
+      automatic logic        _GEN_103;
+      automatic logic        _GEN_104;
+      automatic logic        _GEN_105;
+      automatic logic        _GEN_106;
+      automatic logic        _GEN_107;
+      automatic logic        _GEN_108;
+      automatic logic        _GEN_109;
+      automatic logic        _GEN_110;
+      automatic logic        _GEN_111;
+      automatic logic        _GEN_112;
+      automatic logic        _GEN_113;
+      automatic logic        _GEN_114;
+      automatic logic        _GEN_115;
+      automatic logic        _GEN_116;
+      automatic logic        _GEN_117;
+      automatic logic        _GEN_118;
+      automatic logic        _GEN_119;
+      automatic logic        _GEN_120;
+      automatic logic        _GEN_121;
+      automatic logic        _GEN_122;
+      automatic logic        _GEN_123;
+      automatic logic        _GEN_124;
+      automatic logic        _GEN_125;
+      automatic logic        _GEN_126;
+      automatic logic        _GEN_127;
+      automatic logic        _GEN_128;
+      automatic logic        _GEN_129;
+      automatic logic        _GEN_130;
+      automatic logic        _GEN_131;
+      automatic logic [63:0] _next_snap_free_T;
+      automatic logic [63:0] normal_spec_free;
+      automatic logic [63:0] next_commit_free;
+      automatic logic [5:0]  snap0_f_0;
+      automatic logic [5:0]  snap0_f_1;
+      automatic logic [5:0]  snap0_f_2;
+      automatic logic [5:0]  snap0_f_3;
+      automatic logic [5:0]  snap0_f_4;
+      automatic logic [5:0]  snap0_f_5;
+      automatic logic [5:0]  snap0_f_6;
+      automatic logic [5:0]  snap0_f_7;
+      automatic logic [5:0]  snap0_f_8;
+      automatic logic [5:0]  snap0_f_9;
+      automatic logic [5:0]  snap0_f_10;
+      automatic logic [5:0]  snap0_f_11;
+      automatic logic [5:0]  snap0_f_12;
+      automatic logic [5:0]  snap0_f_13;
+      automatic logic [5:0]  snap0_f_14;
+      automatic logic [5:0]  snap0_f_15;
+      automatic logic [5:0]  snap0_f_16;
+      automatic logic [5:0]  snap0_f_17;
+      automatic logic [5:0]  snap0_f_18;
+      automatic logic [5:0]  snap0_f_19;
+      automatic logic [5:0]  snap0_f_20;
+      automatic logic [5:0]  snap0_f_21;
+      automatic logic [5:0]  snap0_f_22;
+      automatic logic [5:0]  snap0_f_23;
+      automatic logic [5:0]  snap0_f_24;
+      automatic logic [5:0]  snap0_f_25;
+      automatic logic [5:0]  snap0_f_26;
+      automatic logic [5:0]  snap0_f_27;
+      automatic logic [5:0]  snap0_f_28;
+      automatic logic [5:0]  snap0_f_29;
+      automatic logic [5:0]  snap0_f_30;
+      automatic logic [5:0]  snap0_f_31;
+      automatic logic        _GEN_132;
+      automatic logic        _GEN_133;
+      automatic logic        _GEN_134;
+      automatic logic        _GEN_135;
+      automatic logic [63:0] _next_snap_free_T_1;
+      automatic logic        _GEN_136 = do_snap1 & br_tag1 == 2'h0;
+      automatic logic        _GEN_137 = do_snap1 & br_tag1 == 2'h1;
+      automatic logic        _GEN_138 = do_snap1 & br_tag1 == 2'h2;
+      automatic logic        _GEN_139 = do_snap1 & (&br_tag1);
+      automatic logic [3:0]  _snap_lsq_tail_T;
+      automatic logic [5:0]  next_f_rat_0;
+      automatic logic [5:0]  next_f_rat_1;
+      automatic logic [5:0]  next_f_rat_2;
+      automatic logic [5:0]  next_f_rat_3;
+      automatic logic [5:0]  next_f_rat_4;
+      automatic logic [5:0]  next_f_rat_5;
+      automatic logic [5:0]  next_f_rat_6;
+      automatic logic [5:0]  next_f_rat_7;
+      automatic logic [5:0]  next_f_rat_8;
+      automatic logic [5:0]  next_f_rat_9;
+      automatic logic [5:0]  next_f_rat_10;
+      automatic logic [5:0]  next_f_rat_11;
+      automatic logic [5:0]  next_f_rat_12;
+      automatic logic [5:0]  next_f_rat_13;
+      automatic logic [5:0]  next_f_rat_14;
+      automatic logic [5:0]  next_f_rat_15;
+      automatic logic [5:0]  next_f_rat_16;
+      automatic logic [5:0]  next_f_rat_17;
+      automatic logic [5:0]  next_f_rat_18;
+      automatic logic [5:0]  next_f_rat_19;
+      automatic logic [5:0]  next_f_rat_20;
+      automatic logic [5:0]  next_f_rat_21;
+      automatic logic [5:0]  next_f_rat_22;
+      automatic logic [5:0]  next_f_rat_23;
+      automatic logic [5:0]  next_f_rat_24;
+      automatic logic [5:0]  next_f_rat_25;
+      automatic logic [5:0]  next_f_rat_26;
+      automatic logic [5:0]  next_f_rat_27;
+      automatic logic [5:0]  next_f_rat_28;
+      automatic logic [5:0]  next_f_rat_29;
+      automatic logic [5:0]  next_f_rat_30;
+      automatic logic [5:0]  next_f_rat_31;
+      automatic logic [6:0]  _mask_alloc1_bit_T = 7'h1 << br_tag1;
       _GEN_4 = do_commit0 & io_commit_raddr == 5'h0;
       _GEN_5 = do_commit0 & io_commit_raddr == 5'h1;
       _GEN_6 = do_commit0 & io_commit_raddr == 5'h2;
@@ -1235,69 +1227,37 @@ module RenameEngine(
       _GEN_98 = do_alloc0 & io_dec0_waddr == 5'h1E;
       _GEN_99 = do_alloc0 & (&io_dec0_waddr);
       _GEN_100 = do_alloc1 & io_dec1_waddr == 5'h0;
-      _GEN_101 = _GEN_100 ? pdest1 : _GEN_68 ? pdest0 : f_rat_0;
-      _GEN_102 = do_alloc1 & io_dec1_waddr == 5'h1;
-      _GEN_103 = _GEN_102 ? pdest1 : _GEN_69 ? pdest0 : f_rat_1;
-      _GEN_104 = do_alloc1 & io_dec1_waddr == 5'h2;
-      _GEN_105 = _GEN_104 ? pdest1 : _GEN_70 ? pdest0 : f_rat_2;
-      _GEN_106 = do_alloc1 & io_dec1_waddr == 5'h3;
-      _GEN_107 = _GEN_106 ? pdest1 : _GEN_71 ? pdest0 : f_rat_3;
-      _GEN_108 = do_alloc1 & io_dec1_waddr == 5'h4;
-      _GEN_109 = _GEN_108 ? pdest1 : _GEN_72 ? pdest0 : f_rat_4;
-      _GEN_110 = do_alloc1 & io_dec1_waddr == 5'h5;
-      _GEN_111 = _GEN_110 ? pdest1 : _GEN_73 ? pdest0 : f_rat_5;
-      _GEN_112 = do_alloc1 & io_dec1_waddr == 5'h6;
-      _GEN_113 = _GEN_112 ? pdest1 : _GEN_74 ? pdest0 : f_rat_6;
-      _GEN_114 = do_alloc1 & io_dec1_waddr == 5'h7;
-      _GEN_115 = _GEN_114 ? pdest1 : _GEN_75 ? pdest0 : f_rat_7;
-      _GEN_116 = do_alloc1 & io_dec1_waddr == 5'h8;
-      _GEN_117 = _GEN_116 ? pdest1 : _GEN_76 ? pdest0 : f_rat_8;
-      _GEN_118 = do_alloc1 & io_dec1_waddr == 5'h9;
-      _GEN_119 = _GEN_118 ? pdest1 : _GEN_77 ? pdest0 : f_rat_9;
-      _GEN_120 = do_alloc1 & io_dec1_waddr == 5'hA;
-      _GEN_121 = _GEN_120 ? pdest1 : _GEN_78 ? pdest0 : f_rat_10;
-      _GEN_122 = do_alloc1 & io_dec1_waddr == 5'hB;
-      _GEN_123 = _GEN_122 ? pdest1 : _GEN_79 ? pdest0 : f_rat_11;
-      _GEN_124 = do_alloc1 & io_dec1_waddr == 5'hC;
-      _GEN_125 = _GEN_124 ? pdest1 : _GEN_80 ? pdest0 : f_rat_12;
-      _GEN_126 = do_alloc1 & io_dec1_waddr == 5'hD;
-      _GEN_127 = _GEN_126 ? pdest1 : _GEN_81 ? pdest0 : f_rat_13;
-      _GEN_128 = do_alloc1 & io_dec1_waddr == 5'hE;
-      _GEN_129 = _GEN_128 ? pdest1 : _GEN_82 ? pdest0 : f_rat_14;
-      _GEN_130 = do_alloc1 & io_dec1_waddr == 5'hF;
-      _GEN_131 = _GEN_130 ? pdest1 : _GEN_83 ? pdest0 : f_rat_15;
-      _GEN_132 = do_alloc1 & io_dec1_waddr == 5'h10;
-      _GEN_133 = _GEN_132 ? pdest1 : _GEN_84 ? pdest0 : f_rat_16;
-      _GEN_134 = do_alloc1 & io_dec1_waddr == 5'h11;
-      _GEN_135 = _GEN_134 ? pdest1 : _GEN_85 ? pdest0 : f_rat_17;
-      _GEN_136 = do_alloc1 & io_dec1_waddr == 5'h12;
-      _GEN_137 = _GEN_136 ? pdest1 : _GEN_86 ? pdest0 : f_rat_18;
-      _GEN_138 = do_alloc1 & io_dec1_waddr == 5'h13;
-      _GEN_139 = _GEN_138 ? pdest1 : _GEN_87 ? pdest0 : f_rat_19;
-      _GEN_140 = do_alloc1 & io_dec1_waddr == 5'h14;
-      _GEN_141 = _GEN_140 ? pdest1 : _GEN_88 ? pdest0 : f_rat_20;
-      _GEN_142 = do_alloc1 & io_dec1_waddr == 5'h15;
-      _GEN_143 = _GEN_142 ? pdest1 : _GEN_89 ? pdest0 : f_rat_21;
-      _GEN_144 = do_alloc1 & io_dec1_waddr == 5'h16;
-      _GEN_145 = _GEN_144 ? pdest1 : _GEN_90 ? pdest0 : f_rat_22;
-      _GEN_146 = do_alloc1 & io_dec1_waddr == 5'h17;
-      _GEN_147 = _GEN_146 ? pdest1 : _GEN_91 ? pdest0 : f_rat_23;
-      _GEN_148 = do_alloc1 & io_dec1_waddr == 5'h18;
-      _GEN_149 = _GEN_148 ? pdest1 : _GEN_92 ? pdest0 : f_rat_24;
-      _GEN_150 = do_alloc1 & io_dec1_waddr == 5'h19;
-      _GEN_151 = _GEN_150 ? pdest1 : _GEN_93 ? pdest0 : f_rat_25;
-      _GEN_152 = do_alloc1 & io_dec1_waddr == 5'h1A;
-      _GEN_153 = _GEN_152 ? pdest1 : _GEN_94 ? pdest0 : f_rat_26;
-      _GEN_154 = do_alloc1 & io_dec1_waddr == 5'h1B;
-      _GEN_155 = _GEN_154 ? pdest1 : _GEN_95 ? pdest0 : f_rat_27;
-      _GEN_156 = do_alloc1 & io_dec1_waddr == 5'h1C;
-      _GEN_157 = _GEN_156 ? pdest1 : _GEN_96 ? pdest0 : f_rat_28;
-      _GEN_158 = do_alloc1 & io_dec1_waddr == 5'h1D;
-      _GEN_159 = _GEN_158 ? pdest1 : _GEN_97 ? pdest0 : f_rat_29;
-      _GEN_160 = do_alloc1 & io_dec1_waddr == 5'h1E;
-      _GEN_161 = _GEN_160 ? pdest1 : _GEN_98 ? pdest0 : f_rat_30;
-      _GEN_162 = do_alloc1 & (&io_dec1_waddr);
-      _GEN_163 = _GEN_162 ? pdest1 : _GEN_99 ? pdest0 : f_rat_31;
+      _GEN_101 = do_alloc1 & io_dec1_waddr == 5'h1;
+      _GEN_102 = do_alloc1 & io_dec1_waddr == 5'h2;
+      _GEN_103 = do_alloc1 & io_dec1_waddr == 5'h3;
+      _GEN_104 = do_alloc1 & io_dec1_waddr == 5'h4;
+      _GEN_105 = do_alloc1 & io_dec1_waddr == 5'h5;
+      _GEN_106 = do_alloc1 & io_dec1_waddr == 5'h6;
+      _GEN_107 = do_alloc1 & io_dec1_waddr == 5'h7;
+      _GEN_108 = do_alloc1 & io_dec1_waddr == 5'h8;
+      _GEN_109 = do_alloc1 & io_dec1_waddr == 5'h9;
+      _GEN_110 = do_alloc1 & io_dec1_waddr == 5'hA;
+      _GEN_111 = do_alloc1 & io_dec1_waddr == 5'hB;
+      _GEN_112 = do_alloc1 & io_dec1_waddr == 5'hC;
+      _GEN_113 = do_alloc1 & io_dec1_waddr == 5'hD;
+      _GEN_114 = do_alloc1 & io_dec1_waddr == 5'hE;
+      _GEN_115 = do_alloc1 & io_dec1_waddr == 5'hF;
+      _GEN_116 = do_alloc1 & io_dec1_waddr == 5'h10;
+      _GEN_117 = do_alloc1 & io_dec1_waddr == 5'h11;
+      _GEN_118 = do_alloc1 & io_dec1_waddr == 5'h12;
+      _GEN_119 = do_alloc1 & io_dec1_waddr == 5'h13;
+      _GEN_120 = do_alloc1 & io_dec1_waddr == 5'h14;
+      _GEN_121 = do_alloc1 & io_dec1_waddr == 5'h15;
+      _GEN_122 = do_alloc1 & io_dec1_waddr == 5'h16;
+      _GEN_123 = do_alloc1 & io_dec1_waddr == 5'h17;
+      _GEN_124 = do_alloc1 & io_dec1_waddr == 5'h18;
+      _GEN_125 = do_alloc1 & io_dec1_waddr == 5'h19;
+      _GEN_126 = do_alloc1 & io_dec1_waddr == 5'h1A;
+      _GEN_127 = do_alloc1 & io_dec1_waddr == 5'h1B;
+      _GEN_128 = do_alloc1 & io_dec1_waddr == 5'h1C;
+      _GEN_129 = do_alloc1 & io_dec1_waddr == 5'h1D;
+      _GEN_130 = do_alloc1 & io_dec1_waddr == 5'h1E;
+      _GEN_131 = do_alloc1 & (&io_dec1_waddr);
       _next_snap_free_T = spec_free_bits & ~({64{do_alloc0}} & 64'h1 << pdest0);
       normal_spec_free =
         _next_snap_free_T & ~({64{do_alloc1}} & 64'h1 << pdest1) | combined_commit_mask;
@@ -1338,90 +1298,204 @@ module RenameEngine(
       snap0_f_29 = _GEN_97 ? pdest0 : f_rat_29;
       snap0_f_30 = _GEN_98 ? pdest0 : f_rat_30;
       snap0_f_31 = _GEN_99 ? pdest0 : f_rat_31;
-      _GEN_164 = do_snap0 & br_tag0 == 2'h0;
-      _GEN_165 = do_snap0 & br_tag0 == 2'h1;
-      _GEN_166 = do_snap0 & br_tag0 == 2'h2;
-      _GEN_167 = do_snap0 & (&br_tag0);
+      _GEN_132 = do_snap0 & br_tag0 == 2'h0;
+      _GEN_133 = do_snap0 & br_tag0 == 2'h1;
+      _GEN_134 = do_snap0 & br_tag0 == 2'h2;
+      _GEN_135 = do_snap0 & (&br_tag0);
       _next_snap_free_T_1 = _next_snap_free_T | combined_commit_mask;
-      next_snap_free_0 =
-        _GEN_168
-          ? normal_spec_free
-          : _GEN_164 ? _next_snap_free_T_1 : snap_free_0 | combined_commit_mask;
-      next_snap_free_1 =
-        _GEN_169
-          ? normal_spec_free
-          : _GEN_165 ? _next_snap_free_T_1 : snap_free_1 | combined_commit_mask;
-      next_snap_free_2 =
-        _GEN_170
-          ? normal_spec_free
-          : _GEN_166 ? _next_snap_free_T_1 : snap_free_2 | combined_commit_mask;
-      next_snap_free_3 =
-        _GEN_171
-          ? normal_spec_free
-          : _GEN_167 ? _next_snap_free_T_1 : snap_free_3 | combined_commit_mask;
-      next_snap_mask_0 =
-        _GEN_168 ? _global_mask_T : _GEN_164 ? io_dec0_br_mask_0 : ~_GEN & snap_mask_0;
-      next_snap_mask_1 =
-        _GEN_169 ? _global_mask_T : _GEN_165 ? io_dec0_br_mask_0 : ~_GEN & snap_mask_1;
-      next_snap_mask_2 =
-        _GEN_170 ? _global_mask_T : _GEN_166 ? io_dec0_br_mask_0 : ~_GEN & snap_mask_2;
-      next_snap_mask_3 =
-        _GEN_171 ? _global_mask_T : _GEN_167 ? io_dec0_br_mask_0 : ~_GEN & snap_mask_3;
       _snap_lsq_tail_T = io_current_lsq_tail + {3'h0, io_dec0_need_lsq};
-      _GEN_172 = {{snap_f_rat_3_0}, {snap_f_rat_2_0}, {snap_f_rat_1_0}, {snap_f_rat_0_0}};
-      _GEN_173 = {{snap_f_rat_3_1}, {snap_f_rat_2_1}, {snap_f_rat_1_1}, {snap_f_rat_0_1}};
-      _GEN_174 = {{snap_f_rat_3_2}, {snap_f_rat_2_2}, {snap_f_rat_1_2}, {snap_f_rat_0_2}};
-      _GEN_175 = {{snap_f_rat_3_3}, {snap_f_rat_2_3}, {snap_f_rat_1_3}, {snap_f_rat_0_3}};
-      _GEN_176 = {{snap_f_rat_3_4}, {snap_f_rat_2_4}, {snap_f_rat_1_4}, {snap_f_rat_0_4}};
-      _GEN_177 = {{snap_f_rat_3_5}, {snap_f_rat_2_5}, {snap_f_rat_1_5}, {snap_f_rat_0_5}};
-      _GEN_178 = {{snap_f_rat_3_6}, {snap_f_rat_2_6}, {snap_f_rat_1_6}, {snap_f_rat_0_6}};
-      _GEN_179 = {{snap_f_rat_3_7}, {snap_f_rat_2_7}, {snap_f_rat_1_7}, {snap_f_rat_0_7}};
-      _GEN_180 = {{snap_f_rat_3_8}, {snap_f_rat_2_8}, {snap_f_rat_1_8}, {snap_f_rat_0_8}};
-      _GEN_181 = {{snap_f_rat_3_9}, {snap_f_rat_2_9}, {snap_f_rat_1_9}, {snap_f_rat_0_9}};
-      _GEN_182 =
-        {{snap_f_rat_3_10}, {snap_f_rat_2_10}, {snap_f_rat_1_10}, {snap_f_rat_0_10}};
-      _GEN_183 =
-        {{snap_f_rat_3_11}, {snap_f_rat_2_11}, {snap_f_rat_1_11}, {snap_f_rat_0_11}};
-      _GEN_184 =
-        {{snap_f_rat_3_12}, {snap_f_rat_2_12}, {snap_f_rat_1_12}, {snap_f_rat_0_12}};
-      _GEN_185 =
-        {{snap_f_rat_3_13}, {snap_f_rat_2_13}, {snap_f_rat_1_13}, {snap_f_rat_0_13}};
-      _GEN_186 =
-        {{snap_f_rat_3_14}, {snap_f_rat_2_14}, {snap_f_rat_1_14}, {snap_f_rat_0_14}};
-      _GEN_187 =
-        {{snap_f_rat_3_15}, {snap_f_rat_2_15}, {snap_f_rat_1_15}, {snap_f_rat_0_15}};
-      _GEN_188 =
-        {{snap_f_rat_3_16}, {snap_f_rat_2_16}, {snap_f_rat_1_16}, {snap_f_rat_0_16}};
-      _GEN_189 =
-        {{snap_f_rat_3_17}, {snap_f_rat_2_17}, {snap_f_rat_1_17}, {snap_f_rat_0_17}};
-      _GEN_190 =
-        {{snap_f_rat_3_18}, {snap_f_rat_2_18}, {snap_f_rat_1_18}, {snap_f_rat_0_18}};
-      _GEN_191 =
-        {{snap_f_rat_3_19}, {snap_f_rat_2_19}, {snap_f_rat_1_19}, {snap_f_rat_0_19}};
-      _GEN_192 =
-        {{snap_f_rat_3_20}, {snap_f_rat_2_20}, {snap_f_rat_1_20}, {snap_f_rat_0_20}};
-      _GEN_193 =
-        {{snap_f_rat_3_21}, {snap_f_rat_2_21}, {snap_f_rat_1_21}, {snap_f_rat_0_21}};
-      _GEN_194 =
-        {{snap_f_rat_3_22}, {snap_f_rat_2_22}, {snap_f_rat_1_22}, {snap_f_rat_0_22}};
-      _GEN_195 =
-        {{snap_f_rat_3_23}, {snap_f_rat_2_23}, {snap_f_rat_1_23}, {snap_f_rat_0_23}};
-      _GEN_196 =
-        {{snap_f_rat_3_24}, {snap_f_rat_2_24}, {snap_f_rat_1_24}, {snap_f_rat_0_24}};
-      _GEN_197 =
-        {{snap_f_rat_3_25}, {snap_f_rat_2_25}, {snap_f_rat_1_25}, {snap_f_rat_0_25}};
-      _GEN_198 =
-        {{snap_f_rat_3_26}, {snap_f_rat_2_26}, {snap_f_rat_1_26}, {snap_f_rat_0_26}};
-      _GEN_199 =
-        {{snap_f_rat_3_27}, {snap_f_rat_2_27}, {snap_f_rat_1_27}, {snap_f_rat_0_27}};
-      _GEN_200 =
-        {{snap_f_rat_3_28}, {snap_f_rat_2_28}, {snap_f_rat_1_28}, {snap_f_rat_0_28}};
-      _GEN_201 =
-        {{snap_f_rat_3_29}, {snap_f_rat_2_29}, {snap_f_rat_1_29}, {snap_f_rat_0_29}};
-      _GEN_202 =
-        {{snap_f_rat_3_30}, {snap_f_rat_2_30}, {snap_f_rat_1_30}, {snap_f_rat_0_30}};
-      _GEN_203 =
-        {{snap_f_rat_3_31}, {snap_f_rat_2_31}, {snap_f_rat_1_31}, {snap_f_rat_0_31}};
+      next_f_rat_0 =
+        io_flush
+          ? next_c_rat_0
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_0
+              : _GEN_100 ? pdest1 : _GEN_68 ? pdest0 : f_rat_0;
+      next_f_rat_1 =
+        io_flush
+          ? next_c_rat_1
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_1
+              : _GEN_101 ? pdest1 : _GEN_69 ? pdest0 : f_rat_1;
+      next_f_rat_2 =
+        io_flush
+          ? next_c_rat_2
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_2
+              : _GEN_102 ? pdest1 : _GEN_70 ? pdest0 : f_rat_2;
+      next_f_rat_3 =
+        io_flush
+          ? next_c_rat_3
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_3
+              : _GEN_103 ? pdest1 : _GEN_71 ? pdest0 : f_rat_3;
+      next_f_rat_4 =
+        io_flush
+          ? next_c_rat_4
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_4
+              : _GEN_104 ? pdest1 : _GEN_72 ? pdest0 : f_rat_4;
+      next_f_rat_5 =
+        io_flush
+          ? next_c_rat_5
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_5
+              : _GEN_105 ? pdest1 : _GEN_73 ? pdest0 : f_rat_5;
+      next_f_rat_6 =
+        io_flush
+          ? next_c_rat_6
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_6
+              : _GEN_106 ? pdest1 : _GEN_74 ? pdest0 : f_rat_6;
+      next_f_rat_7 =
+        io_flush
+          ? next_c_rat_7
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_7
+              : _GEN_107 ? pdest1 : _GEN_75 ? pdest0 : f_rat_7;
+      next_f_rat_8 =
+        io_flush
+          ? next_c_rat_8
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_8
+              : _GEN_108 ? pdest1 : _GEN_76 ? pdest0 : f_rat_8;
+      next_f_rat_9 =
+        io_flush
+          ? next_c_rat_9
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_9
+              : _GEN_109 ? pdest1 : _GEN_77 ? pdest0 : f_rat_9;
+      next_f_rat_10 =
+        io_flush
+          ? next_c_rat_10
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_10
+              : _GEN_110 ? pdest1 : _GEN_78 ? pdest0 : f_rat_10;
+      next_f_rat_11 =
+        io_flush
+          ? next_c_rat_11
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_11
+              : _GEN_111 ? pdest1 : _GEN_79 ? pdest0 : f_rat_11;
+      next_f_rat_12 =
+        io_flush
+          ? next_c_rat_12
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_12
+              : _GEN_112 ? pdest1 : _GEN_80 ? pdest0 : f_rat_12;
+      next_f_rat_13 =
+        io_flush
+          ? next_c_rat_13
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_13
+              : _GEN_113 ? pdest1 : _GEN_81 ? pdest0 : f_rat_13;
+      next_f_rat_14 =
+        io_flush
+          ? next_c_rat_14
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_14
+              : _GEN_114 ? pdest1 : _GEN_82 ? pdest0 : f_rat_14;
+      next_f_rat_15 =
+        io_flush
+          ? next_c_rat_15
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_15
+              : _GEN_115 ? pdest1 : _GEN_83 ? pdest0 : f_rat_15;
+      next_f_rat_16 =
+        io_flush
+          ? next_c_rat_16
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_16
+              : _GEN_116 ? pdest1 : _GEN_84 ? pdest0 : f_rat_16;
+      next_f_rat_17 =
+        io_flush
+          ? next_c_rat_17
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_17
+              : _GEN_117 ? pdest1 : _GEN_85 ? pdest0 : f_rat_17;
+      next_f_rat_18 =
+        io_flush
+          ? next_c_rat_18
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_18
+              : _GEN_118 ? pdest1 : _GEN_86 ? pdest0 : f_rat_18;
+      next_f_rat_19 =
+        io_flush
+          ? next_c_rat_19
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_19
+              : _GEN_119 ? pdest1 : _GEN_87 ? pdest0 : f_rat_19;
+      next_f_rat_20 =
+        io_flush
+          ? next_c_rat_20
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_20
+              : _GEN_120 ? pdest1 : _GEN_88 ? pdest0 : f_rat_20;
+      next_f_rat_21 =
+        io_flush
+          ? next_c_rat_21
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_21
+              : _GEN_121 ? pdest1 : _GEN_89 ? pdest0 : f_rat_21;
+      next_f_rat_22 =
+        io_flush
+          ? next_c_rat_22
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_22
+              : _GEN_122 ? pdest1 : _GEN_90 ? pdest0 : f_rat_22;
+      next_f_rat_23 =
+        io_flush
+          ? next_c_rat_23
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_23
+              : _GEN_123 ? pdest1 : _GEN_91 ? pdest0 : f_rat_23;
+      next_f_rat_24 =
+        io_flush
+          ? next_c_rat_24
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_24
+              : _GEN_124 ? pdest1 : _GEN_92 ? pdest0 : f_rat_24;
+      next_f_rat_25 =
+        io_flush
+          ? next_c_rat_25
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_25
+              : _GEN_125 ? pdest1 : _GEN_93 ? pdest0 : f_rat_25;
+      next_f_rat_26 =
+        io_flush
+          ? next_c_rat_26
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_26
+              : _GEN_126 ? pdest1 : _GEN_94 ? pdest0 : f_rat_26;
+      next_f_rat_27 =
+        io_flush
+          ? next_c_rat_27
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_27
+              : _GEN_127 ? pdest1 : _GEN_95 ? pdest0 : f_rat_27;
+      next_f_rat_28 =
+        io_flush
+          ? next_c_rat_28
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_28
+              : _GEN_128 ? pdest1 : _GEN_96 ? pdest0 : f_rat_28;
+      next_f_rat_29 =
+        io_flush
+          ? next_c_rat_29
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_29
+              : _GEN_129 ? pdest1 : _GEN_97 ? pdest0 : f_rat_29;
+      next_f_rat_30 =
+        io_flush
+          ? next_c_rat_30
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_30
+              : _GEN_130 ? pdest1 : _GEN_98 ? pdest0 : f_rat_30;
+      next_f_rat_31 =
+        io_flush
+          ? next_c_rat_31
+          : delayed_is_mispredict
+              ? delayed_snap_f_rat_31
+              : _GEN_131 ? pdest1 : _GEN_99 ? pdest0 : f_rat_31;
       if (io_flush) begin
         f_rat_0 <= next_c_rat_0;
         f_rat_1 <= next_c_rat_1;
@@ -1456,166 +1530,166 @@ module RenameEngine(
         f_rat_30 <= next_c_rat_30;
         f_rat_31 <= next_c_rat_31;
       end
-      else if (is_mispredict) begin
-        f_rat_0 <= _GEN_172[io_br_resolve_tag];
-        f_rat_1 <= _GEN_173[io_br_resolve_tag];
-        f_rat_2 <= _GEN_174[io_br_resolve_tag];
-        f_rat_3 <= _GEN_175[io_br_resolve_tag];
-        f_rat_4 <= _GEN_176[io_br_resolve_tag];
-        f_rat_5 <= _GEN_177[io_br_resolve_tag];
-        f_rat_6 <= _GEN_178[io_br_resolve_tag];
-        f_rat_7 <= _GEN_179[io_br_resolve_tag];
-        f_rat_8 <= _GEN_180[io_br_resolve_tag];
-        f_rat_9 <= _GEN_181[io_br_resolve_tag];
-        f_rat_10 <= _GEN_182[io_br_resolve_tag];
-        f_rat_11 <= _GEN_183[io_br_resolve_tag];
-        f_rat_12 <= _GEN_184[io_br_resolve_tag];
-        f_rat_13 <= _GEN_185[io_br_resolve_tag];
-        f_rat_14 <= _GEN_186[io_br_resolve_tag];
-        f_rat_15 <= _GEN_187[io_br_resolve_tag];
-        f_rat_16 <= _GEN_188[io_br_resolve_tag];
-        f_rat_17 <= _GEN_189[io_br_resolve_tag];
-        f_rat_18 <= _GEN_190[io_br_resolve_tag];
-        f_rat_19 <= _GEN_191[io_br_resolve_tag];
-        f_rat_20 <= _GEN_192[io_br_resolve_tag];
-        f_rat_21 <= _GEN_193[io_br_resolve_tag];
-        f_rat_22 <= _GEN_194[io_br_resolve_tag];
-        f_rat_23 <= _GEN_195[io_br_resolve_tag];
-        f_rat_24 <= _GEN_196[io_br_resolve_tag];
-        f_rat_25 <= _GEN_197[io_br_resolve_tag];
-        f_rat_26 <= _GEN_198[io_br_resolve_tag];
-        f_rat_27 <= _GEN_199[io_br_resolve_tag];
-        f_rat_28 <= _GEN_200[io_br_resolve_tag];
-        f_rat_29 <= _GEN_201[io_br_resolve_tag];
-        f_rat_30 <= _GEN_202[io_br_resolve_tag];
-        f_rat_31 <= _GEN_203[io_br_resolve_tag];
+      else if (delayed_is_mispredict) begin
+        f_rat_0 <= delayed_snap_f_rat_0;
+        f_rat_1 <= delayed_snap_f_rat_1;
+        f_rat_2 <= delayed_snap_f_rat_2;
+        f_rat_3 <= delayed_snap_f_rat_3;
+        f_rat_4 <= delayed_snap_f_rat_4;
+        f_rat_5 <= delayed_snap_f_rat_5;
+        f_rat_6 <= delayed_snap_f_rat_6;
+        f_rat_7 <= delayed_snap_f_rat_7;
+        f_rat_8 <= delayed_snap_f_rat_8;
+        f_rat_9 <= delayed_snap_f_rat_9;
+        f_rat_10 <= delayed_snap_f_rat_10;
+        f_rat_11 <= delayed_snap_f_rat_11;
+        f_rat_12 <= delayed_snap_f_rat_12;
+        f_rat_13 <= delayed_snap_f_rat_13;
+        f_rat_14 <= delayed_snap_f_rat_14;
+        f_rat_15 <= delayed_snap_f_rat_15;
+        f_rat_16 <= delayed_snap_f_rat_16;
+        f_rat_17 <= delayed_snap_f_rat_17;
+        f_rat_18 <= delayed_snap_f_rat_18;
+        f_rat_19 <= delayed_snap_f_rat_19;
+        f_rat_20 <= delayed_snap_f_rat_20;
+        f_rat_21 <= delayed_snap_f_rat_21;
+        f_rat_22 <= delayed_snap_f_rat_22;
+        f_rat_23 <= delayed_snap_f_rat_23;
+        f_rat_24 <= delayed_snap_f_rat_24;
+        f_rat_25 <= delayed_snap_f_rat_25;
+        f_rat_26 <= delayed_snap_f_rat_26;
+        f_rat_27 <= delayed_snap_f_rat_27;
+        f_rat_28 <= delayed_snap_f_rat_28;
+        f_rat_29 <= delayed_snap_f_rat_29;
+        f_rat_30 <= delayed_snap_f_rat_30;
+        f_rat_31 <= delayed_snap_f_rat_31;
       end
       else begin
         if (_GEN_100)
           f_rat_0 <= pdest1;
         else if (_GEN_68)
           f_rat_0 <= pdest0;
-        if (_GEN_102)
+        if (_GEN_101)
           f_rat_1 <= pdest1;
         else if (_GEN_69)
           f_rat_1 <= pdest0;
-        if (_GEN_104)
+        if (_GEN_102)
           f_rat_2 <= pdest1;
         else if (_GEN_70)
           f_rat_2 <= pdest0;
-        if (_GEN_106)
+        if (_GEN_103)
           f_rat_3 <= pdest1;
         else if (_GEN_71)
           f_rat_3 <= pdest0;
-        if (_GEN_108)
+        if (_GEN_104)
           f_rat_4 <= pdest1;
         else if (_GEN_72)
           f_rat_4 <= pdest0;
-        if (_GEN_110)
+        if (_GEN_105)
           f_rat_5 <= pdest1;
         else if (_GEN_73)
           f_rat_5 <= pdest0;
-        if (_GEN_112)
+        if (_GEN_106)
           f_rat_6 <= pdest1;
         else if (_GEN_74)
           f_rat_6 <= pdest0;
-        if (_GEN_114)
+        if (_GEN_107)
           f_rat_7 <= pdest1;
         else if (_GEN_75)
           f_rat_7 <= pdest0;
-        if (_GEN_116)
+        if (_GEN_108)
           f_rat_8 <= pdest1;
         else if (_GEN_76)
           f_rat_8 <= pdest0;
-        if (_GEN_118)
+        if (_GEN_109)
           f_rat_9 <= pdest1;
         else if (_GEN_77)
           f_rat_9 <= pdest0;
-        if (_GEN_120)
+        if (_GEN_110)
           f_rat_10 <= pdest1;
         else if (_GEN_78)
           f_rat_10 <= pdest0;
-        if (_GEN_122)
+        if (_GEN_111)
           f_rat_11 <= pdest1;
         else if (_GEN_79)
           f_rat_11 <= pdest0;
-        if (_GEN_124)
+        if (_GEN_112)
           f_rat_12 <= pdest1;
         else if (_GEN_80)
           f_rat_12 <= pdest0;
-        if (_GEN_126)
+        if (_GEN_113)
           f_rat_13 <= pdest1;
         else if (_GEN_81)
           f_rat_13 <= pdest0;
-        if (_GEN_128)
+        if (_GEN_114)
           f_rat_14 <= pdest1;
         else if (_GEN_82)
           f_rat_14 <= pdest0;
-        if (_GEN_130)
+        if (_GEN_115)
           f_rat_15 <= pdest1;
         else if (_GEN_83)
           f_rat_15 <= pdest0;
-        if (_GEN_132)
+        if (_GEN_116)
           f_rat_16 <= pdest1;
         else if (_GEN_84)
           f_rat_16 <= pdest0;
-        if (_GEN_134)
+        if (_GEN_117)
           f_rat_17 <= pdest1;
         else if (_GEN_85)
           f_rat_17 <= pdest0;
-        if (_GEN_136)
+        if (_GEN_118)
           f_rat_18 <= pdest1;
         else if (_GEN_86)
           f_rat_18 <= pdest0;
-        if (_GEN_138)
+        if (_GEN_119)
           f_rat_19 <= pdest1;
         else if (_GEN_87)
           f_rat_19 <= pdest0;
-        if (_GEN_140)
+        if (_GEN_120)
           f_rat_20 <= pdest1;
         else if (_GEN_88)
           f_rat_20 <= pdest0;
-        if (_GEN_142)
+        if (_GEN_121)
           f_rat_21 <= pdest1;
         else if (_GEN_89)
           f_rat_21 <= pdest0;
-        if (_GEN_144)
+        if (_GEN_122)
           f_rat_22 <= pdest1;
         else if (_GEN_90)
           f_rat_22 <= pdest0;
-        if (_GEN_146)
+        if (_GEN_123)
           f_rat_23 <= pdest1;
         else if (_GEN_91)
           f_rat_23 <= pdest0;
-        if (_GEN_148)
+        if (_GEN_124)
           f_rat_24 <= pdest1;
         else if (_GEN_92)
           f_rat_24 <= pdest0;
-        if (_GEN_150)
+        if (_GEN_125)
           f_rat_25 <= pdest1;
         else if (_GEN_93)
           f_rat_25 <= pdest0;
-        if (_GEN_152)
+        if (_GEN_126)
           f_rat_26 <= pdest1;
         else if (_GEN_94)
           f_rat_26 <= pdest0;
-        if (_GEN_154)
+        if (_GEN_127)
           f_rat_27 <= pdest1;
         else if (_GEN_95)
           f_rat_27 <= pdest0;
-        if (_GEN_156)
+        if (_GEN_128)
           f_rat_28 <= pdest1;
         else if (_GEN_96)
           f_rat_28 <= pdest0;
-        if (_GEN_158)
+        if (_GEN_129)
           f_rat_29 <= pdest1;
         else if (_GEN_97)
           f_rat_29 <= pdest0;
-        if (_GEN_160)
+        if (_GEN_130)
           f_rat_30 <= pdest1;
         else if (_GEN_98)
           f_rat_30 <= pdest0;
-        if (_GEN_162)
+        if (_GEN_131)
           f_rat_31 <= pdest1;
         else if (_GEN_99)
           f_rat_31 <= pdest0;
@@ -1748,127 +1822,55 @@ module RenameEngine(
         c_rat_31 <= io_commit1_paddr;
       else if (_GEN_35)
         c_rat_31 <= io_commit_paddr;
-      _GEN_204 =
-        {{next_snap_free_3}, {next_snap_free_2}, {next_snap_free_1}, {next_snap_free_0}};
       spec_free_bits <=
         io_flush
           ? next_commit_free
-          : is_mispredict ? _GEN_204[io_br_resolve_tag] : normal_spec_free;
+          : delayed_is_mispredict
+              ? delayed_snap_free | combined_commit_mask
+              : normal_spec_free;
       commit_free_bits <= next_commit_free;
-      _GEN_205 =
-        {{next_snap_mask_3}, {next_snap_mask_2}, {next_snap_mask_1}, {next_snap_mask_0}};
       global_mask <=
         io_flush
           ? 4'h0
-          : is_mispredict
-              ? _GEN_205[io_br_resolve_tag]
-              : _global_mask_T | (do_snap1 ? _mask_alloc1_bit_T[3:0] : 4'h0);
-      if (_GEN_168) begin
-        if (io_flush) begin
-          snap_f_rat_0_0 <= next_c_rat_0;
-          snap_f_rat_0_1 <= next_c_rat_1;
-          snap_f_rat_0_2 <= next_c_rat_2;
-          snap_f_rat_0_3 <= next_c_rat_3;
-          snap_f_rat_0_4 <= next_c_rat_4;
-          snap_f_rat_0_5 <= next_c_rat_5;
-          snap_f_rat_0_6 <= next_c_rat_6;
-          snap_f_rat_0_7 <= next_c_rat_7;
-          snap_f_rat_0_8 <= next_c_rat_8;
-          snap_f_rat_0_9 <= next_c_rat_9;
-          snap_f_rat_0_10 <= next_c_rat_10;
-          snap_f_rat_0_11 <= next_c_rat_11;
-          snap_f_rat_0_12 <= next_c_rat_12;
-          snap_f_rat_0_13 <= next_c_rat_13;
-          snap_f_rat_0_14 <= next_c_rat_14;
-          snap_f_rat_0_15 <= next_c_rat_15;
-          snap_f_rat_0_16 <= next_c_rat_16;
-          snap_f_rat_0_17 <= next_c_rat_17;
-          snap_f_rat_0_18 <= next_c_rat_18;
-          snap_f_rat_0_19 <= next_c_rat_19;
-          snap_f_rat_0_20 <= next_c_rat_20;
-          snap_f_rat_0_21 <= next_c_rat_21;
-          snap_f_rat_0_22 <= next_c_rat_22;
-          snap_f_rat_0_23 <= next_c_rat_23;
-          snap_f_rat_0_24 <= next_c_rat_24;
-          snap_f_rat_0_25 <= next_c_rat_25;
-          snap_f_rat_0_26 <= next_c_rat_26;
-          snap_f_rat_0_27 <= next_c_rat_27;
-          snap_f_rat_0_28 <= next_c_rat_28;
-          snap_f_rat_0_29 <= next_c_rat_29;
-          snap_f_rat_0_30 <= next_c_rat_30;
-          snap_f_rat_0_31 <= next_c_rat_31;
-        end
-        else if (is_mispredict) begin
-          snap_f_rat_0_0 <= _GEN_172[io_br_resolve_tag];
-          snap_f_rat_0_1 <= _GEN_173[io_br_resolve_tag];
-          snap_f_rat_0_2 <= _GEN_174[io_br_resolve_tag];
-          snap_f_rat_0_3 <= _GEN_175[io_br_resolve_tag];
-          snap_f_rat_0_4 <= _GEN_176[io_br_resolve_tag];
-          snap_f_rat_0_5 <= _GEN_177[io_br_resolve_tag];
-          snap_f_rat_0_6 <= _GEN_178[io_br_resolve_tag];
-          snap_f_rat_0_7 <= _GEN_179[io_br_resolve_tag];
-          snap_f_rat_0_8 <= _GEN_180[io_br_resolve_tag];
-          snap_f_rat_0_9 <= _GEN_181[io_br_resolve_tag];
-          snap_f_rat_0_10 <= _GEN_182[io_br_resolve_tag];
-          snap_f_rat_0_11 <= _GEN_183[io_br_resolve_tag];
-          snap_f_rat_0_12 <= _GEN_184[io_br_resolve_tag];
-          snap_f_rat_0_13 <= _GEN_185[io_br_resolve_tag];
-          snap_f_rat_0_14 <= _GEN_186[io_br_resolve_tag];
-          snap_f_rat_0_15 <= _GEN_187[io_br_resolve_tag];
-          snap_f_rat_0_16 <= _GEN_188[io_br_resolve_tag];
-          snap_f_rat_0_17 <= _GEN_189[io_br_resolve_tag];
-          snap_f_rat_0_18 <= _GEN_190[io_br_resolve_tag];
-          snap_f_rat_0_19 <= _GEN_191[io_br_resolve_tag];
-          snap_f_rat_0_20 <= _GEN_192[io_br_resolve_tag];
-          snap_f_rat_0_21 <= _GEN_193[io_br_resolve_tag];
-          snap_f_rat_0_22 <= _GEN_194[io_br_resolve_tag];
-          snap_f_rat_0_23 <= _GEN_195[io_br_resolve_tag];
-          snap_f_rat_0_24 <= _GEN_196[io_br_resolve_tag];
-          snap_f_rat_0_25 <= _GEN_197[io_br_resolve_tag];
-          snap_f_rat_0_26 <= _GEN_198[io_br_resolve_tag];
-          snap_f_rat_0_27 <= _GEN_199[io_br_resolve_tag];
-          snap_f_rat_0_28 <= _GEN_200[io_br_resolve_tag];
-          snap_f_rat_0_29 <= _GEN_201[io_br_resolve_tag];
-          snap_f_rat_0_30 <= _GEN_202[io_br_resolve_tag];
-          snap_f_rat_0_31 <= _GEN_203[io_br_resolve_tag];
-        end
-        else begin
-          snap_f_rat_0_0 <= _GEN_101;
-          snap_f_rat_0_1 <= _GEN_103;
-          snap_f_rat_0_2 <= _GEN_105;
-          snap_f_rat_0_3 <= _GEN_107;
-          snap_f_rat_0_4 <= _GEN_109;
-          snap_f_rat_0_5 <= _GEN_111;
-          snap_f_rat_0_6 <= _GEN_113;
-          snap_f_rat_0_7 <= _GEN_115;
-          snap_f_rat_0_8 <= _GEN_117;
-          snap_f_rat_0_9 <= _GEN_119;
-          snap_f_rat_0_10 <= _GEN_121;
-          snap_f_rat_0_11 <= _GEN_123;
-          snap_f_rat_0_12 <= _GEN_125;
-          snap_f_rat_0_13 <= _GEN_127;
-          snap_f_rat_0_14 <= _GEN_129;
-          snap_f_rat_0_15 <= _GEN_131;
-          snap_f_rat_0_16 <= _GEN_133;
-          snap_f_rat_0_17 <= _GEN_135;
-          snap_f_rat_0_18 <= _GEN_137;
-          snap_f_rat_0_19 <= _GEN_139;
-          snap_f_rat_0_20 <= _GEN_141;
-          snap_f_rat_0_21 <= _GEN_143;
-          snap_f_rat_0_22 <= _GEN_145;
-          snap_f_rat_0_23 <= _GEN_147;
-          snap_f_rat_0_24 <= _GEN_149;
-          snap_f_rat_0_25 <= _GEN_151;
-          snap_f_rat_0_26 <= _GEN_153;
-          snap_f_rat_0_27 <= _GEN_155;
-          snap_f_rat_0_28 <= _GEN_157;
-          snap_f_rat_0_29 <= _GEN_159;
-          snap_f_rat_0_30 <= _GEN_161;
-          snap_f_rat_0_31 <= _GEN_163;
-        end
+          : delayed_is_mispredict
+              ? delayed_snap_mask[3:0] & ~_GEN
+              : _global_mask_T_1 | (do_snap1 ? _mask_alloc1_bit_T[3:0] : 4'h0);
+      if (_GEN_136) begin
+        snap_f_rat_0_0 <= next_f_rat_0;
+        snap_f_rat_0_1 <= next_f_rat_1;
+        snap_f_rat_0_2 <= next_f_rat_2;
+        snap_f_rat_0_3 <= next_f_rat_3;
+        snap_f_rat_0_4 <= next_f_rat_4;
+        snap_f_rat_0_5 <= next_f_rat_5;
+        snap_f_rat_0_6 <= next_f_rat_6;
+        snap_f_rat_0_7 <= next_f_rat_7;
+        snap_f_rat_0_8 <= next_f_rat_8;
+        snap_f_rat_0_9 <= next_f_rat_9;
+        snap_f_rat_0_10 <= next_f_rat_10;
+        snap_f_rat_0_11 <= next_f_rat_11;
+        snap_f_rat_0_12 <= next_f_rat_12;
+        snap_f_rat_0_13 <= next_f_rat_13;
+        snap_f_rat_0_14 <= next_f_rat_14;
+        snap_f_rat_0_15 <= next_f_rat_15;
+        snap_f_rat_0_16 <= next_f_rat_16;
+        snap_f_rat_0_17 <= next_f_rat_17;
+        snap_f_rat_0_18 <= next_f_rat_18;
+        snap_f_rat_0_19 <= next_f_rat_19;
+        snap_f_rat_0_20 <= next_f_rat_20;
+        snap_f_rat_0_21 <= next_f_rat_21;
+        snap_f_rat_0_22 <= next_f_rat_22;
+        snap_f_rat_0_23 <= next_f_rat_23;
+        snap_f_rat_0_24 <= next_f_rat_24;
+        snap_f_rat_0_25 <= next_f_rat_25;
+        snap_f_rat_0_26 <= next_f_rat_26;
+        snap_f_rat_0_27 <= next_f_rat_27;
+        snap_f_rat_0_28 <= next_f_rat_28;
+        snap_f_rat_0_29 <= next_f_rat_29;
+        snap_f_rat_0_30 <= next_f_rat_30;
+        snap_f_rat_0_31 <= next_f_rat_31;
         snap_lsq_tail_0 <= _snap_lsq_tail_T;
       end
-      else if (_GEN_164) begin
+      else if (_GEN_132) begin
         snap_f_rat_0_0 <= snap0_f_0;
         snap_f_rat_0_1 <= snap0_f_1;
         snap_f_rat_0_2 <= snap0_f_2;
@@ -1903,112 +1905,42 @@ module RenameEngine(
         snap_f_rat_0_31 <= snap0_f_31;
         snap_lsq_tail_0 <= io_current_lsq_tail;
       end
-      if (_GEN_169) begin
-        if (io_flush) begin
-          snap_f_rat_1_0 <= next_c_rat_0;
-          snap_f_rat_1_1 <= next_c_rat_1;
-          snap_f_rat_1_2 <= next_c_rat_2;
-          snap_f_rat_1_3 <= next_c_rat_3;
-          snap_f_rat_1_4 <= next_c_rat_4;
-          snap_f_rat_1_5 <= next_c_rat_5;
-          snap_f_rat_1_6 <= next_c_rat_6;
-          snap_f_rat_1_7 <= next_c_rat_7;
-          snap_f_rat_1_8 <= next_c_rat_8;
-          snap_f_rat_1_9 <= next_c_rat_9;
-          snap_f_rat_1_10 <= next_c_rat_10;
-          snap_f_rat_1_11 <= next_c_rat_11;
-          snap_f_rat_1_12 <= next_c_rat_12;
-          snap_f_rat_1_13 <= next_c_rat_13;
-          snap_f_rat_1_14 <= next_c_rat_14;
-          snap_f_rat_1_15 <= next_c_rat_15;
-          snap_f_rat_1_16 <= next_c_rat_16;
-          snap_f_rat_1_17 <= next_c_rat_17;
-          snap_f_rat_1_18 <= next_c_rat_18;
-          snap_f_rat_1_19 <= next_c_rat_19;
-          snap_f_rat_1_20 <= next_c_rat_20;
-          snap_f_rat_1_21 <= next_c_rat_21;
-          snap_f_rat_1_22 <= next_c_rat_22;
-          snap_f_rat_1_23 <= next_c_rat_23;
-          snap_f_rat_1_24 <= next_c_rat_24;
-          snap_f_rat_1_25 <= next_c_rat_25;
-          snap_f_rat_1_26 <= next_c_rat_26;
-          snap_f_rat_1_27 <= next_c_rat_27;
-          snap_f_rat_1_28 <= next_c_rat_28;
-          snap_f_rat_1_29 <= next_c_rat_29;
-          snap_f_rat_1_30 <= next_c_rat_30;
-          snap_f_rat_1_31 <= next_c_rat_31;
-        end
-        else if (is_mispredict) begin
-          snap_f_rat_1_0 <= _GEN_172[io_br_resolve_tag];
-          snap_f_rat_1_1 <= _GEN_173[io_br_resolve_tag];
-          snap_f_rat_1_2 <= _GEN_174[io_br_resolve_tag];
-          snap_f_rat_1_3 <= _GEN_175[io_br_resolve_tag];
-          snap_f_rat_1_4 <= _GEN_176[io_br_resolve_tag];
-          snap_f_rat_1_5 <= _GEN_177[io_br_resolve_tag];
-          snap_f_rat_1_6 <= _GEN_178[io_br_resolve_tag];
-          snap_f_rat_1_7 <= _GEN_179[io_br_resolve_tag];
-          snap_f_rat_1_8 <= _GEN_180[io_br_resolve_tag];
-          snap_f_rat_1_9 <= _GEN_181[io_br_resolve_tag];
-          snap_f_rat_1_10 <= _GEN_182[io_br_resolve_tag];
-          snap_f_rat_1_11 <= _GEN_183[io_br_resolve_tag];
-          snap_f_rat_1_12 <= _GEN_184[io_br_resolve_tag];
-          snap_f_rat_1_13 <= _GEN_185[io_br_resolve_tag];
-          snap_f_rat_1_14 <= _GEN_186[io_br_resolve_tag];
-          snap_f_rat_1_15 <= _GEN_187[io_br_resolve_tag];
-          snap_f_rat_1_16 <= _GEN_188[io_br_resolve_tag];
-          snap_f_rat_1_17 <= _GEN_189[io_br_resolve_tag];
-          snap_f_rat_1_18 <= _GEN_190[io_br_resolve_tag];
-          snap_f_rat_1_19 <= _GEN_191[io_br_resolve_tag];
-          snap_f_rat_1_20 <= _GEN_192[io_br_resolve_tag];
-          snap_f_rat_1_21 <= _GEN_193[io_br_resolve_tag];
-          snap_f_rat_1_22 <= _GEN_194[io_br_resolve_tag];
-          snap_f_rat_1_23 <= _GEN_195[io_br_resolve_tag];
-          snap_f_rat_1_24 <= _GEN_196[io_br_resolve_tag];
-          snap_f_rat_1_25 <= _GEN_197[io_br_resolve_tag];
-          snap_f_rat_1_26 <= _GEN_198[io_br_resolve_tag];
-          snap_f_rat_1_27 <= _GEN_199[io_br_resolve_tag];
-          snap_f_rat_1_28 <= _GEN_200[io_br_resolve_tag];
-          snap_f_rat_1_29 <= _GEN_201[io_br_resolve_tag];
-          snap_f_rat_1_30 <= _GEN_202[io_br_resolve_tag];
-          snap_f_rat_1_31 <= _GEN_203[io_br_resolve_tag];
-        end
-        else begin
-          snap_f_rat_1_0 <= _GEN_101;
-          snap_f_rat_1_1 <= _GEN_103;
-          snap_f_rat_1_2 <= _GEN_105;
-          snap_f_rat_1_3 <= _GEN_107;
-          snap_f_rat_1_4 <= _GEN_109;
-          snap_f_rat_1_5 <= _GEN_111;
-          snap_f_rat_1_6 <= _GEN_113;
-          snap_f_rat_1_7 <= _GEN_115;
-          snap_f_rat_1_8 <= _GEN_117;
-          snap_f_rat_1_9 <= _GEN_119;
-          snap_f_rat_1_10 <= _GEN_121;
-          snap_f_rat_1_11 <= _GEN_123;
-          snap_f_rat_1_12 <= _GEN_125;
-          snap_f_rat_1_13 <= _GEN_127;
-          snap_f_rat_1_14 <= _GEN_129;
-          snap_f_rat_1_15 <= _GEN_131;
-          snap_f_rat_1_16 <= _GEN_133;
-          snap_f_rat_1_17 <= _GEN_135;
-          snap_f_rat_1_18 <= _GEN_137;
-          snap_f_rat_1_19 <= _GEN_139;
-          snap_f_rat_1_20 <= _GEN_141;
-          snap_f_rat_1_21 <= _GEN_143;
-          snap_f_rat_1_22 <= _GEN_145;
-          snap_f_rat_1_23 <= _GEN_147;
-          snap_f_rat_1_24 <= _GEN_149;
-          snap_f_rat_1_25 <= _GEN_151;
-          snap_f_rat_1_26 <= _GEN_153;
-          snap_f_rat_1_27 <= _GEN_155;
-          snap_f_rat_1_28 <= _GEN_157;
-          snap_f_rat_1_29 <= _GEN_159;
-          snap_f_rat_1_30 <= _GEN_161;
-          snap_f_rat_1_31 <= _GEN_163;
-        end
+      if (_GEN_137) begin
+        snap_f_rat_1_0 <= next_f_rat_0;
+        snap_f_rat_1_1 <= next_f_rat_1;
+        snap_f_rat_1_2 <= next_f_rat_2;
+        snap_f_rat_1_3 <= next_f_rat_3;
+        snap_f_rat_1_4 <= next_f_rat_4;
+        snap_f_rat_1_5 <= next_f_rat_5;
+        snap_f_rat_1_6 <= next_f_rat_6;
+        snap_f_rat_1_7 <= next_f_rat_7;
+        snap_f_rat_1_8 <= next_f_rat_8;
+        snap_f_rat_1_9 <= next_f_rat_9;
+        snap_f_rat_1_10 <= next_f_rat_10;
+        snap_f_rat_1_11 <= next_f_rat_11;
+        snap_f_rat_1_12 <= next_f_rat_12;
+        snap_f_rat_1_13 <= next_f_rat_13;
+        snap_f_rat_1_14 <= next_f_rat_14;
+        snap_f_rat_1_15 <= next_f_rat_15;
+        snap_f_rat_1_16 <= next_f_rat_16;
+        snap_f_rat_1_17 <= next_f_rat_17;
+        snap_f_rat_1_18 <= next_f_rat_18;
+        snap_f_rat_1_19 <= next_f_rat_19;
+        snap_f_rat_1_20 <= next_f_rat_20;
+        snap_f_rat_1_21 <= next_f_rat_21;
+        snap_f_rat_1_22 <= next_f_rat_22;
+        snap_f_rat_1_23 <= next_f_rat_23;
+        snap_f_rat_1_24 <= next_f_rat_24;
+        snap_f_rat_1_25 <= next_f_rat_25;
+        snap_f_rat_1_26 <= next_f_rat_26;
+        snap_f_rat_1_27 <= next_f_rat_27;
+        snap_f_rat_1_28 <= next_f_rat_28;
+        snap_f_rat_1_29 <= next_f_rat_29;
+        snap_f_rat_1_30 <= next_f_rat_30;
+        snap_f_rat_1_31 <= next_f_rat_31;
         snap_lsq_tail_1 <= _snap_lsq_tail_T;
       end
-      else if (_GEN_165) begin
+      else if (_GEN_133) begin
         snap_f_rat_1_0 <= snap0_f_0;
         snap_f_rat_1_1 <= snap0_f_1;
         snap_f_rat_1_2 <= snap0_f_2;
@@ -2043,112 +1975,42 @@ module RenameEngine(
         snap_f_rat_1_31 <= snap0_f_31;
         snap_lsq_tail_1 <= io_current_lsq_tail;
       end
-      if (_GEN_170) begin
-        if (io_flush) begin
-          snap_f_rat_2_0 <= next_c_rat_0;
-          snap_f_rat_2_1 <= next_c_rat_1;
-          snap_f_rat_2_2 <= next_c_rat_2;
-          snap_f_rat_2_3 <= next_c_rat_3;
-          snap_f_rat_2_4 <= next_c_rat_4;
-          snap_f_rat_2_5 <= next_c_rat_5;
-          snap_f_rat_2_6 <= next_c_rat_6;
-          snap_f_rat_2_7 <= next_c_rat_7;
-          snap_f_rat_2_8 <= next_c_rat_8;
-          snap_f_rat_2_9 <= next_c_rat_9;
-          snap_f_rat_2_10 <= next_c_rat_10;
-          snap_f_rat_2_11 <= next_c_rat_11;
-          snap_f_rat_2_12 <= next_c_rat_12;
-          snap_f_rat_2_13 <= next_c_rat_13;
-          snap_f_rat_2_14 <= next_c_rat_14;
-          snap_f_rat_2_15 <= next_c_rat_15;
-          snap_f_rat_2_16 <= next_c_rat_16;
-          snap_f_rat_2_17 <= next_c_rat_17;
-          snap_f_rat_2_18 <= next_c_rat_18;
-          snap_f_rat_2_19 <= next_c_rat_19;
-          snap_f_rat_2_20 <= next_c_rat_20;
-          snap_f_rat_2_21 <= next_c_rat_21;
-          snap_f_rat_2_22 <= next_c_rat_22;
-          snap_f_rat_2_23 <= next_c_rat_23;
-          snap_f_rat_2_24 <= next_c_rat_24;
-          snap_f_rat_2_25 <= next_c_rat_25;
-          snap_f_rat_2_26 <= next_c_rat_26;
-          snap_f_rat_2_27 <= next_c_rat_27;
-          snap_f_rat_2_28 <= next_c_rat_28;
-          snap_f_rat_2_29 <= next_c_rat_29;
-          snap_f_rat_2_30 <= next_c_rat_30;
-          snap_f_rat_2_31 <= next_c_rat_31;
-        end
-        else if (is_mispredict) begin
-          snap_f_rat_2_0 <= _GEN_172[io_br_resolve_tag];
-          snap_f_rat_2_1 <= _GEN_173[io_br_resolve_tag];
-          snap_f_rat_2_2 <= _GEN_174[io_br_resolve_tag];
-          snap_f_rat_2_3 <= _GEN_175[io_br_resolve_tag];
-          snap_f_rat_2_4 <= _GEN_176[io_br_resolve_tag];
-          snap_f_rat_2_5 <= _GEN_177[io_br_resolve_tag];
-          snap_f_rat_2_6 <= _GEN_178[io_br_resolve_tag];
-          snap_f_rat_2_7 <= _GEN_179[io_br_resolve_tag];
-          snap_f_rat_2_8 <= _GEN_180[io_br_resolve_tag];
-          snap_f_rat_2_9 <= _GEN_181[io_br_resolve_tag];
-          snap_f_rat_2_10 <= _GEN_182[io_br_resolve_tag];
-          snap_f_rat_2_11 <= _GEN_183[io_br_resolve_tag];
-          snap_f_rat_2_12 <= _GEN_184[io_br_resolve_tag];
-          snap_f_rat_2_13 <= _GEN_185[io_br_resolve_tag];
-          snap_f_rat_2_14 <= _GEN_186[io_br_resolve_tag];
-          snap_f_rat_2_15 <= _GEN_187[io_br_resolve_tag];
-          snap_f_rat_2_16 <= _GEN_188[io_br_resolve_tag];
-          snap_f_rat_2_17 <= _GEN_189[io_br_resolve_tag];
-          snap_f_rat_2_18 <= _GEN_190[io_br_resolve_tag];
-          snap_f_rat_2_19 <= _GEN_191[io_br_resolve_tag];
-          snap_f_rat_2_20 <= _GEN_192[io_br_resolve_tag];
-          snap_f_rat_2_21 <= _GEN_193[io_br_resolve_tag];
-          snap_f_rat_2_22 <= _GEN_194[io_br_resolve_tag];
-          snap_f_rat_2_23 <= _GEN_195[io_br_resolve_tag];
-          snap_f_rat_2_24 <= _GEN_196[io_br_resolve_tag];
-          snap_f_rat_2_25 <= _GEN_197[io_br_resolve_tag];
-          snap_f_rat_2_26 <= _GEN_198[io_br_resolve_tag];
-          snap_f_rat_2_27 <= _GEN_199[io_br_resolve_tag];
-          snap_f_rat_2_28 <= _GEN_200[io_br_resolve_tag];
-          snap_f_rat_2_29 <= _GEN_201[io_br_resolve_tag];
-          snap_f_rat_2_30 <= _GEN_202[io_br_resolve_tag];
-          snap_f_rat_2_31 <= _GEN_203[io_br_resolve_tag];
-        end
-        else begin
-          snap_f_rat_2_0 <= _GEN_101;
-          snap_f_rat_2_1 <= _GEN_103;
-          snap_f_rat_2_2 <= _GEN_105;
-          snap_f_rat_2_3 <= _GEN_107;
-          snap_f_rat_2_4 <= _GEN_109;
-          snap_f_rat_2_5 <= _GEN_111;
-          snap_f_rat_2_6 <= _GEN_113;
-          snap_f_rat_2_7 <= _GEN_115;
-          snap_f_rat_2_8 <= _GEN_117;
-          snap_f_rat_2_9 <= _GEN_119;
-          snap_f_rat_2_10 <= _GEN_121;
-          snap_f_rat_2_11 <= _GEN_123;
-          snap_f_rat_2_12 <= _GEN_125;
-          snap_f_rat_2_13 <= _GEN_127;
-          snap_f_rat_2_14 <= _GEN_129;
-          snap_f_rat_2_15 <= _GEN_131;
-          snap_f_rat_2_16 <= _GEN_133;
-          snap_f_rat_2_17 <= _GEN_135;
-          snap_f_rat_2_18 <= _GEN_137;
-          snap_f_rat_2_19 <= _GEN_139;
-          snap_f_rat_2_20 <= _GEN_141;
-          snap_f_rat_2_21 <= _GEN_143;
-          snap_f_rat_2_22 <= _GEN_145;
-          snap_f_rat_2_23 <= _GEN_147;
-          snap_f_rat_2_24 <= _GEN_149;
-          snap_f_rat_2_25 <= _GEN_151;
-          snap_f_rat_2_26 <= _GEN_153;
-          snap_f_rat_2_27 <= _GEN_155;
-          snap_f_rat_2_28 <= _GEN_157;
-          snap_f_rat_2_29 <= _GEN_159;
-          snap_f_rat_2_30 <= _GEN_161;
-          snap_f_rat_2_31 <= _GEN_163;
-        end
+      if (_GEN_138) begin
+        snap_f_rat_2_0 <= next_f_rat_0;
+        snap_f_rat_2_1 <= next_f_rat_1;
+        snap_f_rat_2_2 <= next_f_rat_2;
+        snap_f_rat_2_3 <= next_f_rat_3;
+        snap_f_rat_2_4 <= next_f_rat_4;
+        snap_f_rat_2_5 <= next_f_rat_5;
+        snap_f_rat_2_6 <= next_f_rat_6;
+        snap_f_rat_2_7 <= next_f_rat_7;
+        snap_f_rat_2_8 <= next_f_rat_8;
+        snap_f_rat_2_9 <= next_f_rat_9;
+        snap_f_rat_2_10 <= next_f_rat_10;
+        snap_f_rat_2_11 <= next_f_rat_11;
+        snap_f_rat_2_12 <= next_f_rat_12;
+        snap_f_rat_2_13 <= next_f_rat_13;
+        snap_f_rat_2_14 <= next_f_rat_14;
+        snap_f_rat_2_15 <= next_f_rat_15;
+        snap_f_rat_2_16 <= next_f_rat_16;
+        snap_f_rat_2_17 <= next_f_rat_17;
+        snap_f_rat_2_18 <= next_f_rat_18;
+        snap_f_rat_2_19 <= next_f_rat_19;
+        snap_f_rat_2_20 <= next_f_rat_20;
+        snap_f_rat_2_21 <= next_f_rat_21;
+        snap_f_rat_2_22 <= next_f_rat_22;
+        snap_f_rat_2_23 <= next_f_rat_23;
+        snap_f_rat_2_24 <= next_f_rat_24;
+        snap_f_rat_2_25 <= next_f_rat_25;
+        snap_f_rat_2_26 <= next_f_rat_26;
+        snap_f_rat_2_27 <= next_f_rat_27;
+        snap_f_rat_2_28 <= next_f_rat_28;
+        snap_f_rat_2_29 <= next_f_rat_29;
+        snap_f_rat_2_30 <= next_f_rat_30;
+        snap_f_rat_2_31 <= next_f_rat_31;
         snap_lsq_tail_2 <= _snap_lsq_tail_T;
       end
-      else if (_GEN_166) begin
+      else if (_GEN_134) begin
         snap_f_rat_2_0 <= snap0_f_0;
         snap_f_rat_2_1 <= snap0_f_1;
         snap_f_rat_2_2 <= snap0_f_2;
@@ -2183,112 +2045,42 @@ module RenameEngine(
         snap_f_rat_2_31 <= snap0_f_31;
         snap_lsq_tail_2 <= io_current_lsq_tail;
       end
-      if (_GEN_171) begin
-        if (io_flush) begin
-          snap_f_rat_3_0 <= next_c_rat_0;
-          snap_f_rat_3_1 <= next_c_rat_1;
-          snap_f_rat_3_2 <= next_c_rat_2;
-          snap_f_rat_3_3 <= next_c_rat_3;
-          snap_f_rat_3_4 <= next_c_rat_4;
-          snap_f_rat_3_5 <= next_c_rat_5;
-          snap_f_rat_3_6 <= next_c_rat_6;
-          snap_f_rat_3_7 <= next_c_rat_7;
-          snap_f_rat_3_8 <= next_c_rat_8;
-          snap_f_rat_3_9 <= next_c_rat_9;
-          snap_f_rat_3_10 <= next_c_rat_10;
-          snap_f_rat_3_11 <= next_c_rat_11;
-          snap_f_rat_3_12 <= next_c_rat_12;
-          snap_f_rat_3_13 <= next_c_rat_13;
-          snap_f_rat_3_14 <= next_c_rat_14;
-          snap_f_rat_3_15 <= next_c_rat_15;
-          snap_f_rat_3_16 <= next_c_rat_16;
-          snap_f_rat_3_17 <= next_c_rat_17;
-          snap_f_rat_3_18 <= next_c_rat_18;
-          snap_f_rat_3_19 <= next_c_rat_19;
-          snap_f_rat_3_20 <= next_c_rat_20;
-          snap_f_rat_3_21 <= next_c_rat_21;
-          snap_f_rat_3_22 <= next_c_rat_22;
-          snap_f_rat_3_23 <= next_c_rat_23;
-          snap_f_rat_3_24 <= next_c_rat_24;
-          snap_f_rat_3_25 <= next_c_rat_25;
-          snap_f_rat_3_26 <= next_c_rat_26;
-          snap_f_rat_3_27 <= next_c_rat_27;
-          snap_f_rat_3_28 <= next_c_rat_28;
-          snap_f_rat_3_29 <= next_c_rat_29;
-          snap_f_rat_3_30 <= next_c_rat_30;
-          snap_f_rat_3_31 <= next_c_rat_31;
-        end
-        else if (is_mispredict) begin
-          snap_f_rat_3_0 <= _GEN_172[io_br_resolve_tag];
-          snap_f_rat_3_1 <= _GEN_173[io_br_resolve_tag];
-          snap_f_rat_3_2 <= _GEN_174[io_br_resolve_tag];
-          snap_f_rat_3_3 <= _GEN_175[io_br_resolve_tag];
-          snap_f_rat_3_4 <= _GEN_176[io_br_resolve_tag];
-          snap_f_rat_3_5 <= _GEN_177[io_br_resolve_tag];
-          snap_f_rat_3_6 <= _GEN_178[io_br_resolve_tag];
-          snap_f_rat_3_7 <= _GEN_179[io_br_resolve_tag];
-          snap_f_rat_3_8 <= _GEN_180[io_br_resolve_tag];
-          snap_f_rat_3_9 <= _GEN_181[io_br_resolve_tag];
-          snap_f_rat_3_10 <= _GEN_182[io_br_resolve_tag];
-          snap_f_rat_3_11 <= _GEN_183[io_br_resolve_tag];
-          snap_f_rat_3_12 <= _GEN_184[io_br_resolve_tag];
-          snap_f_rat_3_13 <= _GEN_185[io_br_resolve_tag];
-          snap_f_rat_3_14 <= _GEN_186[io_br_resolve_tag];
-          snap_f_rat_3_15 <= _GEN_187[io_br_resolve_tag];
-          snap_f_rat_3_16 <= _GEN_188[io_br_resolve_tag];
-          snap_f_rat_3_17 <= _GEN_189[io_br_resolve_tag];
-          snap_f_rat_3_18 <= _GEN_190[io_br_resolve_tag];
-          snap_f_rat_3_19 <= _GEN_191[io_br_resolve_tag];
-          snap_f_rat_3_20 <= _GEN_192[io_br_resolve_tag];
-          snap_f_rat_3_21 <= _GEN_193[io_br_resolve_tag];
-          snap_f_rat_3_22 <= _GEN_194[io_br_resolve_tag];
-          snap_f_rat_3_23 <= _GEN_195[io_br_resolve_tag];
-          snap_f_rat_3_24 <= _GEN_196[io_br_resolve_tag];
-          snap_f_rat_3_25 <= _GEN_197[io_br_resolve_tag];
-          snap_f_rat_3_26 <= _GEN_198[io_br_resolve_tag];
-          snap_f_rat_3_27 <= _GEN_199[io_br_resolve_tag];
-          snap_f_rat_3_28 <= _GEN_200[io_br_resolve_tag];
-          snap_f_rat_3_29 <= _GEN_201[io_br_resolve_tag];
-          snap_f_rat_3_30 <= _GEN_202[io_br_resolve_tag];
-          snap_f_rat_3_31 <= _GEN_203[io_br_resolve_tag];
-        end
-        else begin
-          snap_f_rat_3_0 <= _GEN_101;
-          snap_f_rat_3_1 <= _GEN_103;
-          snap_f_rat_3_2 <= _GEN_105;
-          snap_f_rat_3_3 <= _GEN_107;
-          snap_f_rat_3_4 <= _GEN_109;
-          snap_f_rat_3_5 <= _GEN_111;
-          snap_f_rat_3_6 <= _GEN_113;
-          snap_f_rat_3_7 <= _GEN_115;
-          snap_f_rat_3_8 <= _GEN_117;
-          snap_f_rat_3_9 <= _GEN_119;
-          snap_f_rat_3_10 <= _GEN_121;
-          snap_f_rat_3_11 <= _GEN_123;
-          snap_f_rat_3_12 <= _GEN_125;
-          snap_f_rat_3_13 <= _GEN_127;
-          snap_f_rat_3_14 <= _GEN_129;
-          snap_f_rat_3_15 <= _GEN_131;
-          snap_f_rat_3_16 <= _GEN_133;
-          snap_f_rat_3_17 <= _GEN_135;
-          snap_f_rat_3_18 <= _GEN_137;
-          snap_f_rat_3_19 <= _GEN_139;
-          snap_f_rat_3_20 <= _GEN_141;
-          snap_f_rat_3_21 <= _GEN_143;
-          snap_f_rat_3_22 <= _GEN_145;
-          snap_f_rat_3_23 <= _GEN_147;
-          snap_f_rat_3_24 <= _GEN_149;
-          snap_f_rat_3_25 <= _GEN_151;
-          snap_f_rat_3_26 <= _GEN_153;
-          snap_f_rat_3_27 <= _GEN_155;
-          snap_f_rat_3_28 <= _GEN_157;
-          snap_f_rat_3_29 <= _GEN_159;
-          snap_f_rat_3_30 <= _GEN_161;
-          snap_f_rat_3_31 <= _GEN_163;
-        end
+      if (_GEN_139) begin
+        snap_f_rat_3_0 <= next_f_rat_0;
+        snap_f_rat_3_1 <= next_f_rat_1;
+        snap_f_rat_3_2 <= next_f_rat_2;
+        snap_f_rat_3_3 <= next_f_rat_3;
+        snap_f_rat_3_4 <= next_f_rat_4;
+        snap_f_rat_3_5 <= next_f_rat_5;
+        snap_f_rat_3_6 <= next_f_rat_6;
+        snap_f_rat_3_7 <= next_f_rat_7;
+        snap_f_rat_3_8 <= next_f_rat_8;
+        snap_f_rat_3_9 <= next_f_rat_9;
+        snap_f_rat_3_10 <= next_f_rat_10;
+        snap_f_rat_3_11 <= next_f_rat_11;
+        snap_f_rat_3_12 <= next_f_rat_12;
+        snap_f_rat_3_13 <= next_f_rat_13;
+        snap_f_rat_3_14 <= next_f_rat_14;
+        snap_f_rat_3_15 <= next_f_rat_15;
+        snap_f_rat_3_16 <= next_f_rat_16;
+        snap_f_rat_3_17 <= next_f_rat_17;
+        snap_f_rat_3_18 <= next_f_rat_18;
+        snap_f_rat_3_19 <= next_f_rat_19;
+        snap_f_rat_3_20 <= next_f_rat_20;
+        snap_f_rat_3_21 <= next_f_rat_21;
+        snap_f_rat_3_22 <= next_f_rat_22;
+        snap_f_rat_3_23 <= next_f_rat_23;
+        snap_f_rat_3_24 <= next_f_rat_24;
+        snap_f_rat_3_25 <= next_f_rat_25;
+        snap_f_rat_3_26 <= next_f_rat_26;
+        snap_f_rat_3_27 <= next_f_rat_27;
+        snap_f_rat_3_28 <= next_f_rat_28;
+        snap_f_rat_3_29 <= next_f_rat_29;
+        snap_f_rat_3_30 <= next_f_rat_30;
+        snap_f_rat_3_31 <= next_f_rat_31;
         snap_lsq_tail_3 <= _snap_lsq_tail_T;
       end
-      else if (_GEN_167) begin
+      else if (_GEN_135) begin
         snap_f_rat_3_0 <= snap0_f_0;
         snap_f_rat_3_1 <= snap0_f_1;
         snap_f_rat_3_2 <= snap0_f_2;
@@ -2323,16 +2115,159 @@ module RenameEngine(
         snap_f_rat_3_31 <= snap0_f_31;
         snap_lsq_tail_3 <= io_current_lsq_tail;
       end
-      snap_free_0 <= next_snap_free_0;
-      snap_free_1 <= next_snap_free_1;
-      snap_free_2 <= next_snap_free_2;
-      snap_free_3 <= next_snap_free_3;
-      snap_mask_0 <= next_snap_mask_0;
-      snap_mask_1 <= next_snap_mask_1;
-      snap_mask_2 <= next_snap_mask_2;
-      snap_mask_3 <= next_snap_mask_3;
+      snap_free_0 <=
+        _GEN_136
+          ? normal_spec_free
+          : _GEN_132 ? _next_snap_free_T_1 : snap_free_0 | combined_commit_mask;
+      snap_free_1 <=
+        _GEN_137
+          ? normal_spec_free
+          : _GEN_133 ? _next_snap_free_T_1 : snap_free_1 | combined_commit_mask;
+      snap_free_2 <=
+        _GEN_138
+          ? normal_spec_free
+          : _GEN_134 ? _next_snap_free_T_1 : snap_free_2 | combined_commit_mask;
+      snap_free_3 <=
+        _GEN_139
+          ? normal_spec_free
+          : _GEN_135 ? _next_snap_free_T_1 : snap_free_3 | combined_commit_mask;
+      snap_mask_0 <=
+        _GEN_136 ? _global_mask_T_1 : _GEN_132 ? io_dec0_br_mask_0 : ~_GEN & snap_mask_0;
+      snap_mask_1 <=
+        _GEN_137 ? _global_mask_T_1 : _GEN_133 ? io_dec0_br_mask_0 : ~_GEN & snap_mask_1;
+      snap_mask_2 <=
+        _GEN_138 ? _global_mask_T_1 : _GEN_134 ? io_dec0_br_mask_0 : ~_GEN & snap_mask_2;
+      snap_mask_3 <=
+        _GEN_139 ? _global_mask_T_1 : _GEN_135 ? io_dec0_br_mask_0 : ~_GEN & snap_mask_3;
+      delayed_is_mispredict <= is_mispredict;
     end
   end // always @(posedge, posedge)
+  always @(posedge clock) begin
+    automatic logic [3:0][63:0] _GEN_140;
+    automatic logic [3:0][3:0]  _GEN_141;
+    automatic logic [3:0][5:0]  _GEN_142;
+    automatic logic [3:0][5:0]  _GEN_143;
+    automatic logic [3:0][5:0]  _GEN_144;
+    automatic logic [3:0][5:0]  _GEN_145;
+    automatic logic [3:0][5:0]  _GEN_146;
+    automatic logic [3:0][5:0]  _GEN_147;
+    automatic logic [3:0][5:0]  _GEN_148;
+    automatic logic [3:0][5:0]  _GEN_149;
+    automatic logic [3:0][5:0]  _GEN_150;
+    automatic logic [3:0][5:0]  _GEN_151;
+    automatic logic [3:0][5:0]  _GEN_152;
+    automatic logic [3:0][5:0]  _GEN_153;
+    automatic logic [3:0][5:0]  _GEN_154;
+    automatic logic [3:0][5:0]  _GEN_155;
+    automatic logic [3:0][5:0]  _GEN_156;
+    automatic logic [3:0][5:0]  _GEN_157;
+    automatic logic [3:0][5:0]  _GEN_158;
+    automatic logic [3:0][5:0]  _GEN_159;
+    automatic logic [3:0][5:0]  _GEN_160;
+    automatic logic [3:0][5:0]  _GEN_161;
+    automatic logic [3:0][5:0]  _GEN_162;
+    automatic logic [3:0][5:0]  _GEN_163;
+    automatic logic [3:0][5:0]  _GEN_164;
+    automatic logic [3:0][5:0]  _GEN_165;
+    automatic logic [3:0][5:0]  _GEN_166;
+    automatic logic [3:0][5:0]  _GEN_167;
+    automatic logic [3:0][5:0]  _GEN_168;
+    automatic logic [3:0][5:0]  _GEN_169;
+    automatic logic [3:0][5:0]  _GEN_170;
+    automatic logic [3:0][5:0]  _GEN_171;
+    automatic logic [3:0][5:0]  _GEN_172;
+    automatic logic [3:0][5:0]  _GEN_173;
+    _GEN_140 = {{snap_free_3}, {snap_free_2}, {snap_free_1}, {snap_free_0}};
+    delayed_snap_free <= _GEN_140[io_br_resolve_tag] | combined_commit_mask;
+    _GEN_141 = {{snap_mask_3}, {snap_mask_2}, {snap_mask_1}, {snap_mask_0}};
+    delayed_snap_mask <= {3'h0, ~_GEN & _GEN_141[io_br_resolve_tag]};
+    _GEN_142 = {{snap_f_rat_3_0}, {snap_f_rat_2_0}, {snap_f_rat_1_0}, {snap_f_rat_0_0}};
+    delayed_snap_f_rat_0 <= _GEN_142[io_br_resolve_tag];
+    _GEN_143 = {{snap_f_rat_3_1}, {snap_f_rat_2_1}, {snap_f_rat_1_1}, {snap_f_rat_0_1}};
+    delayed_snap_f_rat_1 <= _GEN_143[io_br_resolve_tag];
+    _GEN_144 = {{snap_f_rat_3_2}, {snap_f_rat_2_2}, {snap_f_rat_1_2}, {snap_f_rat_0_2}};
+    delayed_snap_f_rat_2 <= _GEN_144[io_br_resolve_tag];
+    _GEN_145 = {{snap_f_rat_3_3}, {snap_f_rat_2_3}, {snap_f_rat_1_3}, {snap_f_rat_0_3}};
+    delayed_snap_f_rat_3 <= _GEN_145[io_br_resolve_tag];
+    _GEN_146 = {{snap_f_rat_3_4}, {snap_f_rat_2_4}, {snap_f_rat_1_4}, {snap_f_rat_0_4}};
+    delayed_snap_f_rat_4 <= _GEN_146[io_br_resolve_tag];
+    _GEN_147 = {{snap_f_rat_3_5}, {snap_f_rat_2_5}, {snap_f_rat_1_5}, {snap_f_rat_0_5}};
+    delayed_snap_f_rat_5 <= _GEN_147[io_br_resolve_tag];
+    _GEN_148 = {{snap_f_rat_3_6}, {snap_f_rat_2_6}, {snap_f_rat_1_6}, {snap_f_rat_0_6}};
+    delayed_snap_f_rat_6 <= _GEN_148[io_br_resolve_tag];
+    _GEN_149 = {{snap_f_rat_3_7}, {snap_f_rat_2_7}, {snap_f_rat_1_7}, {snap_f_rat_0_7}};
+    delayed_snap_f_rat_7 <= _GEN_149[io_br_resolve_tag];
+    _GEN_150 = {{snap_f_rat_3_8}, {snap_f_rat_2_8}, {snap_f_rat_1_8}, {snap_f_rat_0_8}};
+    delayed_snap_f_rat_8 <= _GEN_150[io_br_resolve_tag];
+    _GEN_151 = {{snap_f_rat_3_9}, {snap_f_rat_2_9}, {snap_f_rat_1_9}, {snap_f_rat_0_9}};
+    delayed_snap_f_rat_9 <= _GEN_151[io_br_resolve_tag];
+    _GEN_152 =
+      {{snap_f_rat_3_10}, {snap_f_rat_2_10}, {snap_f_rat_1_10}, {snap_f_rat_0_10}};
+    delayed_snap_f_rat_10 <= _GEN_152[io_br_resolve_tag];
+    _GEN_153 =
+      {{snap_f_rat_3_11}, {snap_f_rat_2_11}, {snap_f_rat_1_11}, {snap_f_rat_0_11}};
+    delayed_snap_f_rat_11 <= _GEN_153[io_br_resolve_tag];
+    _GEN_154 =
+      {{snap_f_rat_3_12}, {snap_f_rat_2_12}, {snap_f_rat_1_12}, {snap_f_rat_0_12}};
+    delayed_snap_f_rat_12 <= _GEN_154[io_br_resolve_tag];
+    _GEN_155 =
+      {{snap_f_rat_3_13}, {snap_f_rat_2_13}, {snap_f_rat_1_13}, {snap_f_rat_0_13}};
+    delayed_snap_f_rat_13 <= _GEN_155[io_br_resolve_tag];
+    _GEN_156 =
+      {{snap_f_rat_3_14}, {snap_f_rat_2_14}, {snap_f_rat_1_14}, {snap_f_rat_0_14}};
+    delayed_snap_f_rat_14 <= _GEN_156[io_br_resolve_tag];
+    _GEN_157 =
+      {{snap_f_rat_3_15}, {snap_f_rat_2_15}, {snap_f_rat_1_15}, {snap_f_rat_0_15}};
+    delayed_snap_f_rat_15 <= _GEN_157[io_br_resolve_tag];
+    _GEN_158 =
+      {{snap_f_rat_3_16}, {snap_f_rat_2_16}, {snap_f_rat_1_16}, {snap_f_rat_0_16}};
+    delayed_snap_f_rat_16 <= _GEN_158[io_br_resolve_tag];
+    _GEN_159 =
+      {{snap_f_rat_3_17}, {snap_f_rat_2_17}, {snap_f_rat_1_17}, {snap_f_rat_0_17}};
+    delayed_snap_f_rat_17 <= _GEN_159[io_br_resolve_tag];
+    _GEN_160 =
+      {{snap_f_rat_3_18}, {snap_f_rat_2_18}, {snap_f_rat_1_18}, {snap_f_rat_0_18}};
+    delayed_snap_f_rat_18 <= _GEN_160[io_br_resolve_tag];
+    _GEN_161 =
+      {{snap_f_rat_3_19}, {snap_f_rat_2_19}, {snap_f_rat_1_19}, {snap_f_rat_0_19}};
+    delayed_snap_f_rat_19 <= _GEN_161[io_br_resolve_tag];
+    _GEN_162 =
+      {{snap_f_rat_3_20}, {snap_f_rat_2_20}, {snap_f_rat_1_20}, {snap_f_rat_0_20}};
+    delayed_snap_f_rat_20 <= _GEN_162[io_br_resolve_tag];
+    _GEN_163 =
+      {{snap_f_rat_3_21}, {snap_f_rat_2_21}, {snap_f_rat_1_21}, {snap_f_rat_0_21}};
+    delayed_snap_f_rat_21 <= _GEN_163[io_br_resolve_tag];
+    _GEN_164 =
+      {{snap_f_rat_3_22}, {snap_f_rat_2_22}, {snap_f_rat_1_22}, {snap_f_rat_0_22}};
+    delayed_snap_f_rat_22 <= _GEN_164[io_br_resolve_tag];
+    _GEN_165 =
+      {{snap_f_rat_3_23}, {snap_f_rat_2_23}, {snap_f_rat_1_23}, {snap_f_rat_0_23}};
+    delayed_snap_f_rat_23 <= _GEN_165[io_br_resolve_tag];
+    _GEN_166 =
+      {{snap_f_rat_3_24}, {snap_f_rat_2_24}, {snap_f_rat_1_24}, {snap_f_rat_0_24}};
+    delayed_snap_f_rat_24 <= _GEN_166[io_br_resolve_tag];
+    _GEN_167 =
+      {{snap_f_rat_3_25}, {snap_f_rat_2_25}, {snap_f_rat_1_25}, {snap_f_rat_0_25}};
+    delayed_snap_f_rat_25 <= _GEN_167[io_br_resolve_tag];
+    _GEN_168 =
+      {{snap_f_rat_3_26}, {snap_f_rat_2_26}, {snap_f_rat_1_26}, {snap_f_rat_0_26}};
+    delayed_snap_f_rat_26 <= _GEN_168[io_br_resolve_tag];
+    _GEN_169 =
+      {{snap_f_rat_3_27}, {snap_f_rat_2_27}, {snap_f_rat_1_27}, {snap_f_rat_0_27}};
+    delayed_snap_f_rat_27 <= _GEN_169[io_br_resolve_tag];
+    _GEN_170 =
+      {{snap_f_rat_3_28}, {snap_f_rat_2_28}, {snap_f_rat_1_28}, {snap_f_rat_0_28}};
+    delayed_snap_f_rat_28 <= _GEN_170[io_br_resolve_tag];
+    _GEN_171 =
+      {{snap_f_rat_3_29}, {snap_f_rat_2_29}, {snap_f_rat_1_29}, {snap_f_rat_0_29}};
+    delayed_snap_f_rat_29 <= _GEN_171[io_br_resolve_tag];
+    _GEN_172 =
+      {{snap_f_rat_3_30}, {snap_f_rat_2_30}, {snap_f_rat_1_30}, {snap_f_rat_0_30}};
+    delayed_snap_f_rat_30 <= _GEN_172[io_br_resolve_tag];
+    _GEN_173 =
+      {{snap_f_rat_3_31}, {snap_f_rat_2_31}, {snap_f_rat_1_31}, {snap_f_rat_0_31}};
+    delayed_snap_f_rat_31 <= _GEN_173[io_br_resolve_tag];
+  end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
       `FIRRTL_BEFORE_INITIAL
@@ -2546,6 +2481,7 @@ module RenameEngine(
         snap_lsq_tail_1 = 4'h0;
         snap_lsq_tail_2 = 4'h0;
         snap_lsq_tail_3 = 4'h0;
+        delayed_is_mispredict = 1'h0;
       end
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -2575,7 +2511,7 @@ module RenameEngine(
       ? (need_reg0 & io_dec1_waddr == io_dec0_waddr ? pdest0 : _GEN_2[io_dec1_waddr])
       : 6'h0;
   assign io_dec1_br_tag = br_tag1;
-  assign io_dec1_br_mask = _global_mask_T;
+  assign io_dec1_br_mask = _global_mask_T_1;
   assign io_br_restore_tail = _GEN_3[io_br_resolve_tag];
 endmodule
 

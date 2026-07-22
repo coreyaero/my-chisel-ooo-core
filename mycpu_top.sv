@@ -872,17 +872,6 @@ module mycpu_top(
   wire         _ctrl_io_flush_if;
   wire         _ctrl_io_flush_id;
   wire         _reset_high_T = ~aresetn;
-  reg          rename_br_resolve_pipe_valid;
-  reg          rename_br_resolve_pipe_mispredict;
-  reg  [1:0]   rename_br_resolve_pipe_tag;
-  reg          bpu_update_pipe_valid;
-  reg  [31:0]  bpu_update_pipe_bits_pc;
-  reg  [31:0]  bpu_update_pipe_bits_target;
-  reg          bpu_update_pipe_bits_taken;
-  reg  [1:0]   bpu_update_pipe_bits_bpu_type;
-  reg  [9:0]   bpu_update_pipe_bits_ghr;
-  reg          bpu_update_pipe_bits_mispredict;
-  reg  [3:0]   bpu_update_pipe_bits_ras_tos;
   wire         fetch_buffer_reset = _reset_high_T | _ctrl_io_flush_id;
   wire         d0_valid = _disp_buf_io_out0_valid & ~_ctrl_io_flush_id;
   wire         d1_valid = _disp_buf_io_out1_valid & ~_ctrl_io_flush_id;
@@ -918,33 +907,11 @@ module mycpu_top(
   wire         if_stage_io_inst_sram_data_ok = _icache_io_cpu_data_ok & if_pending;
   always @(posedge aclk or posedge _reset_high_T) begin
     if (_reset_high_T) begin
-      rename_br_resolve_pipe_valid <= 1'h0;
-      rename_br_resolve_pipe_mispredict <= 1'h0;
-      rename_br_resolve_pipe_tag <= 2'h0;
-      bpu_update_pipe_valid <= 1'h0;
-      bpu_update_pipe_bits_pc <= 32'h0;
-      bpu_update_pipe_bits_target <= 32'h0;
-      bpu_update_pipe_bits_taken <= 1'h0;
-      bpu_update_pipe_bits_bpu_type <= 2'h0;
-      bpu_update_pipe_bits_ghr <= 10'h0;
-      bpu_update_pipe_bits_mispredict <= 1'h0;
-      bpu_update_pipe_bits_ras_tos <= 4'h0;
       if_pending <= 1'h0;
       agu_pending <= 1'h0;
       agu_icache_req_reg <= 1'h0;
     end
     else begin
-      rename_br_resolve_pipe_valid <= _exec_engine_io_br_resolve_valid;
-      rename_br_resolve_pipe_mispredict <= _exec_engine_io_br_resolve_mispredict;
-      rename_br_resolve_pipe_tag <= _exec_engine_io_br_resolve_tag;
-      bpu_update_pipe_valid <= _exec_engine_io_bpu_update_valid;
-      bpu_update_pipe_bits_pc <= _exec_engine_io_bpu_update_bits_pc;
-      bpu_update_pipe_bits_target <= _exec_engine_io_bpu_update_bits_target;
-      bpu_update_pipe_bits_taken <= _exec_engine_io_bpu_update_bits_taken;
-      bpu_update_pipe_bits_bpu_type <= _exec_engine_io_bpu_update_bits_bpu_type;
-      bpu_update_pipe_bits_ghr <= _exec_engine_io_bpu_update_bits_ghr;
-      bpu_update_pipe_bits_mispredict <= _exec_engine_io_bpu_update_bits_mispredict;
-      bpu_update_pipe_bits_ras_tos <= _exec_engine_io_bpu_update_bits_ras_tos;
       if_pending <=
         if_stage_io_inst_sram_addr_ok & ~if_stage_io_inst_sram_data_ok
         | ~(if_stage_io_inst_sram_data_ok & ~if_stage_io_inst_sram_addr_ok) & if_pending;
@@ -958,17 +925,6 @@ module mycpu_top(
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
       if (_reset_high_T) begin
-        rename_br_resolve_pipe_valid = 1'h0;
-        rename_br_resolve_pipe_mispredict = 1'h0;
-        rename_br_resolve_pipe_tag = 2'h0;
-        bpu_update_pipe_valid = 1'h0;
-        bpu_update_pipe_bits_pc = 32'h0;
-        bpu_update_pipe_bits_target = 32'h0;
-        bpu_update_pipe_bits_taken = 1'h0;
-        bpu_update_pipe_bits_bpu_type = 2'h0;
-        bpu_update_pipe_bits_ghr = 10'h0;
-        bpu_update_pipe_bits_mispredict = 1'h0;
-        bpu_update_pipe_bits_ras_tos = 4'h0;
         if_pending = 1'h0;
         agu_pending = 1'h0;
         agu_icache_req_reg = 1'h0;
@@ -996,9 +952,9 @@ module mycpu_top(
     .clock                    (aclk),
     .reset                    (_reset_high_T),
     .io_flush                 (_rob_io_wb_flush),
-    .io_br_resolve_valid      (rename_br_resolve_pipe_valid),
-    .io_br_resolve_mispredict (rename_br_resolve_pipe_mispredict),
-    .io_br_resolve_tag        (rename_br_resolve_pipe_tag),
+    .io_br_resolve_valid      (_exec_engine_io_br_resolve_valid),
+    .io_br_resolve_mispredict (_exec_engine_io_br_resolve_mispredict),
+    .io_br_resolve_tag        (_exec_engine_io_br_resolve_tag),
     .io_dec0_fire             (iq_io_disp_valid),
     .io_dec0_we               (_disp_buf_io_out0_bits_regWriteEn),
     .io_dec0_raddr1           (_disp_buf_io_out0_bits_src1_addr),
@@ -1571,14 +1527,14 @@ module mycpu_top(
     .io_tlb_s0_plv                 (_tlb_module_io_s0_plv),
     .io_tlb_s0_mat                 (_tlb_module_io_s0_mat),
     .io_tlb_s0_v                   (_tlb_module_io_s0_v),
-    .io_bpu_update_valid           (bpu_update_pipe_valid),
-    .io_bpu_update_bits_pc         (bpu_update_pipe_bits_pc),
-    .io_bpu_update_bits_target     (bpu_update_pipe_bits_target),
-    .io_bpu_update_bits_taken      (bpu_update_pipe_bits_taken),
-    .io_bpu_update_bits_bpu_type   (bpu_update_pipe_bits_bpu_type),
-    .io_bpu_update_bits_ghr        (bpu_update_pipe_bits_ghr),
-    .io_bpu_update_bits_mispredict (bpu_update_pipe_bits_mispredict),
-    .io_bpu_update_bits_ras_tos    (bpu_update_pipe_bits_ras_tos)
+    .io_bpu_update_valid           (_exec_engine_io_bpu_update_valid),
+    .io_bpu_update_bits_pc         (_exec_engine_io_bpu_update_bits_pc),
+    .io_bpu_update_bits_target     (_exec_engine_io_bpu_update_bits_target),
+    .io_bpu_update_bits_taken      (_exec_engine_io_bpu_update_bits_taken),
+    .io_bpu_update_bits_bpu_type   (_exec_engine_io_bpu_update_bits_bpu_type),
+    .io_bpu_update_bits_ghr        (_exec_engine_io_bpu_update_bits_ghr),
+    .io_bpu_update_bits_mispredict (_exec_engine_io_bpu_update_bits_mispredict),
+    .io_bpu_update_bits_ras_tos    (_exec_engine_io_bpu_update_bits_ras_tos)
   );
   StageID id_stage (
     .io_in_valid0               (_fetch_buffer_io_out_valid0),
