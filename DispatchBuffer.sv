@@ -7,7 +7,7 @@ module DispatchBuffer(
   input         io_in0_valid,
   input  [31:0] io_in0_bits_pc,
                 io_in0_bits_inst,
-  input  [11:0] io_in0_bits_aluOp,
+  input  [12:0] io_in0_bits_aluOp,
   input  [6:0]  io_in0_bits_mduOp,
   input  [8:0]  io_in0_bits_brType,
   input  [31:0] io_in0_bits_imm,
@@ -49,7 +49,7 @@ module DispatchBuffer(
   input         io_in1_valid,
   input  [31:0] io_in1_bits_pc,
                 io_in1_bits_inst,
-  input  [11:0] io_in1_bits_aluOp,
+  input  [12:0] io_in1_bits_aluOp,
   input  [6:0]  io_in1_bits_mduOp,
   input  [8:0]  io_in1_bits_brType,
   input  [31:0] io_in1_bits_imm,
@@ -91,7 +91,7 @@ module DispatchBuffer(
   output        io_out0_valid,
   output [31:0] io_out0_bits_pc,
                 io_out0_bits_inst,
-  output [11:0] io_out0_bits_aluOp,
+  output [12:0] io_out0_bits_aluOp,
   output [6:0]  io_out0_bits_mduOp,
   output [8:0]  io_out0_bits_brType,
   output [31:0] io_out0_bits_imm,
@@ -133,7 +133,7 @@ module DispatchBuffer(
   output        io_out1_valid,
   output [31:0] io_out1_bits_pc,
                 io_out1_bits_inst,
-  output [11:0] io_out1_bits_aluOp,
+  output [12:0] io_out1_bits_aluOp,
   output [6:0]  io_out1_bits_mduOp,
   output [8:0]  io_out1_bits_brType,
   output [31:0] io_out1_bits_imm,
@@ -176,7 +176,7 @@ module DispatchBuffer(
   reg         valid0;
   reg  [31:0] bits0_pc;
   reg  [31:0] bits0_inst;
-  reg  [11:0] bits0_aluOp;
+  reg  [12:0] bits0_aluOp;
   reg  [6:0]  bits0_mduOp;
   reg  [8:0]  bits0_brType;
   reg  [31:0] bits0_imm;
@@ -217,7 +217,7 @@ module DispatchBuffer(
   reg         valid1;
   reg  [31:0] bits1_pc;
   reg  [31:0] bits1_inst;
-  reg  [11:0] bits1_aluOp;
+  reg  [12:0] bits1_aluOp;
   reg  [6:0]  bits1_mduOp;
   reg  [8:0]  bits1_brType;
   reg  [31:0] bits1_imm;

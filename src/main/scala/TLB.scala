@@ -68,7 +68,7 @@ class tlb extends Module {
         val r_index = Input(UInt(4.W))
         val r_dat   = Output(new TlbEntry())
     })
-    val tlb_table = Reg(Vec(16, new TlbEntry()))
+    val tlb_table = RegInit(VecInit(Seq.fill(16)(0.U.asTypeOf(new TlbEntry()))))
     //Write a PTE
     when(io.we) { tlb_table(io.w_index) := io.w_dat }
     //Read a PTE

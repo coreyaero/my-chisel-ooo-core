@@ -6,7 +6,7 @@ module AluUnit(
   input         io_in_valid,
   input  [31:0] io_in_bits_pc,
                 io_in_bits_inst,
-  input  [11:0] io_in_bits_aluOp,
+  input  [12:0] io_in_bits_aluOp,
   input  [8:0]  io_in_bits_brType,
   input  [31:0] io_in_bits_imm,
   input         io_in_bits_src1IsPC,
@@ -83,7 +83,7 @@ module AluUnit(
   reg         valid_reg;
   reg  [31:0] data_reg_pc;
   reg  [31:0] data_reg_inst;
-  reg  [11:0] data_reg_aluOp;
+  reg  [12:0] data_reg_aluOp;
   reg  [8:0]  data_reg_brType;
   reg  [31:0] data_reg_imm;
   reg         data_reg_src1IsPC;
@@ -148,7 +148,7 @@ module AluUnit(
       valid_reg <= 1'h0;
       data_reg_pc <= 32'h0;
       data_reg_inst <= 32'h0;
-      data_reg_aluOp <= 12'h0;
+      data_reg_aluOp <= 13'h0;
       data_reg_brType <= 9'h0;
       data_reg_imm <= 32'h0;
       data_reg_src1IsPC <= 1'h0;
@@ -237,7 +237,7 @@ module AluUnit(
         valid_reg = 1'h0;
         data_reg_pc = 32'h0;
         data_reg_inst = 32'h0;
-        data_reg_aluOp = 12'h0;
+        data_reg_aluOp = 13'h0;
         data_reg_brType = 9'h0;
         data_reg_imm = 32'h0;
         data_reg_src1IsPC = 1'h0;

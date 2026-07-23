@@ -24,9 +24,9 @@ class OneHotGenerator(w:Int){
 }
 
 object AluOp{
-    private val oh = new OneHotGenerator(12)
+    private val oh = new OneHotGenerator(13) // ★ 修改：将 12 改为 13
     val NOP = oh.NOP
-    val ADD, SUB, SLT, SLTU, AND, NOR, OR, XOR, SLL, SRL, SRA, LUI = oh.nxt
+    val ADD, SUB, SLT, SLTU, AND, NOR, OR, XOR, SLL, SRL, SRA, LUI, CPUCFG = oh.nxt // ★ 追加 CPUCFG
 }
 
 object LsOp{

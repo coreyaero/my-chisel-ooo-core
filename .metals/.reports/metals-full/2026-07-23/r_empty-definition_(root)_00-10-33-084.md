@@ -1,3 +1,25 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:s1_v
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: s1_v
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/tlb_module/io/s1_v.
+	 -chisel3/tlb_module/io/s1_v#
+	 -chisel3/tlb_module/io/s1_v().
+	 -chisel3/util/tlb_module/io/s1_v.
+	 -chisel3/util/tlb_module/io/s1_v#
+	 -chisel3/util/tlb_module/io/s1_v().
+	 -tlb_module/io/s1_v.
+	 -tlb_module/io/s1_v#
+	 -tlb_module/io/s1_v().
+	 -scala/Predef.tlb_module.io.s1_v.
+	 -scala/Predef.tlb_module.io.s1_v#
+	 -scala/Predef.tlb_module.io.s1_v().
+offset: 4907
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -109,14 +131,17 @@ class core_top extends RawModule {
         tlb_module.io.s1_vppn     := exec_engine.io.tlb_s1_vppn
         tlb_module.io.s1_va_bit12 := exec_engine.io.tlb_s1_va_bit12
         tlb_module.io.s1_asid     := exec_engine.io.tlb_s1_asid
-        exec_engine.io.tlb_s1_found  := tlb_module.io.s1_found
-        exec_engine.io.tlb_s1_index  := tlb_module.io.s1_index
-        exec_engine.io.tlb_s1_ppn    := tlb_module.io.s1_ppn
-        exec_engine.io.tlb_s1_ps     := tlb_module.io.s1_ps
-        exec_engine.io.tlb_s1_plv    := tlb_module.io.s1_plv
-        exec_engine.io.tlb_s1_mat    := tlb_module.io.s1_mat
-        exec_engine.io.tlb_s1_d      := tlb_module.io.s1_d
-        exec_engine.io.tlb_s1_v      := tlb_module.io.s1_v
+        // ★ X态终极免疫 1：裸机程序不用 TLB 时，强制屏蔽 TLB 输出，防止未初始化 RAM 泄露 X 态！
+        val tlb_enable = csr.io.mmu_config.pg && !csr.io.mmu_config.da
+        
+        exec_engine.io.tlb_s1_found  := Mux(tlb_enable, tlb_module.io.s1_found, false.B)
+        exec_engine.io.tlb_s1_index  := Mux(tlb_enable, tlb_module.io.s1_index, 0.U)
+        exec_engine.io.tlb_s1_ppn    := Mux(tlb_enable, tlb_module.io.s1_ppn, 0.U)
+        exec_engine.io.tlb_s1_ps     := Mux(tlb_enable, tlb_module.io.s1_ps, 0.U)
+        exec_engine.io.tlb_s1_plv    := Mux(tlb_enable, tlb_module.io.s1_plv, 0.U)
+        exec_engine.io.tlb_s1_mat    := Mux(tlb_enable, tlb_module.io.s1_mat, 0.U)
+        exec_engine.io.tlb_s1_d      := Mux(tlb_enable, tlb_module.io.s1_d, false.B)
+        exec_engine.io.tlb_s1_v      := Mux(tlb_enable, tlb_module.io.s1_@@v, false.B)
         
         tlb_module.io.invtlb_valid := exec_engine.io.invtlb_valid
         tlb_module.io.invtlb_op    := exec_engine.io.invtlb_op
@@ -658,3 +683,9 @@ class core_top extends RawModule {
         rf_rdata := 0.U
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: s1_v

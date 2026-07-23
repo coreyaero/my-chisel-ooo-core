@@ -26,6 +26,8 @@ Queue2_PipelineData.sv
 ExecutionEngine.sv
 CSR.sv
 tlb.sv
+ram_16x4.sv
+Queue16_UInt4.sv
 SramToAxiBridge.sv
 tag_array_256x19.sv
 data_array_256x32.sv
@@ -38,4 +40,4 @@ Queue1_AguIcacheReq.sv
 Queue1_LsqDcacheReq.sv
 ram_2x41.sv
 Queue2_AxiWChannel.sv
-mycpu_top.sv
+core_top.sv

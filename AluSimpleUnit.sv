@@ -5,7 +5,7 @@ module AluSimpleUnit(
   output        io_in_ready,
   input         io_in_valid,
   input  [31:0] io_in_bits_pc,
-  input  [11:0] io_in_bits_aluOp,
+  input  [12:0] io_in_bits_aluOp,
   input  [31:0] io_in_bits_imm,
   input         io_in_bits_src1IsPC,
                 io_in_bits_src2IsImm,
@@ -55,7 +55,7 @@ module AluSimpleUnit(
 
   reg         valid_reg;
   reg  [31:0] data_reg_pc;
-  reg  [11:0] data_reg_aluOp;
+  reg  [12:0] data_reg_aluOp;
   reg  [31:0] data_reg_imm;
   reg         data_reg_src1IsPC;
   reg         data_reg_src2IsImm;
@@ -87,7 +87,7 @@ module AluSimpleUnit(
     if (reset) begin
       valid_reg <= 1'h0;
       data_reg_pc <= 32'h0;
-      data_reg_aluOp <= 12'h0;
+      data_reg_aluOp <= 13'h0;
       data_reg_imm <= 32'h0;
       data_reg_src1IsPC <= 1'h0;
       data_reg_src2IsImm <= 1'h0;
@@ -162,7 +162,7 @@ module AluSimpleUnit(
       if (reset) begin
         valid_reg = 1'h0;
         data_reg_pc = 32'h0;
-        data_reg_aluOp = 12'h0;
+        data_reg_aluOp = 13'h0;
         data_reg_imm = 32'h0;
         data_reg_src1IsPC = 1'h0;
         data_reg_src2IsImm = 1'h0;

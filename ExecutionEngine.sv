@@ -6,7 +6,7 @@ module ExecutionEngine(
   input         io_in_alu0_valid,
   input  [31:0] io_in_alu0_bits_pc,
                 io_in_alu0_bits_inst,
-  input  [11:0] io_in_alu0_bits_aluOp,
+  input  [12:0] io_in_alu0_bits_aluOp,
   input  [8:0]  io_in_alu0_bits_brType,
   input  [31:0] io_in_alu0_bits_imm,
   input         io_in_alu0_bits_src1IsPC,
@@ -41,7 +41,7 @@ module ExecutionEngine(
   output        io_in_alu1_ready,
   input         io_in_alu1_valid,
   input  [31:0] io_in_alu1_bits_pc,
-  input  [11:0] io_in_alu1_bits_aluOp,
+  input  [12:0] io_in_alu1_bits_aluOp,
   input  [31:0] io_in_alu1_bits_imm,
   input         io_in_alu1_bits_src1IsPC,
                 io_in_alu1_bits_src2IsImm,
@@ -90,7 +90,7 @@ module ExecutionEngine(
   input         io_in_agu_valid,
   input  [31:0] io_in_agu_bits_pc,
                 io_in_agu_bits_inst,
-  input  [11:0] io_in_agu_bits_aluOp,
+  input  [12:0] io_in_agu_bits_aluOp,
   input  [6:0]  io_in_agu_bits_mduOp,
   input  [8:0]  io_in_agu_bits_brType,
   input  [31:0] io_in_agu_bits_imm,
@@ -214,10 +214,8 @@ module ExecutionEngine(
   input  [3:0]  io_tlb_s1_index,
   input  [19:0] io_tlb_s1_ppn,
   input  [5:0]  io_tlb_s1_ps,
-  input  [1:0]  io_tlb_s1_plv,
-                io_tlb_s1_mat,
-  input         io_tlb_s1_d,
-                io_tlb_s1_v,
+  input  [1:0]  io_tlb_s1_mat,
+  input         io_tlb_s1_v,
   output        io_invtlb_valid,
   output [4:0]  io_invtlb_op,
   output [3:0]  io_lsq_current_tail,
@@ -299,7 +297,7 @@ module ExecutionEngine(
   wire        _agu_io_out_valid;
   wire [31:0] _agu_io_out_bits_pc;
   wire [31:0] _agu_io_out_bits_inst;
-  wire [11:0] _agu_io_out_bits_aluOp;
+  wire [12:0] _agu_io_out_bits_aluOp;
   wire [6:0]  _agu_io_out_bits_mduOp;
   wire [8:0]  _agu_io_out_bits_brType;
   wire [31:0] _agu_io_out_bits_imm;
@@ -733,9 +731,7 @@ module ExecutionEngine(
     .io_tlb_s1_index             (io_tlb_s1_index),
     .io_tlb_s1_ppn               (io_tlb_s1_ppn),
     .io_tlb_s1_ps                (io_tlb_s1_ps),
-    .io_tlb_s1_plv               (io_tlb_s1_plv),
     .io_tlb_s1_mat               (io_tlb_s1_mat),
-    .io_tlb_s1_d                 (io_tlb_s1_d),
     .io_tlb_s1_v                 (io_tlb_s1_v),
     .io_invtlb_valid             (io_invtlb_valid),
     .io_invtlb_op                (io_invtlb_op)

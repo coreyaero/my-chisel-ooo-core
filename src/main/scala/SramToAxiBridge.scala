@@ -81,21 +81,35 @@ class SramToAxiBridge(implicit p: CacheConfig) extends Module {
     io.axi.arprot  := 0.U      
 
     // =========================================================================
-    // 引擎 2：读响应通道 (R) - 动态 ID 路由
+    // 引擎 2：读响应通道 (R) - 动态 ID 路由 (★ 绕过官方从机丢 ID 修复版 ★)
     // =========================================================================
     io.axi.rready := true.B // CPU 端接收缓冲永远就绪
 
+    // ★ 核心修复：建立一个深度为 16 的 FIFO，强行记住发出去的 arid
+    // 深度 16 绝对安全，因为 ICache 和 DCache 的 MSHR 加起来最多 8 个在飞
+    val id_queue = Module(new Queue(UInt(4.W), 16))
+
+    // 入队：当 AR 通道握手成功时，把真实的 arid 压入队列
+    id_queue.io.enq.valid := io.axi.arvalid && io.axi.arready
+    id_queue.io.enq.bits  := io.axi.arid
+
+    // 出队：当 R 通道的一笔 Burst 传输完成（rlast=1）且接收成功时，弹出一个 ID
+    id_queue.io.deq.ready := io.axi.rvalid && io.axi.rready && io.axi.rlast
+
+    // ★ 强行恢复真实的 ID！(完全无视外部传回的垃圾 io.axi.rid)
+    val real_rid = Mux(id_queue.io.deq.valid, id_queue.io.deq.bits, 0.U(4.W))
+
     // 数据端 (DCache) 响应：最高位为 1
-    val is_data_ret = io.axi.rvalid && (io.axi.rid(3) === 1.U)
+    val is_data_ret = io.axi.rvalid && (real_rid(3) === 1.U)
     io.data_cache.ret_valid := is_data_ret
-    io.data_cache.ret_id    := io.axi.rid(2, 0) // 还给 DCache 的 MSHR ID
+    io.data_cache.ret_id    := real_rid(2, 0) // 完美还给 DCache 的 MSHR ID！
     io.data_cache.ret_last  := io.axi.rlast
     io.data_cache.ret_data  := io.axi.rdata
 
     // 指令端 (ICache) 响应：最高位为 0
-    val is_inst_ret = io.axi.rvalid && (io.axi.rid(3) === 0.U)
+    val is_inst_ret = io.axi.rvalid && (real_rid(3) === 0.U)
     io.inst_cache.ret_valid := is_inst_ret
-    io.inst_cache.ret_id    := io.axi.rid(2, 0)
+    io.inst_cache.ret_id    := real_rid(2, 0) // 完美还给 ICache 的 MSHR ID！
     io.inst_cache.ret_last  := io.axi.rlast
     io.inst_cache.ret_data  := io.axi.rdata
 

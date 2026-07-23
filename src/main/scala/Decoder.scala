@@ -9,7 +9,7 @@ private object Dst  extends ChiselEnum{val X, RD, RJ, R1 = Value}
 private object Imm  extends ChiselEnum{val X, SI12, UI12, SI16, SI20, SI26, UI5, FOUR = Value}
 
 class DecodeOut extends Bundle{
-    val aluOp           = UInt(12.W)
+    val aluOp           = UInt(13.W)
     val lsOp            = UInt(8.W)
     val mduOp           = UInt(7.W)
     val brType          = UInt(9.W)
@@ -124,6 +124,7 @@ class Decoder extends Module{
         BitPat("b000001_1001_00_10011_?????_?????_?????")   -> row(AluOp.NOP,   LsOp.NOP,   MduOp.NOP,   Src1.R,  Src2.R,    Imm.X,     Dst.X,   0.U, 0.U, BrType.NOP, 1.U, 1.U), // invtlb 
 
         BitPat("b000001_1000_????_????_????_?????_?????")   -> row(AluOp.ADD,   LsOp.NOP,   MduOp.NOP,   Src1.R,  Src2.IMM,  Imm.SI12,  Dst.X,   0.U, 0.U, BrType.NOP, 1.U, 0.U), // cacop
+        BitPat("b000000_0000_00_00000_11011_?????_?????")   -> row(AluOp.CPUCFG,LsOp.NOP,   MduOp.NOP,   Src1.R,  Src2.X,    Imm.X,     Dst.RD,  1.U, 0.U, BrType.NOP, 1.U, 0.U), // cpucfg
     )
     
     val decoded = ListLookup(inst, dflt, decodeTable)

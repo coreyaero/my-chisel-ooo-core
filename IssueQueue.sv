@@ -7,7 +7,7 @@ module IssueQueue(
   output        io_disp_ready,
   input  [31:0] io_disp_data_pc,
                 io_disp_data_inst,
-  input  [11:0] io_disp_data_aluOp,
+  input  [12:0] io_disp_data_aluOp,
   input  [6:0]  io_disp_data_mduOp,
   input  [8:0]  io_disp_data_brType,
   input  [31:0] io_disp_data_imm,
@@ -59,7 +59,7 @@ module IssueQueue(
   output        io_disp1_ready,
   input  [31:0] io_disp1_data_pc,
                 io_disp1_data_inst,
-  input  [11:0] io_disp1_data_aluOp,
+  input  [12:0] io_disp1_data_aluOp,
   input  [6:0]  io_disp1_data_mduOp,
   input  [8:0]  io_disp1_data_brType,
   input  [31:0] io_disp1_data_imm,
@@ -111,7 +111,7 @@ module IssueQueue(
   output        io_issue_alu0_valid,
   output [31:0] io_issue_alu0_bits_pc,
                 io_issue_alu0_bits_inst,
-  output [11:0] io_issue_alu0_bits_aluOp,
+  output [12:0] io_issue_alu0_bits_aluOp,
   output [6:0]  io_issue_alu0_bits_mduOp,
   output [8:0]  io_issue_alu0_bits_brType,
   output [31:0] io_issue_alu0_bits_imm,
@@ -161,7 +161,7 @@ module IssueQueue(
   output        io_issue_alu1_valid,
   output [31:0] io_issue_alu1_bits_pc,
                 io_issue_alu1_bits_inst,
-  output [11:0] io_issue_alu1_bits_aluOp,
+  output [12:0] io_issue_alu1_bits_aluOp,
   output [6:0]  io_issue_alu1_bits_mduOp,
   output [8:0]  io_issue_alu1_bits_brType,
   output [31:0] io_issue_alu1_bits_imm,
@@ -211,7 +211,7 @@ module IssueQueue(
   output        io_issue_mdu_valid,
   output [31:0] io_issue_mdu_bits_pc,
                 io_issue_mdu_bits_inst,
-  output [11:0] io_issue_mdu_bits_aluOp,
+  output [12:0] io_issue_mdu_bits_aluOp,
   output [6:0]  io_issue_mdu_bits_mduOp,
   output [8:0]  io_issue_mdu_bits_brType,
   output [31:0] io_issue_mdu_bits_imm,
@@ -261,7 +261,7 @@ module IssueQueue(
   output        io_issue_agu_valid,
   output [31:0] io_issue_agu_bits_pc,
                 io_issue_agu_bits_inst,
-  output [11:0] io_issue_agu_bits_aluOp,
+  output [12:0] io_issue_agu_bits_aluOp,
   output [6:0]  io_issue_agu_bits_mduOp,
   output [8:0]  io_issue_agu_bits_brType,
   output [31:0] io_issue_agu_bits_imm,
@@ -387,7 +387,7 @@ module IssueQueue(
   reg               iq_0_psrc2_rdy;
   reg  [31:0]       iq_0_data_pc;
   reg  [31:0]       iq_0_data_inst;
-  reg  [11:0]       iq_0_data_aluOp;
+  reg  [12:0]       iq_0_data_aluOp;
   reg  [6:0]        iq_0_data_mduOp;
   reg  [8:0]        iq_0_data_brType;
   reg  [31:0]       iq_0_data_imm;
@@ -440,7 +440,7 @@ module IssueQueue(
   reg               iq_1_psrc2_rdy;
   reg  [31:0]       iq_1_data_pc;
   reg  [31:0]       iq_1_data_inst;
-  reg  [11:0]       iq_1_data_aluOp;
+  reg  [12:0]       iq_1_data_aluOp;
   reg  [6:0]        iq_1_data_mduOp;
   reg  [8:0]        iq_1_data_brType;
   reg  [31:0]       iq_1_data_imm;
@@ -493,7 +493,7 @@ module IssueQueue(
   reg               iq_2_psrc2_rdy;
   reg  [31:0]       iq_2_data_pc;
   reg  [31:0]       iq_2_data_inst;
-  reg  [11:0]       iq_2_data_aluOp;
+  reg  [12:0]       iq_2_data_aluOp;
   reg  [6:0]        iq_2_data_mduOp;
   reg  [8:0]        iq_2_data_brType;
   reg  [31:0]       iq_2_data_imm;
@@ -546,7 +546,7 @@ module IssueQueue(
   reg               iq_3_psrc2_rdy;
   reg  [31:0]       iq_3_data_pc;
   reg  [31:0]       iq_3_data_inst;
-  reg  [11:0]       iq_3_data_aluOp;
+  reg  [12:0]       iq_3_data_aluOp;
   reg  [6:0]        iq_3_data_mduOp;
   reg  [8:0]        iq_3_data_brType;
   reg  [31:0]       iq_3_data_imm;
@@ -599,7 +599,7 @@ module IssueQueue(
   reg               iq_4_psrc2_rdy;
   reg  [31:0]       iq_4_data_pc;
   reg  [31:0]       iq_4_data_inst;
-  reg  [11:0]       iq_4_data_aluOp;
+  reg  [12:0]       iq_4_data_aluOp;
   reg  [6:0]        iq_4_data_mduOp;
   reg  [8:0]        iq_4_data_brType;
   reg  [31:0]       iq_4_data_imm;
@@ -652,7 +652,7 @@ module IssueQueue(
   reg               iq_5_psrc2_rdy;
   reg  [31:0]       iq_5_data_pc;
   reg  [31:0]       iq_5_data_inst;
-  reg  [11:0]       iq_5_data_aluOp;
+  reg  [12:0]       iq_5_data_aluOp;
   reg  [6:0]        iq_5_data_mduOp;
   reg  [8:0]        iq_5_data_brType;
   reg  [31:0]       iq_5_data_imm;
@@ -705,7 +705,7 @@ module IssueQueue(
   reg               iq_6_psrc2_rdy;
   reg  [31:0]       iq_6_data_pc;
   reg  [31:0]       iq_6_data_inst;
-  reg  [11:0]       iq_6_data_aluOp;
+  reg  [12:0]       iq_6_data_aluOp;
   reg  [6:0]        iq_6_data_mduOp;
   reg  [8:0]        iq_6_data_brType;
   reg  [31:0]       iq_6_data_imm;
@@ -758,7 +758,7 @@ module IssueQueue(
   reg               iq_7_psrc2_rdy;
   reg  [31:0]       iq_7_data_pc;
   reg  [31:0]       iq_7_data_inst;
-  reg  [11:0]       iq_7_data_aluOp;
+  reg  [12:0]       iq_7_data_aluOp;
   reg  [6:0]        iq_7_data_mduOp;
   reg  [8:0]        iq_7_data_brType;
   reg  [31:0]       iq_7_data_imm;
@@ -811,7 +811,7 @@ module IssueQueue(
   reg               iq_8_psrc2_rdy;
   reg  [31:0]       iq_8_data_pc;
   reg  [31:0]       iq_8_data_inst;
-  reg  [11:0]       iq_8_data_aluOp;
+  reg  [12:0]       iq_8_data_aluOp;
   reg  [6:0]        iq_8_data_mduOp;
   reg  [8:0]        iq_8_data_brType;
   reg  [31:0]       iq_8_data_imm;
@@ -864,7 +864,7 @@ module IssueQueue(
   reg               iq_9_psrc2_rdy;
   reg  [31:0]       iq_9_data_pc;
   reg  [31:0]       iq_9_data_inst;
-  reg  [11:0]       iq_9_data_aluOp;
+  reg  [12:0]       iq_9_data_aluOp;
   reg  [6:0]        iq_9_data_mduOp;
   reg  [8:0]        iq_9_data_brType;
   reg  [31:0]       iq_9_data_imm;
@@ -917,7 +917,7 @@ module IssueQueue(
   reg               iq_10_psrc2_rdy;
   reg  [31:0]       iq_10_data_pc;
   reg  [31:0]       iq_10_data_inst;
-  reg  [11:0]       iq_10_data_aluOp;
+  reg  [12:0]       iq_10_data_aluOp;
   reg  [6:0]        iq_10_data_mduOp;
   reg  [8:0]        iq_10_data_brType;
   reg  [31:0]       iq_10_data_imm;
@@ -970,7 +970,7 @@ module IssueQueue(
   reg               iq_11_psrc2_rdy;
   reg  [31:0]       iq_11_data_pc;
   reg  [31:0]       iq_11_data_inst;
-  reg  [11:0]       iq_11_data_aluOp;
+  reg  [12:0]       iq_11_data_aluOp;
   reg  [6:0]        iq_11_data_mduOp;
   reg  [8:0]        iq_11_data_brType;
   reg  [31:0]       iq_11_data_imm;
@@ -1023,7 +1023,7 @@ module IssueQueue(
   reg               iq_12_psrc2_rdy;
   reg  [31:0]       iq_12_data_pc;
   reg  [31:0]       iq_12_data_inst;
-  reg  [11:0]       iq_12_data_aluOp;
+  reg  [12:0]       iq_12_data_aluOp;
   reg  [6:0]        iq_12_data_mduOp;
   reg  [8:0]        iq_12_data_brType;
   reg  [31:0]       iq_12_data_imm;
@@ -1076,7 +1076,7 @@ module IssueQueue(
   reg               iq_13_psrc2_rdy;
   reg  [31:0]       iq_13_data_pc;
   reg  [31:0]       iq_13_data_inst;
-  reg  [11:0]       iq_13_data_aluOp;
+  reg  [12:0]       iq_13_data_aluOp;
   reg  [6:0]        iq_13_data_mduOp;
   reg  [8:0]        iq_13_data_brType;
   reg  [31:0]       iq_13_data_imm;
@@ -1129,7 +1129,7 @@ module IssueQueue(
   reg               iq_14_psrc2_rdy;
   reg  [31:0]       iq_14_data_pc;
   reg  [31:0]       iq_14_data_inst;
-  reg  [11:0]       iq_14_data_aluOp;
+  reg  [12:0]       iq_14_data_aluOp;
   reg  [6:0]        iq_14_data_mduOp;
   reg  [8:0]        iq_14_data_brType;
   reg  [31:0]       iq_14_data_imm;
@@ -1182,7 +1182,7 @@ module IssueQueue(
   reg               iq_15_psrc2_rdy;
   reg  [31:0]       iq_15_data_pc;
   reg  [31:0]       iq_15_data_inst;
-  reg  [11:0]       iq_15_data_aluOp;
+  reg  [12:0]       iq_15_data_aluOp;
   reg  [6:0]        iq_15_data_mduOp;
   reg  [8:0]        iq_15_data_brType;
   reg  [31:0]       iq_15_data_imm;
@@ -1603,7 +1603,7 @@ module IssueQueue(
      {iq_2_data_inst},
      {iq_1_data_inst},
      {iq_0_data_inst}};
-  wire [15:0][11:0] _GEN_32 =
+  wire [15:0][12:0] _GEN_32 =
     {{iq_15_data_aluOp},
      {iq_14_data_aluOp},
      {iq_13_data_aluOp},
@@ -2458,7 +2458,7 @@ module IssueQueue(
       iq_0_psrc2_rdy <= 1'h0;
       iq_0_data_pc <= 32'h0;
       iq_0_data_inst <= 32'h0;
-      iq_0_data_aluOp <= 12'h0;
+      iq_0_data_aluOp <= 13'h0;
       iq_0_data_mduOp <= 7'h0;
       iq_0_data_brType <= 9'h0;
       iq_0_data_imm <= 32'h0;
@@ -2511,7 +2511,7 @@ module IssueQueue(
       iq_1_psrc2_rdy <= 1'h0;
       iq_1_data_pc <= 32'h0;
       iq_1_data_inst <= 32'h0;
-      iq_1_data_aluOp <= 12'h0;
+      iq_1_data_aluOp <= 13'h0;
       iq_1_data_mduOp <= 7'h0;
       iq_1_data_brType <= 9'h0;
       iq_1_data_imm <= 32'h0;
@@ -2564,7 +2564,7 @@ module IssueQueue(
       iq_2_psrc2_rdy <= 1'h0;
       iq_2_data_pc <= 32'h0;
       iq_2_data_inst <= 32'h0;
-      iq_2_data_aluOp <= 12'h0;
+      iq_2_data_aluOp <= 13'h0;
       iq_2_data_mduOp <= 7'h0;
       iq_2_data_brType <= 9'h0;
       iq_2_data_imm <= 32'h0;
@@ -2617,7 +2617,7 @@ module IssueQueue(
       iq_3_psrc2_rdy <= 1'h0;
       iq_3_data_pc <= 32'h0;
       iq_3_data_inst <= 32'h0;
-      iq_3_data_aluOp <= 12'h0;
+      iq_3_data_aluOp <= 13'h0;
       iq_3_data_mduOp <= 7'h0;
       iq_3_data_brType <= 9'h0;
       iq_3_data_imm <= 32'h0;
@@ -2670,7 +2670,7 @@ module IssueQueue(
       iq_4_psrc2_rdy <= 1'h0;
       iq_4_data_pc <= 32'h0;
       iq_4_data_inst <= 32'h0;
-      iq_4_data_aluOp <= 12'h0;
+      iq_4_data_aluOp <= 13'h0;
       iq_4_data_mduOp <= 7'h0;
       iq_4_data_brType <= 9'h0;
       iq_4_data_imm <= 32'h0;
@@ -2723,7 +2723,7 @@ module IssueQueue(
       iq_5_psrc2_rdy <= 1'h0;
       iq_5_data_pc <= 32'h0;
       iq_5_data_inst <= 32'h0;
-      iq_5_data_aluOp <= 12'h0;
+      iq_5_data_aluOp <= 13'h0;
       iq_5_data_mduOp <= 7'h0;
       iq_5_data_brType <= 9'h0;
       iq_5_data_imm <= 32'h0;
@@ -2776,7 +2776,7 @@ module IssueQueue(
       iq_6_psrc2_rdy <= 1'h0;
       iq_6_data_pc <= 32'h0;
       iq_6_data_inst <= 32'h0;
-      iq_6_data_aluOp <= 12'h0;
+      iq_6_data_aluOp <= 13'h0;
       iq_6_data_mduOp <= 7'h0;
       iq_6_data_brType <= 9'h0;
       iq_6_data_imm <= 32'h0;
@@ -2829,7 +2829,7 @@ module IssueQueue(
       iq_7_psrc2_rdy <= 1'h0;
       iq_7_data_pc <= 32'h0;
       iq_7_data_inst <= 32'h0;
-      iq_7_data_aluOp <= 12'h0;
+      iq_7_data_aluOp <= 13'h0;
       iq_7_data_mduOp <= 7'h0;
       iq_7_data_brType <= 9'h0;
       iq_7_data_imm <= 32'h0;
@@ -2882,7 +2882,7 @@ module IssueQueue(
       iq_8_psrc2_rdy <= 1'h0;
       iq_8_data_pc <= 32'h0;
       iq_8_data_inst <= 32'h0;
-      iq_8_data_aluOp <= 12'h0;
+      iq_8_data_aluOp <= 13'h0;
       iq_8_data_mduOp <= 7'h0;
       iq_8_data_brType <= 9'h0;
       iq_8_data_imm <= 32'h0;
@@ -2935,7 +2935,7 @@ module IssueQueue(
       iq_9_psrc2_rdy <= 1'h0;
       iq_9_data_pc <= 32'h0;
       iq_9_data_inst <= 32'h0;
-      iq_9_data_aluOp <= 12'h0;
+      iq_9_data_aluOp <= 13'h0;
       iq_9_data_mduOp <= 7'h0;
       iq_9_data_brType <= 9'h0;
       iq_9_data_imm <= 32'h0;
@@ -2988,7 +2988,7 @@ module IssueQueue(
       iq_10_psrc2_rdy <= 1'h0;
       iq_10_data_pc <= 32'h0;
       iq_10_data_inst <= 32'h0;
-      iq_10_data_aluOp <= 12'h0;
+      iq_10_data_aluOp <= 13'h0;
       iq_10_data_mduOp <= 7'h0;
       iq_10_data_brType <= 9'h0;
       iq_10_data_imm <= 32'h0;
@@ -3041,7 +3041,7 @@ module IssueQueue(
       iq_11_psrc2_rdy <= 1'h0;
       iq_11_data_pc <= 32'h0;
       iq_11_data_inst <= 32'h0;
-      iq_11_data_aluOp <= 12'h0;
+      iq_11_data_aluOp <= 13'h0;
       iq_11_data_mduOp <= 7'h0;
       iq_11_data_brType <= 9'h0;
       iq_11_data_imm <= 32'h0;
@@ -3094,7 +3094,7 @@ module IssueQueue(
       iq_12_psrc2_rdy <= 1'h0;
       iq_12_data_pc <= 32'h0;
       iq_12_data_inst <= 32'h0;
-      iq_12_data_aluOp <= 12'h0;
+      iq_12_data_aluOp <= 13'h0;
       iq_12_data_mduOp <= 7'h0;
       iq_12_data_brType <= 9'h0;
       iq_12_data_imm <= 32'h0;
@@ -3147,7 +3147,7 @@ module IssueQueue(
       iq_13_psrc2_rdy <= 1'h0;
       iq_13_data_pc <= 32'h0;
       iq_13_data_inst <= 32'h0;
-      iq_13_data_aluOp <= 12'h0;
+      iq_13_data_aluOp <= 13'h0;
       iq_13_data_mduOp <= 7'h0;
       iq_13_data_brType <= 9'h0;
       iq_13_data_imm <= 32'h0;
@@ -3200,7 +3200,7 @@ module IssueQueue(
       iq_14_psrc2_rdy <= 1'h0;
       iq_14_data_pc <= 32'h0;
       iq_14_data_inst <= 32'h0;
-      iq_14_data_aluOp <= 12'h0;
+      iq_14_data_aluOp <= 13'h0;
       iq_14_data_mduOp <= 7'h0;
       iq_14_data_brType <= 9'h0;
       iq_14_data_imm <= 32'h0;
@@ -3253,7 +3253,7 @@ module IssueQueue(
       iq_15_psrc2_rdy <= 1'h0;
       iq_15_data_pc <= 32'h0;
       iq_15_data_inst <= 32'h0;
-      iq_15_data_aluOp <= 12'h0;
+      iq_15_data_aluOp <= 13'h0;
       iq_15_data_mduOp <= 7'h0;
       iq_15_data_brType <= 9'h0;
       iq_15_data_imm <= 32'h0;
@@ -6522,7 +6522,7 @@ module IssueQueue(
         iq_0_psrc2_rdy = 1'h0;
         iq_0_data_pc = 32'h0;
         iq_0_data_inst = 32'h0;
-        iq_0_data_aluOp = 12'h0;
+        iq_0_data_aluOp = 13'h0;
         iq_0_data_mduOp = 7'h0;
         iq_0_data_brType = 9'h0;
         iq_0_data_imm = 32'h0;
@@ -6575,7 +6575,7 @@ module IssueQueue(
         iq_1_psrc2_rdy = 1'h0;
         iq_1_data_pc = 32'h0;
         iq_1_data_inst = 32'h0;
-        iq_1_data_aluOp = 12'h0;
+        iq_1_data_aluOp = 13'h0;
         iq_1_data_mduOp = 7'h0;
         iq_1_data_brType = 9'h0;
         iq_1_data_imm = 32'h0;
@@ -6628,7 +6628,7 @@ module IssueQueue(
         iq_2_psrc2_rdy = 1'h0;
         iq_2_data_pc = 32'h0;
         iq_2_data_inst = 32'h0;
-        iq_2_data_aluOp = 12'h0;
+        iq_2_data_aluOp = 13'h0;
         iq_2_data_mduOp = 7'h0;
         iq_2_data_brType = 9'h0;
         iq_2_data_imm = 32'h0;
@@ -6681,7 +6681,7 @@ module IssueQueue(
         iq_3_psrc2_rdy = 1'h0;
         iq_3_data_pc = 32'h0;
         iq_3_data_inst = 32'h0;
-        iq_3_data_aluOp = 12'h0;
+        iq_3_data_aluOp = 13'h0;
         iq_3_data_mduOp = 7'h0;
         iq_3_data_brType = 9'h0;
         iq_3_data_imm = 32'h0;
@@ -6734,7 +6734,7 @@ module IssueQueue(
         iq_4_psrc2_rdy = 1'h0;
         iq_4_data_pc = 32'h0;
         iq_4_data_inst = 32'h0;
-        iq_4_data_aluOp = 12'h0;
+        iq_4_data_aluOp = 13'h0;
         iq_4_data_mduOp = 7'h0;
         iq_4_data_brType = 9'h0;
         iq_4_data_imm = 32'h0;
@@ -6787,7 +6787,7 @@ module IssueQueue(
         iq_5_psrc2_rdy = 1'h0;
         iq_5_data_pc = 32'h0;
         iq_5_data_inst = 32'h0;
-        iq_5_data_aluOp = 12'h0;
+        iq_5_data_aluOp = 13'h0;
         iq_5_data_mduOp = 7'h0;
         iq_5_data_brType = 9'h0;
         iq_5_data_imm = 32'h0;
@@ -6840,7 +6840,7 @@ module IssueQueue(
         iq_6_psrc2_rdy = 1'h0;
         iq_6_data_pc = 32'h0;
         iq_6_data_inst = 32'h0;
-        iq_6_data_aluOp = 12'h0;
+        iq_6_data_aluOp = 13'h0;
         iq_6_data_mduOp = 7'h0;
         iq_6_data_brType = 9'h0;
         iq_6_data_imm = 32'h0;
@@ -6893,7 +6893,7 @@ module IssueQueue(
         iq_7_psrc2_rdy = 1'h0;
         iq_7_data_pc = 32'h0;
         iq_7_data_inst = 32'h0;
-        iq_7_data_aluOp = 12'h0;
+        iq_7_data_aluOp = 13'h0;
         iq_7_data_mduOp = 7'h0;
         iq_7_data_brType = 9'h0;
         iq_7_data_imm = 32'h0;
@@ -6946,7 +6946,7 @@ module IssueQueue(
         iq_8_psrc2_rdy = 1'h0;
         iq_8_data_pc = 32'h0;
         iq_8_data_inst = 32'h0;
-        iq_8_data_aluOp = 12'h0;
+        iq_8_data_aluOp = 13'h0;
         iq_8_data_mduOp = 7'h0;
         iq_8_data_brType = 9'h0;
         iq_8_data_imm = 32'h0;
@@ -6999,7 +6999,7 @@ module IssueQueue(
         iq_9_psrc2_rdy = 1'h0;
         iq_9_data_pc = 32'h0;
         iq_9_data_inst = 32'h0;
-        iq_9_data_aluOp = 12'h0;
+        iq_9_data_aluOp = 13'h0;
         iq_9_data_mduOp = 7'h0;
         iq_9_data_brType = 9'h0;
         iq_9_data_imm = 32'h0;
@@ -7052,7 +7052,7 @@ module IssueQueue(
         iq_10_psrc2_rdy = 1'h0;
         iq_10_data_pc = 32'h0;
         iq_10_data_inst = 32'h0;
-        iq_10_data_aluOp = 12'h0;
+        iq_10_data_aluOp = 13'h0;
         iq_10_data_mduOp = 7'h0;
         iq_10_data_brType = 9'h0;
         iq_10_data_imm = 32'h0;
@@ -7105,7 +7105,7 @@ module IssueQueue(
         iq_11_psrc2_rdy = 1'h0;
         iq_11_data_pc = 32'h0;
         iq_11_data_inst = 32'h0;
-        iq_11_data_aluOp = 12'h0;
+        iq_11_data_aluOp = 13'h0;
         iq_11_data_mduOp = 7'h0;
         iq_11_data_brType = 9'h0;
         iq_11_data_imm = 32'h0;
@@ -7158,7 +7158,7 @@ module IssueQueue(
         iq_12_psrc2_rdy = 1'h0;
         iq_12_data_pc = 32'h0;
         iq_12_data_inst = 32'h0;
-        iq_12_data_aluOp = 12'h0;
+        iq_12_data_aluOp = 13'h0;
         iq_12_data_mduOp = 7'h0;
         iq_12_data_brType = 9'h0;
         iq_12_data_imm = 32'h0;
@@ -7211,7 +7211,7 @@ module IssueQueue(
         iq_13_psrc2_rdy = 1'h0;
         iq_13_data_pc = 32'h0;
         iq_13_data_inst = 32'h0;
-        iq_13_data_aluOp = 12'h0;
+        iq_13_data_aluOp = 13'h0;
         iq_13_data_mduOp = 7'h0;
         iq_13_data_brType = 9'h0;
         iq_13_data_imm = 32'h0;
@@ -7264,7 +7264,7 @@ module IssueQueue(
         iq_14_psrc2_rdy = 1'h0;
         iq_14_data_pc = 32'h0;
         iq_14_data_inst = 32'h0;
-        iq_14_data_aluOp = 12'h0;
+        iq_14_data_aluOp = 13'h0;
         iq_14_data_mduOp = 7'h0;
         iq_14_data_brType = 9'h0;
         iq_14_data_imm = 32'h0;
@@ -7317,7 +7317,7 @@ module IssueQueue(
         iq_15_psrc2_rdy = 1'h0;
         iq_15_data_pc = 32'h0;
         iq_15_data_inst = 32'h0;
-        iq_15_data_aluOp = 12'h0;
+        iq_15_data_aluOp = 13'h0;
         iq_15_data_mduOp = 7'h0;
         iq_15_data_brType = 9'h0;
         iq_15_data_imm = 32'h0;

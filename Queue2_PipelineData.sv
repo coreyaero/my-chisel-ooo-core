@@ -6,7 +6,7 @@ module Queue2_PipelineData(
   input         io_enq_valid,
   input  [31:0] io_enq_bits_pc,
                 io_enq_bits_inst,
-  input  [11:0] io_enq_bits_aluOp,
+  input  [12:0] io_enq_bits_aluOp,
   input  [6:0]  io_enq_bits_mduOp,
   input  [8:0]  io_enq_bits_brType,
   input  [31:0] io_enq_bits_imm,

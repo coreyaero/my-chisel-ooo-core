@@ -31,7 +31,6 @@ module SramToAxiBridge(
   output [7:0]   io_axi_arlen,
   output         io_axi_arvalid,
   input          io_axi_arready,
-  input  [3:0]   io_axi_rid,
   input  [31:0]  io_axi_rdata,
   input          io_axi_rlast,
                  io_axi_rvalid,
@@ -47,6 +46,8 @@ module SramToAxiBridge(
                  io_axi_bvalid
 );
 
+  wire             _id_queue_io_deq_valid;
+  wire [3:0]       _id_queue_io_deq_bits;
   reg  [1:0]       w_state;
   reg              uc_w_pending;
   wire             is_uncached_write_req =
@@ -59,7 +60,8 @@ module SramToAxiBridge(
   reg  [2:0]       ar_size_reg;
   wire             dcache_read_safe =
     io_data_cache_rd_req & ~(io_data_cache_rd_type == 3'h2 & uc_w_pending);
-  wire [3:0]       io_data_cache_ret_id_0 = {1'h0, io_axi_rid[2:0]};
+  wire [3:0]       real_rid = _id_queue_io_deq_valid ? _id_queue_io_deq_bits : 4'h0;
+  wire [3:0]       io_data_cache_ret_id_0 = {1'h0, real_rid[2:0]};
   reg  [31:0]      aw_addr_reg;
   reg  [2:0]       aw_size_reg;
   reg  [2:0]       w_beat_cnt;
@@ -169,13 +171,22 @@ module SramToAxiBridge(
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
+  Queue16_UInt4 id_queue (
+    .clock        (clock),
+    .reset        (reset),
+    .io_enq_valid (ar_state & io_axi_arready),
+    .io_enq_bits  (ar_grant_id),
+    .io_deq_ready (io_axi_rvalid & io_axi_rlast),
+    .io_deq_valid (_id_queue_io_deq_valid),
+    .io_deq_bits  (_id_queue_io_deq_bits)
+  );
   assign io_inst_cache_rd_rdy = ~ar_state & io_inst_cache_rd_req & ~dcache_read_safe;
-  assign io_inst_cache_ret_valid = io_axi_rvalid & ~(io_axi_rid[3]);
+  assign io_inst_cache_ret_valid = io_axi_rvalid & ~(real_rid[3]);
   assign io_inst_cache_ret_id = io_data_cache_ret_id_0;
   assign io_inst_cache_ret_last = io_axi_rlast;
   assign io_inst_cache_ret_data = io_axi_rdata;
   assign io_data_cache_rd_rdy = ~ar_state & dcache_read_safe;
-  assign io_data_cache_ret_valid = io_axi_rvalid & io_axi_rid[3];
+  assign io_data_cache_ret_valid = io_axi_rvalid & real_rid[3];
   assign io_data_cache_ret_id = io_data_cache_ret_id_0;
   assign io_data_cache_ret_last = io_axi_rlast;
   assign io_data_cache_ret_data = io_axi_rdata;

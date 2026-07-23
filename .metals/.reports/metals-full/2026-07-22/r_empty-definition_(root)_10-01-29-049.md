@@ -1,3 +1,25 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:mycpu/mycpu_top#debug_wb_pc_0.
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: 
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/debug_wb_pc_0.
+	 -chisel3/debug_wb_pc_0#
+	 -chisel3/debug_wb_pc_0().
+	 -chisel3/util/debug_wb_pc_0.
+	 -chisel3/util/debug_wb_pc_0#
+	 -chisel3/util/debug_wb_pc_0().
+	 -debug_wb_pc_0.
+	 -debug_wb_pc_0#
+	 -debug_wb_pc_0().
+	 -scala/Predef.debug_wb_pc_0.
+	 -scala/Predef.debug_wb_pc_0#
+	 -scala/Predef.debug_wb_pc_0().
+offset: 28132
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -649,12 +671,24 @@ class core_top extends RawModule {
         
         // 这里沿用上一个对话我们写好的逻辑
         val actual_we0 = Mux(!rob.io.commit_valid || rob.io.commit_waddr === 0.U, 0.U(4.W), Fill(4, rob.io.commit_we))
-        debug0_wb_pc       := rob.io.commit_pc_out
-        debug0_wb_rf_wen   := actual_we0
-        debug0_wb_rf_wnum  := rob.io.commit_waddr
-        debug0_wb_rf_wdata := rob.io.commit_wdata
+        @@debug_wb_pc_0       := rob.io.commit_pc_out
+        debug_wb_rf_we_0    := actual_we0
+        debug_wb_rf_wnum_0  := rob.io.commit_waddr
+        debug_wb_rf_wdata_0 := rob.io.commit_wdata
+
+        val actual_we1 = Mux(!rob.io.commit1_valid || rob.io.commit1_waddr === 0.U, 0.U(4.W), Fill(4, rob.io.commit1_we))
+        debug_wb_pc_1       := rob.io.commit1_pc
+        debug_wb_rf_we_1    := actual_we1
+        debug_wb_rf_wnum_1  := rob.io.commit1_waddr
+        debug_wb_rf_wdata_1 := rob.io.commit1_wdata
 
         ws_valid := false.B
         rf_rdata := 0.U
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: 

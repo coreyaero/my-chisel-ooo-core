@@ -10,7 +10,7 @@ module IssueBuffer(
   input         io_enq_valid,
   input  [31:0] io_enq_bits_pc,
                 io_enq_bits_inst,
-  input  [11:0] io_enq_bits_aluOp,
+  input  [12:0] io_enq_bits_aluOp,
   input  [6:0]  io_enq_bits_mduOp,
   input  [8:0]  io_enq_bits_brType,
   input  [31:0] io_enq_bits_imm,
@@ -60,7 +60,7 @@ module IssueBuffer(
   output        io_deq_valid,
   output [31:0] io_deq_bits_pc,
                 io_deq_bits_inst,
-  output [11:0] io_deq_bits_aluOp,
+  output [12:0] io_deq_bits_aluOp,
   output [6:0]  io_deq_bits_mduOp,
   output [8:0]  io_deq_bits_brType,
   output [31:0] io_deq_bits_imm,
@@ -111,7 +111,7 @@ module IssueBuffer(
   reg         valid_reg;
   reg  [31:0] data_reg_pc;
   reg  [31:0] data_reg_inst;
-  reg  [11:0] data_reg_aluOp;
+  reg  [12:0] data_reg_aluOp;
   reg  [6:0]  data_reg_mduOp;
   reg  [8:0]  data_reg_brType;
   reg  [31:0] data_reg_imm;
@@ -168,7 +168,7 @@ module IssueBuffer(
       valid_reg <= 1'h0;
       data_reg_pc <= 32'h0;
       data_reg_inst <= 32'h0;
-      data_reg_aluOp <= 12'h0;
+      data_reg_aluOp <= 13'h0;
       data_reg_mduOp <= 7'h0;
       data_reg_brType <= 9'h0;
       data_reg_imm <= 32'h0;
@@ -291,7 +291,7 @@ module IssueBuffer(
         valid_reg = 1'h0;
         data_reg_pc = 32'h0;
         data_reg_inst = 32'h0;
-        data_reg_aluOp = 12'h0;
+        data_reg_aluOp = 13'h0;
         data_reg_mduOp = 7'h0;
         data_reg_brType = 9'h0;
         data_reg_imm = 32'h0;

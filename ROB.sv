@@ -72,10 +72,8 @@ module ROB(
   output [5:0]  io_commit_paddr,
                 io_commit_old_p,
   output        io_commit1_valid,
-  output [31:0] io_commit1_pc,
-  output        io_commit1_we,
+                io_commit1_we,
   output [4:0]  io_commit1_waddr,
-  output [31:0] io_commit1_wdata,
   output [5:0]  io_commit1_paddr,
                 io_commit1_old_p,
   output        io_wb_flush,
@@ -8515,10 +8513,8 @@ module ROB(
   assign io_commit_paddr = _GEN_4[head];
   assign io_commit_old_p = _GEN_5[head];
   assign io_commit1_valid = ~is_empty & can_commit1;
-  assign io_commit1_pc = _GEN_1[_head_T_6];
   assign io_commit1_we = can_commit1 & _GEN_2[_head_T_6];
   assign io_commit1_waddr = _GEN_3[_head_T_6];
-  assign io_commit1_wdata = _GEN_6[_head_T_6];
   assign io_commit1_paddr = _GEN_4[_head_T_6];
   assign io_commit1_old_p = _GEN_5[_head_T_6];
   assign io_wb_flush = io_wb_flush_REG;
