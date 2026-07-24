@@ -47,10 +47,20 @@ module core_top(
   output [31:0] debug0_wb_pc,
   output [3:0]  debug0_wb_rf_wen,
   output [4:0]  debug0_wb_rf_wnum,
-  output [31:0] debug0_wb_rf_wdata
+  output [31:0] debug0_wb_rf_wdata,
+                debug1_wb_pc,
+  output [3:0]  debug1_wb_rf_wen,
+  output [4:0]  debug1_wb_rf_wnum,
+  output [31:0] debug1_wb_rf_wdata
 );
 
-  wire         _axi_w_slice_io_enq_ready;
+  wire         _b_q_io_deq_valid;
+  wire         _w_q_io_enq_ready;
+  wire         _aw_q_io_enq_ready;
+  wire         _r_q_io_deq_valid;
+  wire [31:0]  _r_q_io_deq_bits_data;
+  wire         _r_q_io_deq_bits_last;
+  wire         _ar_q_io_enq_ready;
   wire         _lsq_dcache_q_io_enq_ready;
   wire         _lsq_dcache_q_io_deq_valid;
   wire [7:0]   _lsq_dcache_q_io_deq_bits_req_id;
@@ -341,6 +351,13 @@ module core_top(
   wire         _bridge_io_data_cache_ret_last;
   wire [31:0]  _bridge_io_data_cache_ret_data;
   wire         _bridge_io_data_cache_wr_rdy;
+  wire [3:0]   _bridge_io_axi_arid;
+  wire [31:0]  _bridge_io_axi_araddr;
+  wire [7:0]   _bridge_io_axi_arlen;
+  wire         _bridge_io_axi_arvalid;
+  wire [31:0]  _bridge_io_axi_awaddr;
+  wire [7:0]   _bridge_io_axi_awlen;
+  wire         _bridge_io_axi_awvalid;
   wire [31:0]  _bridge_io_axi_wdata;
   wire [3:0]   _bridge_io_axi_wstrb;
   wire         _bridge_io_axi_wlast;
@@ -355,7 +372,9 @@ module core_top(
   wire [3:0]   _tlb_module_io_s1_index;
   wire [19:0]  _tlb_module_io_s1_ppn;
   wire [5:0]   _tlb_module_io_s1_ps;
+  wire [1:0]   _tlb_module_io_s1_plv;
   wire [1:0]   _tlb_module_io_s1_mat;
+  wire         _tlb_module_io_s1_d;
   wire         _tlb_module_io_s1_v;
   wire         _tlb_module_io_r_dat_e;
   wire         _tlb_module_io_r_dat_ps4MB;
@@ -1410,8 +1429,10 @@ module core_top(
     .io_commit_paddr           (_rob_io_commit_paddr),
     .io_commit_old_p           (_rob_io_commit_old_p),
     .io_commit1_valid          (_rob_io_commit1_valid),
+    .io_commit1_pc             (debug1_wb_pc),
     .io_commit1_we             (_rob_io_commit1_we),
     .io_commit1_waddr          (_rob_io_commit1_waddr),
+    .io_commit1_wdata          (debug1_wb_rf_wdata),
     .io_commit1_paddr          (_rob_io_commit1_paddr),
     .io_commit1_old_p          (_rob_io_commit1_old_p),
     .io_wb_flush               (_rob_io_wb_flush),
@@ -1866,7 +1887,9 @@ module core_top(
     .io_tlb_s1_index               (_tlb_module_io_s1_index),
     .io_tlb_s1_ppn                 (_tlb_module_io_s1_ppn),
     .io_tlb_s1_ps                  (_tlb_module_io_s1_ps),
+    .io_tlb_s1_plv                 (_tlb_module_io_s1_plv),
     .io_tlb_s1_mat                 (_tlb_module_io_s1_mat),
+    .io_tlb_s1_d                   (_tlb_module_io_s1_d),
     .io_tlb_s1_v                   (_tlb_module_io_s1_v),
     .io_invtlb_valid               (_exec_engine_io_invtlb_valid),
     .io_invtlb_op                  (_exec_engine_io_invtlb_op),
@@ -1991,7 +2014,6 @@ module core_top(
   );
   tlb tlb_module (
     .clock            (aclk),
-    .reset            (_reset_high_T),
     .io_s0_vppn       (_if_stage_io_tlb_s0_vppn),
     .io_s0_va_bit12   (_if_stage_io_tlb_s0_va_bit12),
     .io_s0_asid       (_if_stage_io_tlb_s0_asid),
@@ -2008,7 +2030,9 @@ module core_top(
     .io_s1_index      (_tlb_module_io_s1_index),
     .io_s1_ppn        (_tlb_module_io_s1_ppn),
     .io_s1_ps         (_tlb_module_io_s1_ps),
+    .io_s1_plv        (_tlb_module_io_s1_plv),
     .io_s1_mat        (_tlb_module_io_s1_mat),
+    .io_s1_d          (_tlb_module_io_s1_d),
     .io_s1_v          (_tlb_module_io_s1_v),
     .io_invtlb_valid  (_exec_engine_io_invtlb_valid),
     .io_invtlb_op     (_exec_engine_io_invtlb_op),
@@ -2076,24 +2100,24 @@ module core_top(
     .io_data_cache_wr_wstrb  (_dcache_io_axi_wr_wstrb),
     .io_data_cache_wr_data   (_dcache_io_axi_wr_data),
     .io_data_cache_wr_rdy    (_bridge_io_data_cache_wr_rdy),
-    .io_axi_arid             (arid),
-    .io_axi_araddr           (araddr),
-    .io_axi_arlen            (arlen),
-    .io_axi_arvalid          (arvalid),
-    .io_axi_arready          (arready),
-    .io_axi_rdata            (rdata),
-    .io_axi_rlast            (rlast),
-    .io_axi_rvalid           (rvalid),
-    .io_axi_awaddr           (awaddr),
-    .io_axi_awlen            (awlen),
-    .io_axi_awvalid          (awvalid),
-    .io_axi_awready          (awready),
+    .io_axi_arid             (_bridge_io_axi_arid),
+    .io_axi_araddr           (_bridge_io_axi_araddr),
+    .io_axi_arlen            (_bridge_io_axi_arlen),
+    .io_axi_arvalid          (_bridge_io_axi_arvalid),
+    .io_axi_arready          (_ar_q_io_enq_ready),
+    .io_axi_rdata            (_r_q_io_deq_bits_data),
+    .io_axi_rlast            (_r_q_io_deq_bits_last),
+    .io_axi_rvalid           (_r_q_io_deq_valid),
+    .io_axi_awaddr           (_bridge_io_axi_awaddr),
+    .io_axi_awlen            (_bridge_io_axi_awlen),
+    .io_axi_awvalid          (_bridge_io_axi_awvalid),
+    .io_axi_awready          (_aw_q_io_enq_ready),
     .io_axi_wdata            (_bridge_io_axi_wdata),
     .io_axi_wstrb            (_bridge_io_axi_wstrb),
     .io_axi_wlast            (_bridge_io_axi_wlast),
     .io_axi_wvalid           (_bridge_io_axi_wvalid),
-    .io_axi_wready           (_axi_w_slice_io_enq_ready),
-    .io_axi_bvalid           (bvalid)
+    .io_axi_wready           (_w_q_io_enq_ready),
+    .io_axi_bvalid           (_b_q_io_deq_valid)
   );
   Cache icache (
     .clock            (aclk),
@@ -2870,39 +2894,88 @@ module core_top(
     .io_deq_bits_cacop_en (_lsq_dcache_q_io_deq_bits_cacop_en),
     .io_deq_bits_cacop_op (_lsq_dcache_q_io_deq_bits_cacop_op)
   );
-  Queue2_AxiWChannel axi_w_slice (
+  Queue2_AxiArChannel ar_q (
     .clock             (aclk),
     .reset             (_reset_high_T),
-    .io_enq_ready      (_axi_w_slice_io_enq_ready),
-    .io_enq_valid      (_bridge_io_axi_wvalid),
-    .io_enq_bits_wdata (_bridge_io_axi_wdata),
-    .io_enq_bits_wstrb (_bridge_io_axi_wstrb),
-    .io_enq_bits_wlast (_bridge_io_axi_wlast),
-    .io_deq_ready      (wready),
-    .io_deq_valid      (wvalid),
-    .io_deq_bits_wid   (wid),
-    .io_deq_bits_wdata (wdata),
-    .io_deq_bits_wstrb (wstrb),
-    .io_deq_bits_wlast (wlast)
+    .io_enq_ready      (_ar_q_io_enq_ready),
+    .io_enq_valid      (_bridge_io_axi_arvalid),
+    .io_enq_bits_id    (_bridge_io_axi_arid),
+    .io_enq_bits_addr  (_bridge_io_axi_araddr),
+    .io_enq_bits_len   (_bridge_io_axi_arlen),
+    .io_deq_ready      (arready),
+    .io_deq_valid      (arvalid),
+    .io_deq_bits_id    (arid),
+    .io_deq_bits_addr  (araddr),
+    .io_deq_bits_len   (arlen),
+    .io_deq_bits_size  (arsize),
+    .io_deq_bits_burst (arburst),
+    .io_deq_bits_lock  (arlock),
+    .io_deq_bits_cache (arcache),
+    .io_deq_bits_prot  (arprot)
+  );
+  Queue2_AxiRChannel r_q (
+    .clock            (aclk),
+    .reset            (_reset_high_T),
+    .io_enq_ready     (rready),
+    .io_enq_valid     (rvalid),
+    .io_enq_bits_id   (rid),
+    .io_enq_bits_data (rdata),
+    .io_enq_bits_resp (rresp),
+    .io_enq_bits_last (rlast),
+    .io_deq_valid     (_r_q_io_deq_valid),
+    .io_deq_bits_data (_r_q_io_deq_bits_data),
+    .io_deq_bits_last (_r_q_io_deq_bits_last)
+  );
+  Queue2_AxiAwChannel aw_q (
+    .clock             (aclk),
+    .reset             (_reset_high_T),
+    .io_enq_ready      (_aw_q_io_enq_ready),
+    .io_enq_valid      (_bridge_io_axi_awvalid),
+    .io_enq_bits_addr  (_bridge_io_axi_awaddr),
+    .io_enq_bits_len   (_bridge_io_axi_awlen),
+    .io_deq_ready      (awready),
+    .io_deq_valid      (awvalid),
+    .io_deq_bits_id    (awid),
+    .io_deq_bits_addr  (awaddr),
+    .io_deq_bits_len   (awlen),
+    .io_deq_bits_size  (awsize),
+    .io_deq_bits_burst (awburst),
+    .io_deq_bits_lock  (awlock),
+    .io_deq_bits_cache (awcache),
+    .io_deq_bits_prot  (awprot)
+  );
+  Queue2_AxiWChannel w_q (
+    .clock            (aclk),
+    .reset            (_reset_high_T),
+    .io_enq_ready     (_w_q_io_enq_ready),
+    .io_enq_valid     (_bridge_io_axi_wvalid),
+    .io_enq_bits_data (_bridge_io_axi_wdata),
+    .io_enq_bits_strb (_bridge_io_axi_wstrb),
+    .io_enq_bits_last (_bridge_io_axi_wlast),
+    .io_deq_ready     (wready),
+    .io_deq_valid     (wvalid),
+    .io_deq_bits_id   (wid),
+    .io_deq_bits_data (wdata),
+    .io_deq_bits_strb (wstrb),
+    .io_deq_bits_last (wlast)
+  );
+  Queue2_AxiBChannel b_q (
+    .clock        (aclk),
+    .reset        (_reset_high_T),
+    .io_enq_ready (bready),
+    .io_enq_valid (bvalid),
+    .io_deq_valid (_b_q_io_deq_valid)
   );
   assign ws_valid = 1'h0;
   assign rf_rdata = 32'h0;
-  assign arsize = 3'h2;
-  assign arburst = 2'h1;
-  assign arlock = 2'h0;
-  assign arcache = 4'h0;
-  assign arprot = 3'h0;
-  assign rready = 1'h1;
-  assign awid = 4'h1;
-  assign awsize = 3'h2;
-  assign awburst = 2'h1;
-  assign awlock = 2'h0;
-  assign awcache = 4'h0;
-  assign awprot = 3'h0;
-  assign bready = 1'h1;
   assign debug0_wb_pc = _rob_io_commit_pc_out;
   assign debug0_wb_rf_wen =
     ~_rob_io_commit_valid | _rob_io_commit_waddr == 5'h0 ? 4'h0 : {4{_rob_io_commit_we}};
   assign debug0_wb_rf_wnum = _rob_io_commit_waddr;
+  assign debug1_wb_rf_wen =
+    ~_rob_io_commit1_valid | _rob_io_commit1_waddr == 5'h0
+      ? 4'h0
+      : {4{_rob_io_commit1_we}};
+  assign debug1_wb_rf_wnum = _rob_io_commit1_waddr;
 endmodule
 

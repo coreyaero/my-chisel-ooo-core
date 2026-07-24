@@ -155,16 +155,24 @@ class LSQ extends Module {
         val next_tail = tail + 1.U
         tail := next_tail
         when(next_tail === head) { is_full := true.B }
+    // ==========================================
+    // 2. 入队逻辑 (Allocate)
+    // ==========================================
+    // ... 前面的 real_alloc 保持不变 ...
     } .elsewhen(is_mispredict) {
         tail := io.br_restore_tail // ★ 秒杀回档！
-        is_full := false.B
+        // ★ 核心修复：只有当 tail 真的发生了回退（杀死了未提交指令）时，才能解除 full 状态！
+        // 如果 tail 没变，说明它原本是满的，回档后依然是满的！
+        when(tail =/= io.br_restore_tail) {
+            is_full := false.B
+        }
     }
 
     // ==========================================
     // 3. 接收 AGU 计算结果 & 违例检测 CAM
     // ==========================================
     val violation_reg = RegInit(false.B)
-    val violation_rob = RegInit(0.U(4.W))
+    val violation_rob = RegInit(0.U(Config.robPtrWidth.W))
     val violation_pc  = RegInit(0.U(32.W))
 
     // 1. 仅当拍写入信息 (剥离了庞大的 CAM 逻辑，让它极速完成)
@@ -475,6 +483,10 @@ class LSQ extends Module {
     // 7. 终极异常冲刷 (Flush)
     // ==========================================
     // 统计当前 LSQ 里有多少个“合法且已经提交”的残留指令
+    // ==========================================
+    // 7. 终极异常冲刷 (Flush)
+    // ==========================================
+    // 统计当前 LSQ 里有多少个“合法且已经提交”的残留指令
     val commit_cnt = PopCount(entries.map(e => e.valid && e.committed))
 
     when(io.flush) {
@@ -488,8 +500,8 @@ class LSQ extends Module {
         // 所以直接把尾指针拉到最后一个 committed 指令的后面！
         tail := head + commit_cnt
         
-        is_full := false.B
+        // ★ 核心修复：如果留下的 committed 指令刚好有 16 个，队列依然是满的！绝不能无脑清零！
+        is_full := (commit_cnt === 16.U)
         violation_reg := false.B
-    
     }
 }

@@ -138,8 +138,10 @@ module AguUnit(
   input  [3:0]  io_tlb_s1_index,
   input  [19:0] io_tlb_s1_ppn,
   input  [5:0]  io_tlb_s1_ps,
-  input  [1:0]  io_tlb_s1_mat,
-  input         io_tlb_s1_v,
+  input  [1:0]  io_tlb_s1_plv,
+                io_tlb_s1_mat,
+  input         io_tlb_s1_d,
+                io_tlb_s1_v,
   output        io_invtlb_valid,
   output [4:0]  io_invtlb_op
 );
@@ -254,10 +256,13 @@ module AguUnit(
   reg  [3:0]  ex2_tlb_index;
   reg  [19:0] ex2_tlb_ppn;
   reg  [5:0]  ex2_tlb_ps;
+  reg  [1:0]  ex2_tlb_plv;
   reg  [1:0]  ex2_tlb_mat;
+  reg         ex2_tlb_d;
   reg         ex2_tlb_v;
   reg         ex2_crmd_pg;
   reg         ex2_crmd_da;
+  reg  [1:0]  ex2_crmd_plv;
   reg  [1:0]  ex2_crmd_datm;
   wire [6:0]  _clear_mask_T = 7'h1 << io_br_resolve_in_tag;
   wire        ex1_killed =
@@ -277,12 +282,26 @@ module AguUnit(
          : ex1_data_src2IsFour ? 32'h4 : ex1_data_src2_value);
   wire        is_tlbsrch = ex1_data_tlbOp == 5'h1;
   wire        is_invtlb = ex1_data_tlbOp == 5'h10;
+  wire        _raw_tlb_code_T_17 = ex2_tlb_found & ex2_tlb_v;
   wire        isWord = ex2_data_lsOp == 8'h4 | ex2_data_lsOp == 8'h80;
   wire        isHalf =
     ex2_data_lsOp == 8'h2 | ex2_data_lsOp == 8'h10 | ex2_data_lsOp == 8'h40;
   wire        ale =
     (ex2_data_resFromMem | ex2_data_memWe) & io_out_valid_0
     & (isWord & (|(ex2_va[1:0])) | isHalf & ex2_va[0]);
+  wire        early_is_load = ex2_data_resFromMem & io_out_valid_0;
+  wire        early_is_store = ex2_data_memWe & io_out_valid_0;
+  wire        early_hit_inv =
+    ex2_data_is_cacop & ex2_data_cacop_op[4:3] == 2'h2 & io_out_valid_0;
+  wire        early_is_mapped =
+    ex2_crmd_pg & ~ex2_crmd_da & ~ex2_dmw_hit
+    & (early_is_load | early_is_store | early_hit_inv);
+  wire        priv_fault = (&ex2_crmd_plv) & ex2_tlb_plv == 2'h0;
+  wire [5:0]  raw_tlb_code =
+    {6{~ex2_tlb_found}} | (_raw_tlb_code_T_17 & priv_fault ? 6'h7 : 6'h0)
+    | {5'h0, ex2_tlb_found & ~ex2_tlb_v & (early_is_load | early_hit_inv)}
+    | {4'h0, ex2_tlb_found & ~ex2_tlb_v & early_is_store, 1'h0}
+    | {3'h0, _raw_tlb_code_T_17 & ~priv_fault & ~ex2_tlb_d & early_is_store, 2'h0};
   wire [6:0]  stMaskB = 7'h1 << ex2_va[1:0];
   always @(posedge clock or posedge reset) begin
     if (reset) begin
@@ -396,10 +415,13 @@ module AguUnit(
       ex2_tlb_index <= 4'h0;
       ex2_tlb_ppn <= 20'h0;
       ex2_tlb_ps <= 6'h0;
+      ex2_tlb_plv <= 2'h0;
       ex2_tlb_mat <= 2'h0;
+      ex2_tlb_d <= 1'h0;
       ex2_tlb_v <= 1'h0;
       ex2_crmd_pg <= 1'h0;
       ex2_crmd_da <= 1'h0;
+      ex2_crmd_plv <= 2'h0;
       ex2_crmd_datm <= 2'h0;
     end
     else begin
@@ -542,10 +564,13 @@ module AguUnit(
         ex2_tlb_index <= io_tlb_s1_index;
         ex2_tlb_ppn <= io_tlb_s1_ppn;
         ex2_tlb_ps <= io_tlb_s1_ps;
+        ex2_tlb_plv <= io_tlb_s1_plv;
         ex2_tlb_mat <= io_tlb_s1_mat;
+        ex2_tlb_d <= io_tlb_s1_d;
         ex2_tlb_v <= io_tlb_s1_v;
         ex2_crmd_pg <= io_mmu_config_crmd_pg;
         ex2_crmd_da <= io_mmu_config_crmd_da;
+        ex2_crmd_plv <= io_mmu_config_crmd_plv;
         ex2_crmd_datm <= io_mmu_config_crmd_datm;
       end
       else if (_GEN)
@@ -670,10 +695,13 @@ module AguUnit(
         ex2_tlb_index = 4'h0;
         ex2_tlb_ppn = 20'h0;
         ex2_tlb_ps = 6'h0;
+        ex2_tlb_plv = 2'h0;
         ex2_tlb_mat = 2'h0;
+        ex2_tlb_d = 1'h0;
         ex2_tlb_v = 1'h0;
         ex2_crmd_pg = 1'h0;
         ex2_crmd_da = 1'h0;
+        ex2_crmd_plv = 2'h0;
         ex2_crmd_datm = 2'h0;
       end
     end // initial
@@ -706,8 +734,12 @@ module AguUnit(
     ex2_is_tlbsrch ? {~ex2_tlb_found, 27'h0, ex2_tlb_index} : ex2_va;
   assign io_out_bits_aux_data =
     ex2_is_tlbsrch ? (ex2_tlb_found ? 32'h8000000F : 32'h80000000) : 32'h0;
-  assign io_out_bits_hasException = ex2_data_hasException | ale;
-  assign io_out_bits_ecode = ex2_data_hasException ? ex2_data_ecode : ale ? 6'h9 : 6'h0;
+  assign io_out_bits_hasException =
+    ex2_data_hasException | ale | early_is_mapped & (|raw_tlb_code);
+  assign io_out_bits_ecode =
+    ex2_data_hasException
+      ? ex2_data_ecode
+      : ale ? 6'h9 : early_is_mapped ? raw_tlb_code : 6'h0;
   assign io_out_bits_esubcode = ex2_data_esubcode;
   assign io_out_bits_isCsr = ex2_data_isCsr;
   assign io_out_bits_csrWe = ex2_data_csrWe;
@@ -738,7 +770,7 @@ module AguUnit(
   assign io_out_bits_ras_tos = ex2_data_ras_tos;
   assign io_data_sram_size = isWord ? 2'h2 : {1'h0, isHalf};
   assign io_data_sram_wstrb =
-    ex2_data_memWe & io_out_valid_0 & ~io_flush
+    early_is_store & ~io_flush
       ? (isWord ? 4'hF : isHalf ? (ex2_va[1] ? 4'hC : 4'h3) : stMaskB[3:0])
       : 4'h0;
   assign io_data_sram_addr =
@@ -748,7 +780,7 @@ module AguUnit(
            ? ex2_va[31:12]
            : ex2_dmw_hit
                ? ex2_dmw_pa[31:12]
-               : ex2_tlb_found & ex2_tlb_v
+               : _raw_tlb_code_T_17
                    ? (ex2_tlb_ps == 6'hC
                         ? ex2_tlb_ppn
                         : {ex2_tlb_ppn[19:9], ex2_va[20:12]})

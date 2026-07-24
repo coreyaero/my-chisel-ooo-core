@@ -1,3 +1,25 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:commit_wdata
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: commit_wdata
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/rob/io/commit_wdata.
+	 -chisel3/rob/io/commit_wdata#
+	 -chisel3/rob/io/commit_wdata().
+	 -chisel3/util/rob/io/commit_wdata.
+	 -chisel3/util/rob/io/commit_wdata#
+	 -chisel3/util/rob/io/commit_wdata().
+	 -rob/io/commit_wdata.
+	 -rob/io/commit_wdata#
+	 -rob/io/commit_wdata().
+	 -scala/Predef.rob.io.commit_wdata.
+	 -scala/Predef.rob.io.commit_wdata#
+	 -scala/Predef.rob.io.commit_wdata().
+offset: 28511
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -616,148 +638,48 @@ class core_top extends RawModule {
         bridge.io.axi.awready := awready
 
         // =====================================================================
-        // ★ 终极防线：全通道 AXI Skid Buffer (Register Slice)
-        // 彻底斩断 CPU 与外部 SoC 的所有组合逻辑路径，保住时钟频率，杜绝死锁！
+        // ★ 终极防线：AXI W 通道 Register Slice (斩断 21ns 超长跨界布线！)
         // =====================================================================
-
-        // --- 1. 定义 5 个标准 AXI 通道的 Bundle ---
-        class AxiArChannel extends Bundle {
-            val id    = UInt(4.W)
-            val addr  = UInt(32.W)
-            val len   = UInt(8.W)
-            val size  = UInt(3.W)
-            val burst = UInt(2.W)
-            val lock  = UInt(2.W)
-            val cache = UInt(4.W)
-            val prot  = UInt(3.W)
-        }
-        class AxiRChannel extends Bundle {
-            val id    = UInt(4.W)
-            val data  = UInt(32.W)
-            val resp  = UInt(2.W)
-            val last  = Bool()
-        }
-        class AxiAwChannel extends Bundle {
-            val id    = UInt(4.W)
-            val addr  = UInt(32.W)
-            val len   = UInt(8.W)
-            val size  = UInt(3.W)
-            val burst = UInt(2.W)
-            val lock  = UInt(2.W)
-            val cache = UInt(4.W)
-            val prot  = UInt(3.W)
-        }
         class AxiWChannel extends Bundle {
-            val id    = UInt(4.W)
-            val data  = UInt(32.W)
-            val strb  = UInt(4.W)
-            val last  = Bool()
+            val wid   = UInt(4.W)
+            val wdata = UInt(32.W)
+            val wstrb = UInt(4.W)
+            val wlast = Bool()
         }
-        class AxiBChannel extends Bundle {
-            val id    = UInt(4.W)
-            val resp  = UInt(2.W)
-        }
-
-        // --- 2. 实例化深度为 2 的队列 (标准 Skid Buffer 深度) ---
-        val ar_q = Module(new Queue(new AxiArChannel(), 2))
-        val r_q  = Module(new Queue(new AxiRChannel(), 2))
-        val aw_q = Module(new Queue(new AxiAwChannel(), 2))
-        val w_q  = Module(new Queue(new AxiWChannel(), 2))
-        val b_q  = Module(new Queue(new AxiBChannel(), 2))
-
-        // --- 3. AR 通道 (Master -> Slave) ---
-        ar_q.io.enq.valid      := bridge.io.axi.arvalid
-        bridge.io.axi.arready  := ar_q.io.enq.ready
-        ar_q.io.enq.bits.id    := bridge.io.axi.arid
-        ar_q.io.enq.bits.addr  := bridge.io.axi.araddr
-        ar_q.io.enq.bits.len   := bridge.io.axi.arlen
-        ar_q.io.enq.bits.size  := bridge.io.axi.arsize
-        ar_q.io.enq.bits.burst := bridge.io.axi.arburst
-        ar_q.io.enq.bits.lock  := bridge.io.axi.arlock
-        ar_q.io.enq.bits.cache := bridge.io.axi.arcache
-        ar_q.io.enq.bits.prot  := bridge.io.axi.arprot
-
-        arvalid := ar_q.io.deq.valid
-        ar_q.io.deq.ready := arready
-        arid    := ar_q.io.deq.bits.id
-        araddr  := ar_q.io.deq.bits.addr
-        arlen   := ar_q.io.deq.bits.len
-        arsize  := ar_q.io.deq.bits.size
-        arburst := ar_q.io.deq.bits.burst
-        arlock  := ar_q.io.deq.bits.lock
-        arcache := ar_q.io.deq.bits.cache
-        arprot  := ar_q.io.deq.bits.prot
-
-        // --- 4. R 通道 (Slave -> Master) 注意方向相反！ ---
-        r_q.io.enq.valid     := rvalid
-        rready               := r_q.io.enq.ready
-        r_q.io.enq.bits.id   := rid
-        r_q.io.enq.bits.data := rdata
-        r_q.io.enq.bits.resp := rresp
-        r_q.io.enq.bits.last := rlast
-
-        bridge.io.axi.rvalid := r_q.io.deq.valid
-        r_q.io.deq.ready     := bridge.io.axi.rready
-        bridge.io.axi.rid    := r_q.io.deq.bits.id
-        bridge.io.axi.rdata  := r_q.io.deq.bits.data
-        bridge.io.axi.rresp  := r_q.io.deq.bits.resp
-        bridge.io.axi.rlast  := r_q.io.deq.bits.last
-
-        // --- 5. AW 通道 (Master -> Slave) ---
-        aw_q.io.enq.valid      := bridge.io.axi.awvalid
-        bridge.io.axi.awready  := aw_q.io.enq.ready
-        aw_q.io.enq.bits.id    := bridge.io.axi.awid
-        aw_q.io.enq.bits.addr  := bridge.io.axi.awaddr
-        aw_q.io.enq.bits.len   := bridge.io.axi.awlen
-        aw_q.io.enq.bits.size  := bridge.io.axi.awsize
-        aw_q.io.enq.bits.burst := bridge.io.axi.awburst
-        aw_q.io.enq.bits.lock  := bridge.io.axi.awlock
-        aw_q.io.enq.bits.cache := bridge.io.axi.awcache
-        aw_q.io.enq.bits.prot  := bridge.io.axi.awprot
-
-        awvalid := aw_q.io.deq.valid
-        aw_q.io.deq.ready := awready
-        awid    := aw_q.io.deq.bits.id
-        awaddr  := aw_q.io.deq.bits.addr
-        awlen   := aw_q.io.deq.bits.len
-        awsize  := aw_q.io.deq.bits.size
-        awburst := aw_q.io.deq.bits.burst
-        awlock  := aw_q.io.deq.bits.lock
-        awcache := aw_q.io.deq.bits.cache
-        awprot  := aw_q.io.deq.bits.prot
-
-        // --- 6. W 通道 (Master -> Slave) ---
-        w_q.io.enq.valid     := bridge.io.axi.wvalid
-        bridge.io.axi.wready := w_q.io.enq.ready
-        w_q.io.enq.bits.id   := bridge.io.axi.wid
-        w_q.io.enq.bits.data := bridge.io.axi.wdata
-        w_q.io.enq.bits.strb := bridge.io.axi.wstrb
-        w_q.io.enq.bits.last := bridge.io.axi.wlast
-
-        wvalid := w_q.io.deq.valid
-        w_q.io.deq.ready := wready
-        wid    := w_q.io.deq.bits.id
-        wdata  := w_q.io.deq.bits.data
-        wstrb  := w_q.io.deq.bits.strb
-        wlast  := w_q.io.deq.bits.last
-
-        // --- 7. B 通道 (Slave -> Master) 注意方向相反！ ---
-        b_q.io.enq.valid     := bvalid
-        bready               := b_q.io.enq.ready
-        b_q.io.enq.bits.id   := bid
-        b_q.io.enq.bits.resp := bresp
-
-        bridge.io.axi.bvalid := b_q.io.deq.valid
-        b_q.io.deq.ready     := bridge.io.axi.bready
-        bridge.io.axi.bid    := b_q.io.deq.bits.id
-        bridge.io.axi.bresp  := b_q.io.deq.bits.resp
         
-        // --- Debug 端口连线保持不变 ---
+        // 使用深度为 2 的 Queue，这在总线设计中叫 Skid Buffer。
+        // 它既能 100% 物理隔离 CPU 和外部 SoC，又能保持 AXI Burst 突发写时的满血吞吐率率 (无气泡)！
+        val axi_w_slice = Module(new Queue(new AxiWChannel(), 2))
+        
+        // --- 切片输入端 (接驳 CPU 内部 Bridge) ---
+        axi_w_slice.io.enq.valid      := bridge.io.axi.wvalid
+        bridge.io.axi.wready          := axi_w_slice.io.enq.ready
+        
+        axi_w_slice.io.enq.bits.wid   := bridge.io.axi.wid
+        axi_w_slice.io.enq.bits.wdata := bridge.io.axi.wdata
+        axi_w_slice.io.enq.bits.wstrb := bridge.io.axi.wstrb
+        axi_w_slice.io.enq.bits.wlast := bridge.io.axi.wlast
+
+        // --- 切片输出端 (接驳外部 SoC 物理管脚) ---
+        wvalid := axi_w_slice.io.deq.valid
+        axi_w_slice.io.deq.ready := wready
+        
+        wid    := axi_w_slice.io.deq.bits.wid
+        wdata  := axi_w_slice.io.deq.bits.wdata
+        wstrb  := axi_w_slice.io.deq.bits.wstrb
+        wlast  := axi_w_slice.io.deq.bits.wlast
+
+        bridge.io.axi.bid     := bid
+        bridge.io.axi.bresp   := bresp
+        bridge.io.axi.bvalid  := bvalid
+        bready  := bridge.io.axi.bready
+        
+        // 这里沿用上一个对话我们写好的逻辑
         val actual_we0 = Mux(!rob.io.commit_valid || rob.io.commit_waddr === 0.U, 0.U(4.W), Fill(4, rob.io.commit_we))
         debug0_wb_pc       := rob.io.commit_pc_out
         debug0_wb_rf_wen   := actual_we0
         debug0_wb_rf_wnum  := rob.io.commit_waddr
-        debug0_wb_rf_wdata := rob.io.commit_wdata
+        debug0_wb_rf_wdata := rob.io.c@@ommit_wdata
 
         val actual_we1 = Mux(!rob.io.commit1_valid || rob.io.commit1_waddr === 0.U, 0.U(4.W), Fill(4, rob.io.commit1_we))
         debug1_wb_pc       := rob.io.commit1_pc
@@ -769,3 +691,9 @@ class core_top extends RawModule {
         rf_rdata := 0.U
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: commit_wdata

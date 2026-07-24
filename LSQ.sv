@@ -443,7 +443,7 @@ module LSQ(
   reg  [3:0]        tail;
   reg               is_full;
   reg               violation_reg;
-  reg  [3:0]        violation_rob;
+  reg  [4:0]        violation_rob;
   reg  [31:0]       violation_pc;
   reg               check_valid;
   reg  [3:0]        check_idx;
@@ -1135,7 +1135,7 @@ module LSQ(
       tail <= 4'h0;
       is_full <= 1'h0;
       violation_reg <= 1'h0;
-      violation_rob <= 4'h0;
+      violation_rob <= 5'h0;
       violation_pc <= 32'h0;
       check_valid <= 1'h0;
       out_valid_reg <= 1'h0;
@@ -1466,6 +1466,7 @@ module LSQ(
       automatic logic        _GEN_189;
       automatic logic        _GEN_190;
       automatic logic        _GEN_191;
+      automatic logic [4:0]  commit_cnt;
       automatic logic [15:0] _GEN_192;
       automatic logic [15:0] _GEN_193;
       is_mispredict = io_br_resolve_valid & io_br_resolve_mispredict;
@@ -2251,6 +2252,37 @@ module LSQ(
       _GEN_189 = head_can_pop & head == 4'hD;
       _GEN_190 = head_can_pop & head == 4'hE;
       _GEN_191 = head_can_pop & (&head);
+      commit_cnt =
+        {1'h0,
+         {1'h0,
+          {1'h0,
+           {1'h0, entries_0_valid & entries_0_committed}
+             + {1'h0, entries_1_valid & entries_1_committed}}
+            + {1'h0,
+               {1'h0, entries_2_valid & entries_2_committed}
+                 + {1'h0, entries_3_valid & entries_3_committed}}}
+           + {1'h0,
+              {1'h0,
+               {1'h0, entries_4_valid & entries_4_committed}
+                 + {1'h0, entries_5_valid & entries_5_committed}}
+                + {1'h0,
+                   {1'h0, entries_6_valid & entries_6_committed}
+                     + {1'h0, entries_7_valid & entries_7_committed}}}}
+        + {1'h0,
+           {1'h0,
+            {1'h0,
+             {1'h0, entries_8_valid & entries_8_committed}
+               + {1'h0, entries_9_valid & entries_9_committed}}
+              + {1'h0,
+                 {1'h0, entries_10_valid & entries_10_committed}
+                   + {1'h0, entries_11_valid & entries_11_committed}}}
+             + {1'h0,
+                {1'h0,
+                 {1'h0, entries_12_valid & entries_12_committed}
+                   + {1'h0, entries_13_valid & entries_13_committed}}
+                  + {1'h0,
+                     {1'h0, entries_14_valid & entries_14_committed}
+                       + {1'h0, entries_15_valid & entries_15_committed}}}};
       if (_GEN_40)
         ticket_counter <= ticket_counter + 8'h1;
       entries_0_valid <=
@@ -2986,43 +3018,18 @@ module LSQ(
       if (head_can_pop)
         head <= head + 4'h1;
       if (io_flush)
-        tail <=
-          head
-          + {1'h0,
-             {1'h0,
-              {1'h0, entries_0_valid & entries_0_committed}
-                + {1'h0, entries_1_valid & entries_1_committed}}
-               + {1'h0,
-                  {1'h0, entries_2_valid & entries_2_committed}
-                    + {1'h0, entries_3_valid & entries_3_committed}}}
-          + {1'h0,
-             {1'h0,
-              {1'h0, entries_4_valid & entries_4_committed}
-                + {1'h0, entries_5_valid & entries_5_committed}}
-               + {1'h0,
-                  {1'h0, entries_6_valid & entries_6_committed}
-                    + {1'h0, entries_7_valid & entries_7_committed}}}
-          + {1'h0,
-             {1'h0,
-              {1'h0, entries_8_valid & entries_8_committed}
-                + {1'h0, entries_9_valid & entries_9_committed}}
-               + {1'h0,
-                  {1'h0, entries_10_valid & entries_10_committed}
-                    + {1'h0, entries_11_valid & entries_11_committed}}}
-          + {1'h0,
-             {1'h0,
-              {1'h0, entries_12_valid & entries_12_committed}
-                + {1'h0, entries_13_valid & entries_13_committed}}
-               + {1'h0,
-                  {1'h0, entries_14_valid & entries_14_committed}
-                    + {1'h0, entries_15_valid & entries_15_committed}}};
+        tail <= head + commit_cnt[3:0];
       else if (_GEN_40)
         tail <= _next_tail_T;
       else if (is_mispredict)
         tail <= io_br_restore_tail;
       is_full <=
-        ~(io_flush | head_can_pop)
-        & (_GEN_40 ? _next_tail_T == head | is_full : ~is_mispredict & is_full);
+        io_flush
+          ? commit_cnt == 5'h10
+          : ~head_can_pop
+            & (_GEN_40
+                 ? _next_tail_T == head | is_full
+                 : (~is_mispredict | tail == io_br_restore_tail) & is_full);
       violation_reg <= ~io_flush & (_GEN_138 | violation_reg);
       if (_GEN_138) begin
         automatic logic [3:0]        v_idx;
@@ -3057,7 +3064,7 @@ module LSQ(
                                                             : v_vec_13
                                                                 ? 4'hD
                                                                 : {3'h7, ~v_vec_14};
-        violation_rob <= _GEN[v_idx][3:0];
+        violation_rob <= _GEN[v_idx];
         _GEN_194 =
           {{entries_15_pc},
            {entries_14_pc},
@@ -11047,7 +11054,7 @@ module LSQ(
         tail = 4'h0;
         is_full = 1'h0;
         violation_reg = 1'h0;
-        violation_rob = 4'h0;
+        violation_rob = 5'h0;
         violation_pc = 32'h0;
         check_valid = 1'h0;
         out_valid_reg = 1'h0;
@@ -11122,7 +11129,7 @@ module LSQ(
   assign io_cacop_op = out_e_reg_cacop_op[4:3];
   assign io_cacop_is_icache = out_e_reg_is_cacop & out_e_reg_cacop_op[2:0] == 3'h0;
   assign io_lsq_violation_valid = violation_reg;
-  assign io_lsq_violation_rob = {1'h0, violation_rob};
+  assign io_lsq_violation_rob = violation_rob;
   assign io_lsq_violation_pc = violation_pc;
   assign io_dcache_req_id = out_e_reg_ticket;
 endmodule

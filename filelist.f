@@ -38,6 +38,12 @@ DispatchBuffer.sv
 IssueBuffer.sv
 Queue1_AguIcacheReq.sv
 Queue1_LsqDcacheReq.sv
+ram_2x58.sv
+Queue2_AxiArChannel.sv
+ram_2x33.sv
+Queue2_AxiRChannel.sv
+Queue2_AxiAwChannel.sv
 ram_2x41.sv
 Queue2_AxiWChannel.sv
+Queue2_AxiBChannel.sv
 core_top.sv
