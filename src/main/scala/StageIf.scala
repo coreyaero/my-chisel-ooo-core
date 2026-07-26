@@ -157,9 +157,8 @@ class StageIF extends Module {
     // 1. 如果取指令是 0xC，下一个字在新的 Cache 行里，降级！
     // 2. 如果是 Uncached 取指，AXI 每次只能拿回 32 位，高位是空的，绝对必须降级为单发！
     val is_uncached_fetch = io.inst_uncached
-    val is_cross_line = (va(3, 2) === 3.U) || is_uncached_fetch
     //// ★ 性能解封：适配 32 字节 Cache 行，仅在真实行尾 (0x1C) 时才触发跨行降级！
-    //val is_cross_line = (va(4, 2) === 7.U) || is_uncached_fetch
+    val is_cross_line = (va(4, 2) === 7.U) || is_uncached_fetch
     val pc_step = Mux(is_cross_line, 4.U, 8.U)
 
     // ==========================================
