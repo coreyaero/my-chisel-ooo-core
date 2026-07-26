@@ -9,11 +9,12 @@ module Queue2_AxiRChannel(
   input  [1:0]  io_enq_bits_resp,
   input         io_enq_bits_last,
   output        io_deq_valid,
+  output [3:0]  io_deq_bits_id,
   output [31:0] io_deq_bits_data,
   output        io_deq_bits_last
 );
 
-  wire [32:0] _ram_ext_R0_data;
+  wire [36:0] _ram_ext_R0_data;
   reg         enq_ptr_value;
   reg         deq_ptr_value;
   reg         maybe_full;
@@ -51,7 +52,7 @@ module Queue2_AxiRChannel(
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  ram_2x33 ram_ext (
+  ram_2x37 ram_ext (
     .R0_addr (deq_ptr_value),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -59,10 +60,11 @@ module Queue2_AxiRChannel(
     .W0_addr (enq_ptr_value),
     .W0_en   (do_enq),
     .W0_clk  (clock),
-    .W0_data ({io_enq_bits_data, io_enq_bits_last})
+    .W0_data ({io_enq_bits_id, io_enq_bits_data, io_enq_bits_last})
   );
   assign io_enq_ready = ~full;
   assign io_deq_valid = ~empty;
+  assign io_deq_bits_id = _ram_ext_R0_data[36:33];
   assign io_deq_bits_data = _ram_ext_R0_data[32:1];
   assign io_deq_bits_last = _ram_ext_R0_data[0];
 endmodule

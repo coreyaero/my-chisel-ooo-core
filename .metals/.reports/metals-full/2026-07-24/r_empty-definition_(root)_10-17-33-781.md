@@ -1,3 +1,17 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:deq
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: deq
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/iss_q_alu0/io/deq.
+	 -chisel3/util/iss_q_alu0/io/deq.
+	 -iss_q_alu0/io/deq.
+	 -scala/Predef.iss_q_alu0.io.deq.
+offset: 12436
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -140,6 +154,7 @@ class core_top extends RawModule {
         id_stage.io.in <> fetch_buffer.io.out
 
         // ---------------- ID -> Rename -> IQ/ROB ----------------
+        // ★ 核心替换：使用维持保序的统一 DispatchBuffer，彻底替换错误的独立队列！
         val id_flush = reset_high.asBool || ctrl.io.flush_id
         val disp_buf = Module(new DispatchBuffer())
         disp_buf.io.flush := id_flush
@@ -150,24 +165,14 @@ class core_top extends RawModule {
         val d0 = disp_buf.io.out0.bits
         val d1 = disp_buf.io.out1.bits
 
-        // =================================================================
-        // ★ 终极修复：延长一拍的时序隔离墙！
-        // Rename 模块为了优化时序，把分支恢复延迟了一拍 (delayed_is_mispredict)。
-        // 因此，Dispatch 必须等 Rename 完全恢复好之后的下一拍，才能放行新指令！
-        // 否则新指令的重命名记录会被延迟的快照瞬间抹杀，引发严重的寄存器错位！
-        // =================================================================
-        val is_mispredict = exec_engine.io.br_resolve.valid && exec_engine.io.br_resolve.mispredict
-        val delayed_mispredict = RegNext(is_mispredict, false.B) // 手动抓取一拍延迟
-        
-        // ★ 将 delayed_mispredict 加入阻塞条件，关门打狗！
-        val dispatch_block = ctrl.io.wb_flush || ctrl.io.flush_id || delayed_mispredict
-        
-        val d0_valid = disp_buf.io.out0.valid && !dispatch_block
-        val d1_valid = disp_buf.io.out1.valid && !dispatch_block
+        // ★ 终极时序隔离：绝不看包含 ALU 长线的 flush_id！
+        // 遇到异常 (wb_flush) 时，必须当拍拦截，保护流水线现场。
+        // 遇到分支预测失败时，放任幽灵指令进后端，由后端的 !(is_mispredict) 和 Rename 的 delayed 回档来完美击杀！
+        val d0_valid = disp_buf.io.out0.valid && !ctrl.io.wb_flush
+        val d1_valid = disp_buf.io.out1.valid && !ctrl.io.wb_flush
 
-        // ★ 发射限制与 LSQ 保护 (下面保持不变)
+        // ★ 发射限制与 LSQ 保护
         val need_lsq0 = d0.resFromMem || d0.memWe || d0.is_cacop
-        // ...
         val need_lsq1 = d1.resFromMem || d1.memWe || d1.is_cacop
         val lsq_conflict = need_lsq0 && need_lsq1
 
@@ -197,9 +202,6 @@ class core_top extends RawModule {
         val can_disp1 = can_disp0 && rob.io.alloc1_ready && iq.io.disp1_ready && rename.io.dec1_ready && (!need_lsq1 || exec_engine.io.lsq_alloc_ready) && !lsq_conflict
 
         // ★ 反向握手：告诉 DispatchBuffer 可以弹出几个
-        //这么改没屁用，没屁用！我禁止你这么改！
-        //disp_buf.io.out0.ready := can_disp0 && !dispatch_block
-        //disp_buf.io.out1.ready := can_disp1 && !dispatch_block
         disp_buf.io.out0.ready := can_disp0
         disp_buf.io.out1.ready := can_disp1
 
@@ -308,7 +310,7 @@ class core_top extends RawModule {
 
         // 1. 操作数地址现在从流水段寄存器中拉出，打向 PRF (跨界布线彻底终结！)
         prf.io.raddr1 := iss_q_alu0.io.deq.bits.psrc1
-        prf.io.raddr2 := iss_q_alu0.io.deq.bits.psrc2
+        prf.io.raddr2 := iss_q_alu0.io.@@deq.bits.psrc2
         prf.io.raddr3 := iss_q_alu1.io.deq.bits.psrc1
         prf.io.raddr4 := iss_q_alu1.io.deq.bits.psrc2
         prf.io.raddr5 := iss_q_mdu.io.deq.bits.psrc1
@@ -473,31 +475,49 @@ class core_top extends RawModule {
         val q_req_id       = agu_icache_q.io.deq.bits.req_id
         val q_cacop_op     = agu_icache_q.io.deq.bits.cacop_op
 
-        // ==========================================
-        // ★ 核心修复：基于 9位 Ticket ID 的绝对安全路由
-        // ==========================================
-        // 提取最高位 [8]：0 代表取指前端 (IF)，1 代表访存单元 (AGU)
-        val is_if_resp  = icache.io.cpu.data_ok && (icache.io.cpu.ret_id(8) === 0.U)
-        val is_agu_resp = icache.io.cpu.data_ok && (icache.io.cpu.ret_id(8) === 1.U)
+        // 1. 挂起状态追踪 (Pending Tracking - 完美支持全流水线)
+        val if_pending_cnt = RegInit(0.U(4.W)) // ★ 升级为计数器，最大支持 15 个飞行请求
+        val if_fire = if_req_valid && if_stage.io.inst_sram.addr_ok
+        
+        // 这里的 data_ok 归属判定：如果 if_pending_cnt > 0，那这个 data_ok 必定是给 IF 的！
+        val is_if_resp = icache.io.cpu.data_ok && (if_pending_cnt =/= 0.U)
+        val if_done = is_if_resp
 
-        // IF 发请求条件：只要 AGU 不发，IF 就可以发 (不再需要等 Cache 变空！)
+        when(if_fire && !if_done) { 
+            if_pending_cnt := if_pending_cnt + 1.U 
+        } .elsewhen(if_done && !if_fire) { 
+            if_pending_cnt := if_pending_cnt - 1.U 
+        }
+
+        val agu_pending = RegInit(false.B) // AGU 依然是单发，Boolean 足够了
+        // 如果 if_pending_cnt == 0，且 agu_pending 为 true，那肯定是给 AGU 的
+        val is_agu_resp = icache.io.cpu.data_ok && agu_pending && (if_pending_cnt === 0.U)
+        val agu_done = is_agu_resp
+
+        // 2. 仲裁逻辑 (Arbitration)
         val agu_icache_req_reg = RegNext(agu_icache_req, false.B)
-        val can_issue_if  = !agu_icache_req_reg && !agu_icache_req
+
+        // IF 发请求的条件：AGU 不在用，且 AGU 也没有在排队
+        val can_issue_if  = !agu_pending && !agu_icache_req_reg
         val actual_if_req = if_req_valid && can_issue_if
         
-        // AGU 发请求条件：IF 当拍不发，AGU 优先发
-        val can_issue_agu = !actual_if_req
+        // AGU 发请求的条件：IF 彻底空闲（飞行计数为 0），且 IF 当拍没发新请求
+        val can_issue_agu = (if_pending_cnt === 0.U) && !actual_if_req
         val actual_agu_req = agu_icache_req && can_issue_agu
 
+        // ★ 出队握手：如果 ICache 接受了该请求，通知队列弹出！
         val agu_fire = agu_icache_q.io.deq.valid && agu_icache_q.io.deq.ready
         agu_icache_q.io.deq.ready := icache.io.cpu.addr_ok && can_issue_agu
+
+        when(agu_fire && !agu_done) { agu_pending := true.B }
+        .elsewhen(agu_done && !agu_fire) { agu_pending := false.B }
 
         // 3. ICache 路由 (严谨的 MUX)
         val off_bit = cacheConfig.offsetBits - 1
         val idx_bit = cacheConfig.offsetBits + cacheConfig.indexBits - 1
         val tag_bit = 31
 
-        icache.io.cpu.req_id := Mux(actual_agu_req, Cat(1.U(1.W), q_req_id), Cat(0.U(1.W), if_stage.io.inst_req_id))
+        icache.io.cpu.req_id := Mux(actual_agu_req, q_req_id, 0.U)
         icache.io.cpu.valid  := actual_if_req || actual_agu_req
         icache.io.cpu.op     := false.B
         // ★ 地址切片全部改用 q_addr，斩断远端组合逻辑！
@@ -517,7 +537,6 @@ class core_top extends RawModule {
         if_stage.io.inst_sram.addr_ok := icache.io.cpu.addr_ok && can_issue_if
         if_stage.io.inst_sram.data_ok := is_if_resp   // ★ 只吃属于 IF 的数据！
         if_stage.io.inst_sram.rdata   := icache.io.cpu.rdata
-        if_stage.io.inst_ret_id       := icache.io.cpu.ret_id(7, 0) // ★ 归还 8 位取餐码
 
         bridge.io.inst_cache <> icache.io.axi
 
@@ -551,7 +570,7 @@ class core_top extends RawModule {
         val dq = lsq_dcache_q.io.deq
 
         // --- 队列输出端 (接驳 DCache) ---
-        dcache.io.cpu.req_id := Cat(1.U(1.W), dq.bits.req_id)
+        dcache.io.cpu.req_id := dq.bits.req_id
         dcache.io.cpu.valid  := dq.valid
         dcache.io.cpu.op     := dq.bits.op
         
@@ -588,11 +607,9 @@ class core_top extends RawModule {
 
         // 异步回来的数据，只认自己的 data_ok，跟指令状态彻底脱钩！
         exec_engine.io.data_sram.data_ok := is_dcache_resp || is_icache_resp_final
-        // ★ 核心隔离：如果大家都没响应，就保持纯净的 0，绝不让 ICache 的杂音脏了 LSQ 的波形！
-        exec_engine.io.data_sram.rdata   := Mux(is_dcache_resp, dcache.io.cpu.rdata, 
-                                            Mux(is_icache_resp_final, icache.io.cpu.rdata, 0.U))
+        exec_engine.io.data_sram.rdata   := Mux(is_dcache_resp, dcache.io.cpu.rdata, icache.io.cpu.rdata)
         
-        exec_engine.io.lsq_ret_id        := Mux(is_dcache_resp, dcache.io.cpu.ret_id(7, 0), icache.io.cpu.ret_id(7, 0))
+        exec_engine.io.lsq_ret_id        := Mux(is_dcache_resp, dcache.io.cpu.ret_id, icache.io.cpu.ret_id)
 
 
         // ---------------- AXI 与 Debug 连线 ----------------
@@ -779,3 +796,9 @@ class core_top extends RawModule {
         rf_rdata := 0.U
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: deq

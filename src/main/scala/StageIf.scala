@@ -4,6 +4,26 @@ import chisel3._
 import chisel3.util._
 
 // ====================================================================
+// ★ 新增：IF1 传给 IF2 的元数据包裹 (记录发请求时的各种状态)
+// ====================================================================
+class FetchMeta extends Bundle {
+    val pc           = UInt(32.W)
+    val is_cross     = Bool()
+    val has_exc      = Bool()
+    val ecode        = UInt(6.W)
+    val pred_taken0  = Bool()
+    val pred_target0 = UInt(32.W)
+    val pred_type0   = UInt(2.W)
+    val pred_taken1  = Bool()
+    val pred_target1 = UInt(32.W)
+    val pred_type1   = UInt(2.W)
+    val ghr          = UInt(10.W)
+    val ras_tos      = UInt(4.W)
+    val ras_tos1     = UInt(4.W)
+    val ticket       = UInt(8.W) // ★ 新增：记住自己的取餐码
+}
+
+// ====================================================================
 // ★ 新增：支持双进单出的自适应指令队列 (Dual-Fetch Buffer)
 // ====================================================================
 class DualFetchBuffer(depth: Int = 8) extends Module {
@@ -79,6 +99,9 @@ class StageIF extends Module {
         val flush_target_pc = Input(UInt(32.W))
         val inst_sram       = new SramIo()
         val inst_uncached   = Output(Bool())
+        // ★ 新增：与顶层对接的 8 位车票通道
+        val inst_req_id     = Output(UInt(8.W))
+        val inst_ret_id     = Input(UInt(8.W))
 
         val mmu_config      = Input(new MmuConfig())
         val tlb_s0_vppn     = Output(UInt(19.W))
@@ -135,12 +158,9 @@ class StageIF extends Module {
     // 2. 如果是 Uncached 取指，AXI 每次只能拿回 32 位，高位是空的，绝对必须降级为单发！
     val is_uncached_fetch = io.inst_uncached
     val is_cross_line = (va(3, 2) === 3.U) || is_uncached_fetch
+    //// ★ 性能解封：适配 32 字节 Cache 行，仅在真实行尾 (0x1C) 时才触发跨行降级！
+    //val is_cross_line = (va(4, 2) === 7.U) || is_uncached_fetch
     val pc_step = Mux(is_cross_line, 4.U, 8.U)
-
-    val wait_data_reg = RegInit(false.B)
-    val discard_reg   = RegInit(false.B)
-    val buf_valid     = RegInit(false.B)
-    val inst_buffer   = Reg(UInt(64.W))
 
     // ==========================================
     // ★ 零气泡 BTB 预测引擎 (512 项)
@@ -165,10 +185,6 @@ class StageIF extends Module {
     // ★ 修复：保留 Mem 以拯救时序，外挂一层 Valid 护盾屏蔽仿真 X 态！
     val bht = Mem(1024, UInt(2.W))
     val bht_valid = RegInit(VecInit(Seq.fill(1024)(false.B))) 
-
-    val allow_req = !wait_data_reg && !buf_valid && !discard_reg
-    val req_valid = allow_req
-    val addr_handshaked = req_valid && io.inst_sram.addr_ok
 
     // ------------------------------------------
     // 训练逻辑：ALU 后端发来的 BHT 饱和更新
@@ -258,6 +274,24 @@ class StageIF extends Module {
     val next_pc_base = pc_reg + pc_step
     val btb_target_pc = Mux(pred_taken0, pred_target0, Mux(pred_taken1, pred_target1, next_pc_base))
 
+    val q_reset = reset.asBool || io.flush
+    val meta_queue = withReset(q_reset) { Module(new Queue(new FetchMeta(), 4)) }
+    // ★ 新增：256 项的乱序数据接收台与就绪状态表
+    val rdata_table = Reg(Vec(256, UInt(64.W)))
+    val data_ready_table = RegInit(VecInit(Seq.fill(256)(false.B)))
+
+    // ====================================================================
+    // ★ 终极重构：物理雷达与逻辑生死簿双重校验
+    // ====================================================================
+    val ticket_cnt   = RegInit(0.U(8.W))
+    val valid_table  = RegInit(VecInit(Seq.fill(256)(false.B))) // 逻辑生死簿（会被 Flush 烧毁）
+    val flying_table = RegInit(VecInit(Seq.fill(256)(false.B))) // 物理雷达（记录总线实际在飞的请求）
+
+    // 发起请求的终极条件：队列有空，且当前轮到的 ticket 号在总线上没有幽灵残留！
+    val can_req = !io.flush && meta_queue.io.enq.ready && !flying_table(ticket_cnt)
+    
+    val if1_fire = can_req && io.inst_sram.addr_ok
+
     // ------------------------------------------
     // ★ 核心：状态的双端推测与死亡回档 (完美抗污染版)
     // ------------------------------------------
@@ -284,7 +318,7 @@ class StageIF extends Module {
             ghr := u.ghr
         }
         
-    } .elsewhen(addr_handshaked) {
+    } .elsewhen(if1_fire) {
         // 【1. RAS 推测更新】
         tos := tos_after_1
         
@@ -311,135 +345,133 @@ class StageIF extends Module {
             ghr := Cat(ghr(8, 0), pred_taken1)
         }
     }
+    // ====================================================================
+    // ★ 核心重构：8 位 Ticket ID 生死簿
+    // ====================================================================
+    val req_fire  = if1_fire
+    val resp_fire = io.inst_sram.data_ok
 
-    // ★ 隐藏的致命 Bug 修复：同步打拍，防止异常位被下一拍提前篡改
-    val pc_buf    = RegInit(0.U(32.W))
-    val cross_buf = RegInit(false.B)
-    val exc_buf   = RegInit(0.U.asTypeOf(new Bundle{ val exc=Bool(); val ecode=UInt(6.W) }))
-
-    class PredBuf extends Bundle {
-        val taken = Bool()
-        val target= UInt(32.W)
-        val btype = UInt(2.W)
-        val ghr   = UInt(10.W) // ★ 加这行
-        val ras_tos = UInt(4.W) // ★ 加这行
+    // 1. 发请求：颁发 Ticket
+    io.inst_req_id := ticket_cnt
+    when(req_fire) {
+        ticket_cnt := ticket_cnt + 1.U
+        valid_table(ticket_cnt)  := true.B  // 逻辑上：我需要这个数据
+        flying_table(ticket_cnt) := true.B  // 物理上：它起飞了
+        data_ready_table(ticket_cnt) := false.B // 清扫柜子
     }
-    val pred_buf = RegInit(0.U.asTypeOf(Vec(2, new PredBuf())))
 
-    val pc_alignment_error = WireDefault(false.B) // 这里占位，实际校验看后面
+    // 2. 收响应：核销车票 (不论是真数据还是幽灵，只要回来，物理雷达就解锁)
+    when(resp_fire) {
+        valid_table(io.inst_ret_id)  := false.B
+        flying_table(io.inst_ret_id) := false.B
+    }
+
+    // 3. 逻辑大屠杀：Flush 当拍，只烧毁逻辑生死簿，绝不碰物理雷达！
+    when(io.flush) {
+        for (i <- 0 until 256) {
+            valid_table(i) := false.B
+        }
+    }
+
+    // 4. 纯净过滤器：只有数据回来了，且逻辑生死簿上确认需要它，才存入外卖柜
+    val real_data_ok = io.inst_sram.data_ok && valid_table(io.inst_ret_id)
+    when(real_data_ok) {
+        rdata_table(io.inst_ret_id)      := io.inst_sram.rdata
+        data_ready_table(io.inst_ret_id) := true.B
+    }
+    
+    // ====================================================================
+    // ★ 顺序修复：IF2 基于 Ticket 从乱序储物柜里取货拼装
+    // ====================================================================
+    val meta = meta_queue.io.deq.bits
+    val head_ticket = meta.ticket
+
+    // 用队头的 ticket 去读表，完美拿到对应 PC 的数据
+    val final_rdata = rdata_table(head_ticket)
+    val head_data_ready = data_ready_table(head_ticket)
+
+    val pipe_ready = io.out0.ready && (meta.is_cross || meta.pred_taken0 || io.out1.ready)
+    
+    // ★ 条件变更：只要 meta 在，且对应的数据已经送进柜子，就能发射！
+    val if2_fire   = meta_queue.io.deq.valid && head_data_ready && pipe_ready
+
+    meta_queue.io.deq.ready  := if2_fire
+
+    // 取走数据后，随手关门（清理就绪状态，防止下次 ticket 轮转时串键）
+    when(if2_fire) {
+        data_ready_table(head_ticket) := false.B
+    }
+
+    // ==========================================
+    // IF1 阶段：连接 Cache 请求与 PC 更新
+    // ==========================================
+    // ★ 安全护盾：防止取指未对齐导致 AXI 总线挂死
+    val pc_alignment_error = (pc_reg(1, 0) =/= 0.U)
     val safe_pa = Mux(pc_alignment_error || mmu_exc_now, "h1c000000".U(32.W), pa)
 
-    io.inst_sram.req    := req_valid
-    io.inst_sram.wr     := false.B
-    io.inst_sram.size   := 2.U
-    io.inst_sram.wstrb  := 0.U
-    io.inst_sram.addr   := safe_pa   
-    io.inst_sram.wdata  := 0.U
+    io.inst_sram.req   := can_req
+    io.inst_sram.wr    := false.B
+    // ★ 终极修复：双发架构必须一次性拉回 64 位 (8 字节)！
+    io.inst_sram.size  := 3.U  // 从 2.U 改为 3.U
+    io.inst_sram.wstrb := 0.U
+    io.inst_sram.addr  := safe_pa   
+    io.inst_sram.wdata := 0.U
 
-    val real_data_ok = io.inst_sram.data_ok && !discard_reg
-    val set_discard = (wait_data_reg || addr_handshaked) && io.flush && !io.inst_sram.data_ok
+    // 压入元数据小队列
+    meta_queue.io.enq.valid := if1_fire
+    meta_queue.io.enq.bits.pc           := pc_reg
+    meta_queue.io.enq.bits.is_cross     := is_cross_line
+    meta_queue.io.enq.bits.has_exc      := mmu_exc_now
+    meta_queue.io.enq.bits.ecode        := ecode_now
+    meta_queue.io.enq.bits.pred_taken0  := pred_taken0
+    meta_queue.io.enq.bits.pred_target0 := pred_target0
+    meta_queue.io.enq.bits.pred_type0   := pred_type0
+    meta_queue.io.enq.bits.pred_taken1  := pred_taken1
+    meta_queue.io.enq.bits.pred_target1 := pred_target1
+    meta_queue.io.enq.bits.pred_type1   := pred_type1
+    meta_queue.io.enq.bits.ghr          := ghr
+    meta_queue.io.enq.bits.ras_tos      := tos
+    meta_queue.io.enq.bits.ras_tos1     := tos_after_0
+    meta_queue.io.enq.bits.ticket := ticket_cnt // ★ 新增
 
+    // PC 狂飙：只在 if1_fire 时更新！
     when(io.flush) {
         pc_reg := io.flush_target_pc
-    } .elsewhen(addr_handshaked) {
-        pc_reg        := btb_target_pc
-        pc_buf        := pc_reg
-        cross_buf     := is_cross_line
-        exc_buf.exc   := mmu_exc_now
-        exc_buf.ecode := ecode_now
-
-        // ★ 把 pred_buf 的更新挪到这里来！变量顺序就绝对安全了
-        pred_buf(0).taken  := pred_taken0
-        pred_buf(0).target := pred_target0
-        pred_buf(0).btype  := pred_type0
-        pred_buf(1).taken  := pred_taken1
-        pred_buf(1).target := pred_target1
-        pred_buf(1).btype  := pred_type1
-        pred_buf(0).ghr := ghr // ★ 注意：这里直接取当前的 ghr，此时它还没被推测更新覆盖，最纯净！
-        pred_buf(1).ghr := ghr
-        // ★ 核心：抓取指令执行前的干净状态！0 号拿自己面前的，1 号拿 0 执行完之后的。
-        pred_buf(0).ras_tos := tos 
-        pred_buf(1).ras_tos := tos_after_0
-    }
-
-    when(io.flush) { wait_data_reg := false.B } 
-    .elsewhen(addr_handshaked) { wait_data_reg := true.B } 
-    .elsewhen(wait_data_reg && real_data_ok) { wait_data_reg := false.B }
-
-    when(set_discard) { discard_reg := true.B } 
-    .elsewhen(discard_reg && io.inst_sram.data_ok) { discard_reg := false.B }
-
-    // 取指缓冲逻辑，只要前端不就绪，就把 64 位数据全部抱住
-    val current_cross = Mux(addr_handshaked && !wait_data_reg && !buf_valid, is_cross_line, cross_buf)
-    val pipe_ready = io.out0.ready && (current_cross || io.out1.ready)
-
-    when(io.flush) {
-        buf_valid := false.B
-    } .elsewhen(real_data_ok && !pipe_ready) {
-        inst_buffer := io.inst_sram.rdata
-        buf_valid   := true.B
-    } .elsewhen(pipe_ready) {
-        buf_valid   := false.B
+    } .elsewhen(if1_fire) {
+        pc_reg := btb_target_pc
     }
 
     // ==========================================
-    // 分发与数据拼装
+    // IF2 阶段：数据拼装与分发
     // ==========================================
-    val final_valid = (real_data_ok || buf_valid) && !io.flush
-    val final_rdata = Mux(buf_valid, inst_buffer, io.inst_sram.rdata)
-
-    val current_pc0   = Mux(addr_handshaked && !wait_data_reg && !buf_valid, pc_reg, pc_buf)
-    val current_exc   = Mux(addr_handshaked && !wait_data_reg && !buf_valid, mmu_exc_now, exc_buf.exc)
-    val current_ecode = Mux(addr_handshaked && !wait_data_reg && !buf_valid, ecode_now, exc_buf.ecode)
-
-    val align_err0 = (current_pc0(1, 0) =/= 0.U)
-    val align_err1 = ((current_pc0 + 4.U)(1, 0) =/= 0.U)
-
-    val has_exc0 = align_err0 || current_exc
-    val has_exc1 = align_err1 || current_exc
-
-    val safe_inst0 = final_rdata(31, 0)
-    val safe_inst1 = final_rdata(63, 32)
-
-    val current_pred0_taken  = Mux(addr_handshaked && !wait_data_reg && !buf_valid, pred_taken0, pred_buf(0).taken)
-    val current_pred0_target = Mux(addr_handshaked && !wait_data_reg && !buf_valid, pred_target0, pred_buf(0).target)
-    val current_pred0_type   = Mux(addr_handshaked && !wait_data_reg && !buf_valid, pred_type0, pred_buf(0).btype)
-
-    val current_pred1_taken  = Mux(addr_handshaked && !wait_data_reg && !buf_valid, pred_taken1, pred_buf(1).taken)
-    val current_pred1_target = Mux(addr_handshaked && !wait_data_reg && !buf_valid, pred_target1, pred_buf(1).target)
-    val current_pred1_type   = Mux(addr_handshaked && !wait_data_reg && !buf_valid, pred_type1, pred_buf(1).btype)
-
-    io.out0.valid := final_valid
-    // ★ 错路屏蔽：如果槽位 0 被预测跳转，槽位 1 的机器码立刻化为灰烬！
-    io.out1.valid := final_valid && !current_cross && !current_pred0_taken
-
-    val current_pred0_ghr = Mux(addr_handshaked && !wait_data_reg && !buf_valid, ghr, pred_buf(0).ghr)
-    val current_pred1_ghr = Mux(addr_handshaked && !wait_data_reg && !buf_valid, ghr, pred_buf(1).ghr)
-    val current_pred0_tos = Mux(addr_handshaked && !wait_data_reg && !buf_valid, tos, pred_buf(0).ras_tos)
-    val current_pred1_tos = Mux(addr_handshaked && !wait_data_reg && !buf_valid, tos_after_0, pred_buf(1).ras_tos)
+    val align_err0 = (meta.pc(1, 0) =/= 0.U)
+    val align_err1 = ((meta.pc + 4.U)(1, 0) =/= 0.U)
 
     val out0_data = WireDefault(0.U.asTypeOf(new PipelineData()))
-    out0_data.pc           := current_pc0
-    out0_data.inst         := safe_inst0
-    out0_data.hasException := has_exc0
-    out0_data.ecode        := Mux(align_err0, "h08".U, current_ecode)
-    out0_data.pred_taken  := current_pred0_taken
-    out0_data.pred_target := current_pred0_target
-    out0_data.bpu_type    := current_pred0_type
-    out0_data.ghr := current_pred0_ghr
-    out0_data.ras_tos := current_pred0_tos
+    out0_data.pc           := meta.pc
+    out0_data.inst         := final_rdata(31, 0) 
+    out0_data.hasException := meta.has_exc || align_err0
+    out0_data.ecode        := Mux(align_err0, "h08".U, meta.ecode)
+    out0_data.pred_taken   := meta.pred_taken0
+    out0_data.pred_target  := meta.pred_target0
+    out0_data.bpu_type     := meta.pred_type0
+    out0_data.ghr          := meta.ghr
+    out0_data.ras_tos      := meta.ras_tos
 
     val out1_data = WireDefault(0.U.asTypeOf(new PipelineData()))
-    out1_data.pc           := (current_pc0 + 4.U)(31, 0)
-    out1_data.inst         := safe_inst1
-    out1_data.hasException := has_exc1
-    out1_data.ecode        := Mux(align_err1, "h08".U, current_ecode)
-    out1_data.pred_taken  := current_pred1_taken
-    out1_data.pred_target := current_pred1_target
-    out1_data.bpu_type    := current_pred1_type
-    out1_data.ghr := current_pred1_ghr
-    out1_data.ras_tos := current_pred1_tos
+    out1_data.pc           := (meta.pc + 4.U)(31, 0)
+    out1_data.inst         := final_rdata(63, 32) 
+    out1_data.hasException := meta.has_exc || align_err1
+    out1_data.ecode        := Mux(align_err1, "h08".U, meta.ecode)
+    out1_data.pred_taken   := meta.pred_taken1
+    out1_data.pred_target  := meta.pred_target1
+    out1_data.bpu_type     := meta.pred_type1
+    out1_data.ghr          := meta.ghr
+    out1_data.ras_tos      := meta.ras_tos1
 
+    io.out0.valid := if2_fire
+    io.out1.valid := if2_fire && !meta.is_cross && !meta.pred_taken0
+    
     io.out0.bits := out0_data
     io.out1.bits := out1_data
 }

@@ -13,8 +13,23 @@ class StageID extends Module {
 
     val dec0 = Module(new Decoder())
     val dec1 = Module(new Decoder())
-    dec0.io.inst := io.in.inst0.inst
-    dec1.io.inst := io.in.inst1.inst
+
+    // ★ 终极防毒面具：LoongArch 的 NOP 指令 (addi.w $r0, $r0, 0)
+    // 根据你的指令集格式，它的机器码是 0x02800000
+    val NOP_INST = "h02800000".U(32.W) 
+
+    // ★ 拦截清洗 0 号通道
+    val safe_inst0_data = WireDefault(io.in.inst0)
+    safe_inst0_data.inst := Mux(io.in.valid0, io.in.inst0.inst, NOP_INST)
+    // 顺手把 Exception 也洗干净，防止幽灵异常冲刷流水线！
+    safe_inst0_data.hasException := Mux(io.in.valid0, io.in.inst0.hasException, false.B)
+
+    // ★ 拦截清洗 1 号通道 (彻底掐死 X 态源头)
+    val safe_inst1_data = WireDefault(io.in.inst1)
+    safe_inst1_data.inst := Mux(io.in.valid1, io.in.inst1.inst, NOP_INST)
+    safe_inst1_data.hasException := Mux(io.in.valid1, io.in.inst1.hasException, false.B)
+    dec0.io.inst := safe_inst0_data.inst
+    dec1.io.inst := safe_inst1_data.inst
 
     // ★ 修复点：这里的类型从 DecoderOut 改成了 DecodeOut，与你的 Decoder 完全匹配
     def mapData(inData: PipelineData, decOut: DecodeOut) = {
@@ -52,15 +67,16 @@ class StageID extends Module {
         out.ecode         := Mux(inData.hasException, inData.ecode, decOut.ecode)
         out.tlbOp         := decOut.tlbOp
         out.invtlb_op     := decOut.invtlb_op
-        out.is_refetch    := decOut.is_refetch
+        //out.is_refetch    := decOut.is_refetch
+        out.is_refetch    := decOut.is_refetch || (inData.pred_taken && !is_branch)
         out.is_cacop      := decOut.is_cacop
         out.cacop_op      := decOut.cacop_op
         out.is_branch     := is_branch
         out
     }
 
-    val d0 = mapData(io.in.inst0, dec0.io.out)
-    val d1 = mapData(io.in.inst1, dec1.io.out)
+    val d0 = mapData(safe_inst0_data, dec0.io.out)
+    val d1 = mapData(safe_inst1_data, dec1.io.out)
 
     // ★ 序列化屏障仲裁：CSR/TLB/ERTN/CACOP 必须单发孤独执行！
     val is_ser0 = d0.isCsr || d0.inst_ertn || (d0.tlbOp =/= TlbOp.NOP) || d0.is_cacop

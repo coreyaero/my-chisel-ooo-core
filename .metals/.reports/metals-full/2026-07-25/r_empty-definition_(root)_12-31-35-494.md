@@ -1,3 +1,17 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:out0
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: out0
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/disp_buf/io/out0.
+	 -chisel3/util/disp_buf/io/out0.
+	 -disp_buf/io/out0.
+	 -scala/Predef.disp_buf.io.out0.
+offset: 6513
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -162,7 +176,7 @@ class core_top extends RawModule {
         // ★ 将 delayed_mispredict 加入阻塞条件，关门打狗！
         val dispatch_block = ctrl.io.wb_flush || ctrl.io.flush_id || delayed_mispredict
         
-        val d0_valid = disp_buf.io.out0.valid && !dispatch_block
+        val d0_valid = disp_buf.io.@@out0.valid && !dispatch_block
         val d1_valid = disp_buf.io.out1.valid && !dispatch_block
 
         // ★ 发射限制与 LSQ 保护 (下面保持不变)
@@ -197,9 +211,6 @@ class core_top extends RawModule {
         val can_disp1 = can_disp0 && rob.io.alloc1_ready && iq.io.disp1_ready && rename.io.dec1_ready && (!need_lsq1 || exec_engine.io.lsq_alloc_ready) && !lsq_conflict
 
         // ★ 反向握手：告诉 DispatchBuffer 可以弹出几个
-        //这么改没屁用，没屁用！我禁止你这么改！
-        //disp_buf.io.out0.ready := can_disp0 && !dispatch_block
-        //disp_buf.io.out1.ready := can_disp1 && !dispatch_block
         disp_buf.io.out0.ready := can_disp0
         disp_buf.io.out1.ready := can_disp1
 
@@ -779,3 +790,9 @@ class core_top extends RawModule {
         rf_rdata := 0.U
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: out0

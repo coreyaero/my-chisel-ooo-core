@@ -1,3 +1,17 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:out1
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: out1
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/disp_buf/io/out1.
+	 -chisel3/util/disp_buf/io/out1.
+	 -disp_buf/io/out1.
+	 -scala/Predef.disp_buf.io.out1.
+offset: 8169
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -197,11 +211,9 @@ class core_top extends RawModule {
         val can_disp1 = can_disp0 && rob.io.alloc1_ready && iq.io.disp1_ready && rename.io.dec1_ready && (!need_lsq1 || exec_engine.io.lsq_alloc_ready) && !lsq_conflict
 
         // ★ 反向握手：告诉 DispatchBuffer 可以弹出几个
-        //这么改没屁用，没屁用！我禁止你这么改！
-        //disp_buf.io.out0.ready := can_disp0 && !dispatch_block
-        //disp_buf.io.out1.ready := can_disp1 && !dispatch_block
-        disp_buf.io.out0.ready := can_disp0
-        disp_buf.io.out1.ready := can_disp1
+    // ★ 终极修复：绝不能只看下游是否有空！如果流水线在 Block 状态，必须按死 ready，严禁弹出丢弃指令！
+    disp_buf.io.out0.ready := can_disp0 && !dispatch_block
+    disp_buf.io.out@@1.ready := can_disp1 && !dispatch_block
 
         // ★ 只有指令合法且真能分发出去，才告诉 Rename 扣减资源！
         rename.io.dec0_fire := d0_valid && can_disp0
@@ -779,3 +791,9 @@ class core_top extends RawModule {
         rf_rdata := 0.U
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: out1

@@ -58,6 +58,7 @@ module core_top(
   wire         _w_q_io_enq_ready;
   wire         _aw_q_io_enq_ready;
   wire         _r_q_io_deq_valid;
+  wire [3:0]   _r_q_io_deq_bits_id;
   wire [31:0]  _r_q_io_deq_bits_data;
   wire         _r_q_io_deq_bits_last;
   wire         _ar_q_io_enq_ready;
@@ -321,7 +322,7 @@ module core_top(
   wire [3:0]   _fetch_buffer_io_out_inst1_ras_tos;
   wire         _dcache_io_cpu_addr_ok;
   wire         _dcache_io_cpu_data_ok;
-  wire [7:0]   _dcache_io_cpu_ret_id;
+  wire [8:0]   _dcache_io_cpu_ret_id;
   wire [63:0]  _dcache_io_cpu_rdata;
   wire         _dcache_io_axi_rd_req;
   wire [3:0]   _dcache_io_axi_rd_id;
@@ -334,7 +335,7 @@ module core_top(
   wire [255:0] _dcache_io_axi_wr_data;
   wire         _icache_io_cpu_addr_ok;
   wire         _icache_io_cpu_data_ok;
-  wire [7:0]   _icache_io_cpu_ret_id;
+  wire [8:0]   _icache_io_cpu_ret_id;
   wire [63:0]  _icache_io_cpu_rdata;
   wire         _icache_io_axi_rd_req;
   wire [3:0]   _icache_io_axi_rd_id;
@@ -613,6 +614,7 @@ module core_top(
   wire         _if_stage_io_inst_sram_req;
   wire [31:0]  _if_stage_io_inst_sram_addr;
   wire         _if_stage_io_inst_uncached;
+  wire [7:0]   _if_stage_io_inst_req_id;
   wire [18:0]  _if_stage_io_tlb_s0_vppn;
   wire         _if_stage_io_tlb_s0_va_bit12;
   wire [9:0]   _if_stage_io_tlb_s0_asid;
@@ -892,8 +894,10 @@ module core_top(
   wire         _ctrl_io_flush_id;
   wire         _reset_high_T = ~aresetn;
   wire         fetch_buffer_reset = _reset_high_T | _ctrl_io_flush_id;
-  wire         d0_valid = _disp_buf_io_out0_valid & ~_rob_io_wb_flush;
-  wire         d1_valid = _disp_buf_io_out1_valid & ~_rob_io_wb_flush;
+  reg          delayed_mispredict;
+  wire         dispatch_block = _rob_io_wb_flush | _ctrl_io_flush_id | delayed_mispredict;
+  wire         d0_valid = _disp_buf_io_out0_valid & ~dispatch_block;
+  wire         d1_valid = _disp_buf_io_out1_valid & ~dispatch_block;
   wire         need_lsq0 =
     _disp_buf_io_out0_bits_resFromMem | _disp_buf_io_out0_bits_memWe
     | _disp_buf_io_out0_bits_is_cacop;
@@ -914,27 +918,19 @@ module core_top(
     _exec_engine_io_cdb0_valid & _exec_engine_io_cdb0_bits_regWriteEn;
   wire         prf_io_we2 =
     _exec_engine_io_cdb1_valid & _exec_engine_io_cdb1_bits_regWriteEn;
-  reg          if_pending;
-  reg          agu_pending;
-  wire         agu_done = _icache_io_cpu_data_ok & agu_pending;
+  wire         is_agu_resp = _icache_io_cpu_data_ok & _icache_io_cpu_ret_id[8];
   reg          agu_icache_req_reg;
-  wire         actual_if_req =
-    _if_stage_io_inst_sram_req & ~agu_pending & ~agu_icache_req_reg;
-  wire         actual_agu_req = _agu_icache_q_io_deq_valid & ~if_pending & ~actual_if_req;
-  wire         agu_fire = actual_agu_req & _icache_io_cpu_addr_ok;
-  wire         if_stage_io_inst_sram_addr_ok = _icache_io_cpu_addr_ok & actual_if_req;
-  wire         if_stage_io_inst_sram_data_ok = _icache_io_cpu_data_ok & if_pending;
+  wire         can_issue_if = ~agu_icache_req_reg & ~_agu_icache_q_io_deq_valid;
+  wire         actual_if_req = _if_stage_io_inst_sram_req & can_issue_if;
+  wire         actual_agu_req = _agu_icache_q_io_deq_valid & ~actual_if_req;
   always @(posedge aclk or posedge _reset_high_T) begin
     if (_reset_high_T) begin
-      if_pending <= 1'h0;
-      agu_pending <= 1'h0;
+      delayed_mispredict <= 1'h0;
       agu_icache_req_reg <= 1'h0;
     end
     else begin
-      if_pending <=
-        if_stage_io_inst_sram_addr_ok & ~if_stage_io_inst_sram_data_ok
-        | ~(if_stage_io_inst_sram_data_ok & ~if_stage_io_inst_sram_addr_ok) & if_pending;
-      agu_pending <= agu_fire & ~agu_done | ~(agu_done & ~agu_fire) & agu_pending;
+      delayed_mispredict <=
+        _exec_engine_io_br_resolve_valid & _exec_engine_io_br_resolve_mispredict;
       agu_icache_req_reg <= _agu_icache_q_io_deq_valid;
     end
   end // always @(posedge, posedge)
@@ -944,8 +940,7 @@ module core_top(
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
       if (_reset_high_T) begin
-        if_pending = 1'h0;
-        agu_pending = 1'h0;
+        delayed_mispredict = 1'h0;
         agu_icache_req_reg = 1'h0;
       end
     end // initial
@@ -1518,10 +1513,12 @@ module core_top(
     .io_flush_target_pc            (_ctrl_io_next_pc),
     .io_inst_sram_req              (_if_stage_io_inst_sram_req),
     .io_inst_sram_addr             (_if_stage_io_inst_sram_addr),
-    .io_inst_sram_addr_ok          (if_stage_io_inst_sram_addr_ok),
-    .io_inst_sram_data_ok          (if_stage_io_inst_sram_data_ok),
+    .io_inst_sram_addr_ok          (_icache_io_cpu_addr_ok & can_issue_if),
+    .io_inst_sram_data_ok          (_icache_io_cpu_data_ok & ~(_icache_io_cpu_ret_id[8])),
     .io_inst_sram_rdata            (_icache_io_cpu_rdata),
     .io_inst_uncached              (_if_stage_io_inst_uncached),
+    .io_inst_req_id                (_if_stage_io_inst_req_id),
+    .io_inst_ret_id                (_icache_io_cpu_ret_id[7:0]),
     .io_mmu_config_crmd_datf       (_csr_io_mmu_config_crmd_datf),
     .io_mmu_config_crmd_pg         (_csr_io_mmu_config_crmd_pg),
     .io_mmu_config_crmd_da         (_csr_io_mmu_config_crmd_da),
@@ -1850,7 +1847,7 @@ module core_top(
     .io_timer_in                   (_timer_io_timer_out),
     .io_lsq_req_id                 (_exec_engine_io_lsq_req_id),
     .io_lsq_ret_id
-      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_ret_id : _icache_io_cpu_ret_id),
+      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_ret_id[7:0] : _icache_io_cpu_ret_id[7:0]),
     .io_data_sram_req              (_exec_engine_io_data_sram_req),
     .io_data_sram_wr               (_exec_engine_io_data_sram_wr),
     .io_data_sram_wstrb            (_exec_engine_io_data_sram_wstrb),
@@ -1860,9 +1857,11 @@ module core_top(
       (_exec_engine_io_cacop_is_icache
          ? _agu_icache_q_io_enq_ready
          : _lsq_dcache_q_io_enq_ready),
-    .io_data_sram_data_ok          (_dcache_io_cpu_data_ok | agu_done),
+    .io_data_sram_data_ok          (_dcache_io_cpu_data_ok | is_agu_resp),
     .io_data_sram_rdata
-      (_dcache_io_cpu_data_ok ? _dcache_io_cpu_rdata : _icache_io_cpu_rdata),
+      (_dcache_io_cpu_data_ok
+         ? _dcache_io_cpu_rdata
+         : is_agu_resp ? _icache_io_cpu_rdata : 64'h0),
     .io_data_uncached              (_exec_engine_io_data_uncached),
     .io_mmu_config_crmd_datm       (_csr_io_mmu_config_crmd_datm),
     .io_mmu_config_crmd_pg         (_csr_io_mmu_config_crmd_pg),
@@ -2105,6 +2104,7 @@ module core_top(
     .io_axi_arlen            (_bridge_io_axi_arlen),
     .io_axi_arvalid          (_bridge_io_axi_arvalid),
     .io_axi_arready          (_ar_q_io_enq_ready),
+    .io_axi_rid              (_r_q_io_deq_bits_id),
     .io_axi_rdata            (_r_q_io_deq_bits_data),
     .io_axi_rlast            (_r_q_io_deq_bits_last),
     .io_axi_rvalid           (_r_q_io_deq_valid),
@@ -2124,7 +2124,10 @@ module core_top(
     .reset            (_reset_high_T),
     .io_cpu_valid     (actual_if_req | actual_agu_req),
     .io_cpu_op        (1'h0),
-    .io_cpu_req_id    (actual_agu_req ? _agu_icache_q_io_deq_bits_req_id : 8'h0),
+    .io_cpu_req_id
+      (actual_agu_req
+         ? {1'h1, _agu_icache_q_io_deq_bits_req_id}
+         : {1'h0, _if_stage_io_inst_req_id}),
     .io_cpu_index
       (actual_agu_req
          ? _agu_icache_q_io_deq_bits_addr[12:5]
@@ -2168,7 +2171,7 @@ module core_top(
     .reset            (_reset_high_T),
     .io_cpu_valid     (_lsq_dcache_q_io_deq_valid),
     .io_cpu_op        (_lsq_dcache_q_io_deq_bits_op),
-    .io_cpu_req_id    (_lsq_dcache_q_io_deq_bits_req_id),
+    .io_cpu_req_id    ({1'h1, _lsq_dcache_q_io_deq_bits_req_id}),
     .io_cpu_index     (_lsq_dcache_q_io_deq_bits_addr[12:5]),
     .io_cpu_tag       (_lsq_dcache_q_io_deq_bits_addr[31:13]),
     .io_cpu_offset    (_lsq_dcache_q_io_deq_bits_addr[4:0]),
@@ -2863,7 +2866,7 @@ module core_top(
     .io_enq_bits_addr     (_exec_engine_io_data_sram_addr),
     .io_enq_bits_req_id   (_exec_engine_io_lsq_req_id),
     .io_enq_bits_cacop_op (_exec_engine_io_cacop_op),
-    .io_deq_ready         (agu_fire),
+    .io_deq_ready         (_icache_io_cpu_addr_ok & ~actual_if_req),
     .io_deq_valid         (_agu_icache_q_io_deq_valid),
     .io_deq_bits_addr     (_agu_icache_q_io_deq_bits_addr),
     .io_deq_bits_req_id   (_agu_icache_q_io_deq_bits_req_id),
@@ -2923,6 +2926,7 @@ module core_top(
     .io_enq_bits_resp (rresp),
     .io_enq_bits_last (rlast),
     .io_deq_valid     (_r_q_io_deq_valid),
+    .io_deq_bits_id   (_r_q_io_deq_bits_id),
     .io_deq_bits_data (_r_q_io_deq_bits_data),
     .io_deq_bits_last (_r_q_io_deq_bits_last)
   );

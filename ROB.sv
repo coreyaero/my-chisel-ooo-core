@@ -876,7 +876,6 @@ module ROB(
   wire [4:0]        _tail_next_T = tail + 5'h1;
   wire              _is_full_for_2_T = _tail_next_T == head;
   wire              is_full_for_2 = is_full | _is_full_for_2_T;
-  wire [4:0]        _head_T_6 = head + 5'h1;
   wire [31:0]       _GEN =
     {{entries_31_valid},
      {entries_30_valid},
@@ -910,8 +909,7 @@ module ROB(
      {entries_2_valid},
      {entries_1_valid},
      {entries_0_valid}};
-  wire              _GEN_0 = _GEN[head];
-  wire [31:0][31:0] _GEN_1 =
+  wire [31:0][31:0] _GEN_0 =
     {{entries_31_pc},
      {entries_30_pc},
      {entries_29_pc},
@@ -944,7 +942,9 @@ module ROB(
      {entries_2_pc},
      {entries_1_pc},
      {entries_0_pc}};
-  wire [31:0]       io_commit_pc_out_0 = _GEN_1[head];
+  wire [4:0]        _head_T_6 = head + 5'h1;
+  wire              _GEN_1 = _GEN[head];
+  wire [31:0]       io_commit_pc_out_0 = _GEN_0[head];
   wire [31:0]       _GEN_2 =
     {{entries_31_rf_we},
      {entries_30_rf_we},
@@ -1614,13 +1614,13 @@ module ROB(
      {entries_1_tlbrd_we},
      {entries_0_tlbrd_we}};
   wire              _GEN_30 = _GEN_29[head];
-  wire              can_commit0 = _GEN_0 & _GEN_7[head] & ~io_flush;
+  wire              can_commit0 = _GEN_1 & _GEN_7[head] & ~io_flush;
   wire              h0_is_replay = _GEN_9 & _GEN_11 == 6'h3E;
   wire              take_int = io_has_int & can_commit0 & ~_GEN_9 & ~_GEN_13;
   wire              h0_real_exc = can_commit0 & _GEN_9 & ~h0_is_replay | take_int;
   wire              can_commit1 =
     _GEN[_head_T_6] & _GEN_7[_head_T_6]
-    & ~(_GEN_0
+    & ~(_GEN_1
         & (_GEN_9 | _GEN_21 | _GEN_26 | _GEN_28 | _GEN_30 | _GEN_13 | _GEN_15
            | _GEN_19[head] | take_int))
     & ~(_GEN[_head_T_6]
@@ -2709,71 +2709,73 @@ module ROB(
       automatic logic       match0_31;
       automatic logic       match1_31;
       automatic logic       _GEN_286 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h0;
+        _GEN[io_lsq_violation_rob] & _GEN_0[io_lsq_violation_rob] == io_lsq_violation_pc;
       automatic logic       _GEN_287 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h1;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h0;
       automatic logic       _GEN_288 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h2;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h1;
       automatic logic       _GEN_289 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h3;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h2;
       automatic logic       _GEN_290 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h4;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h3;
       automatic logic       _GEN_291 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h5;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h4;
       automatic logic       _GEN_292 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h6;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h5;
       automatic logic       _GEN_293 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h7;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h6;
       automatic logic       _GEN_294 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h8;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h7;
       automatic logic       _GEN_295 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h9;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h8;
       automatic logic       _GEN_296 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'hA;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h9;
       automatic logic       _GEN_297 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'hB;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'hA;
       automatic logic       _GEN_298 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'hC;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'hB;
       automatic logic       _GEN_299 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'hD;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'hC;
       automatic logic       _GEN_300 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'hE;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'hD;
       automatic logic       _GEN_301 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'hF;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'hE;
       automatic logic       _GEN_302 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h10;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'hF;
       automatic logic       _GEN_303 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h11;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h10;
       automatic logic       _GEN_304 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h12;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h11;
       automatic logic       _GEN_305 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h13;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h12;
       automatic logic       _GEN_306 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h14;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h13;
       automatic logic       _GEN_307 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h15;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h14;
       automatic logic       _GEN_308 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h16;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h15;
       automatic logic       _GEN_309 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h17;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h16;
       automatic logic       _GEN_310 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h18;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h17;
       automatic logic       _GEN_311 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h19;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h18;
       automatic logic       _GEN_312 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h1A;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h19;
       automatic logic       _GEN_313 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h1B;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h1A;
       automatic logic       _GEN_314 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h1C;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h1B;
       automatic logic       _GEN_315 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h1D;
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h1C;
       automatic logic       _GEN_316 =
-        io_lsq_violation_valid & io_lsq_violation_rob == 5'h1E;
-      automatic logic       _GEN_317 = io_lsq_violation_valid & (&io_lsq_violation_rob);
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h1D;
+      automatic logic       _GEN_317 =
+        io_lsq_violation_valid & _GEN_286 & io_lsq_violation_rob == 5'h1E;
+      automatic logic       _GEN_318 =
+        io_lsq_violation_valid & _GEN_286 & (&io_lsq_violation_rob);
       automatic logic       do_replay = can_commit0 & h0_is_replay;
       automatic logic [4:0] _head_T_3;
-      automatic logic       _GEN_318;
       automatic logic       _GEN_319;
       automatic logic       _GEN_320;
       automatic logic       _GEN_321;
@@ -2801,8 +2803,8 @@ module ROB(
       automatic logic       _GEN_343;
       automatic logic       _GEN_344;
       automatic logic       _GEN_345;
-      automatic logic       no_valid_left;
       automatic logic       _GEN_346;
+      automatic logic       no_valid_left;
       automatic logic       _GEN_347;
       automatic logic       _GEN_348;
       automatic logic       _GEN_349;
@@ -2835,6 +2837,7 @@ module ROB(
       automatic logic       _GEN_376;
       automatic logic       _GEN_377;
       automatic logic       _GEN_378;
+      automatic logic       _GEN_379;
       _tail_next2_T = tail + 5'h2;
       fire0 = io_alloc_valid & ~_real_alloc1_T & ~is_full;
       _GEN_31 = fire0 & io_alloc1_valid & ~_real_alloc1_T & ~is_full_for_2;
@@ -3189,36 +3192,37 @@ module ROB(
       match0_31 = io_cdb0_valid & entries_31_valid & (&io_cdb0_bits_rob_idx);
       match1_31 = io_cdb1_valid & entries_31_valid & (&io_cdb1_bits_rob_idx);
       _head_T_3 = head + 5'h2;
-      _GEN_318 = _GEN[head + 5'h3];
-      _GEN_319 = _GEN[head + 5'h4];
-      _GEN_320 = _GEN[head + 5'h5];
-      _GEN_321 = _GEN[head + 5'h6];
-      _GEN_322 = _GEN[head + 5'h7];
-      _GEN_323 = _GEN[head + 5'h8];
-      _GEN_324 = _GEN[head + 5'h9];
-      _GEN_325 = _GEN[head + 5'hA];
-      _GEN_326 = _GEN[head + 5'hB];
-      _GEN_327 = _GEN[head + 5'hC];
-      _GEN_328 = _GEN[head + 5'hD];
-      _GEN_329 = _GEN[head + 5'hE];
-      _GEN_330 = _GEN[head + 5'hF];
-      _GEN_331 = _GEN[head - 5'h10];
-      _GEN_332 = _GEN[head - 5'hF];
-      _GEN_333 = _GEN[head - 5'hE];
-      _GEN_334 = _GEN[head - 5'hD];
-      _GEN_335 = _GEN[head - 5'hC];
-      _GEN_336 = _GEN[head - 5'hB];
-      _GEN_337 = _GEN[head - 5'hA];
-      _GEN_338 = _GEN[head - 5'h9];
-      _GEN_339 = _GEN[head - 5'h8];
-      _GEN_340 = _GEN[head - 5'h7];
-      _GEN_341 = _GEN[head - 5'h6];
-      _GEN_342 = _GEN[head - 5'h5];
-      _GEN_343 = _GEN[head - 5'h4];
-      _GEN_344 = _GEN[head - 5'h3];
-      _GEN_345 = _GEN[head - 5'h2];
+      _GEN_319 = _GEN[head + 5'h3];
+      _GEN_320 = _GEN[head + 5'h4];
+      _GEN_321 = _GEN[head + 5'h5];
+      _GEN_322 = _GEN[head + 5'h6];
+      _GEN_323 = _GEN[head + 5'h7];
+      _GEN_324 = _GEN[head + 5'h8];
+      _GEN_325 = _GEN[head + 5'h9];
+      _GEN_326 = _GEN[head + 5'hA];
+      _GEN_327 = _GEN[head + 5'hB];
+      _GEN_328 = _GEN[head + 5'hC];
+      _GEN_329 = _GEN[head + 5'hD];
+      _GEN_330 = _GEN[head + 5'hE];
+      _GEN_331 = _GEN[head + 5'hF];
+      _GEN_332 = _GEN[head - 5'h10];
+      _GEN_333 = _GEN[head - 5'hF];
+      _GEN_334 = _GEN[head - 5'hE];
+      _GEN_335 = _GEN[head - 5'hD];
+      _GEN_336 = _GEN[head - 5'hC];
+      _GEN_337 = _GEN[head - 5'hB];
+      _GEN_338 = _GEN[head - 5'hA];
+      _GEN_339 = _GEN[head - 5'h9];
+      _GEN_340 = _GEN[head - 5'h8];
+      _GEN_341 = _GEN[head - 5'h7];
+      _GEN_342 = _GEN[head - 5'h6];
+      _GEN_343 = _GEN[head - 5'h5];
+      _GEN_344 = _GEN[head - 5'h4];
+      _GEN_345 = _GEN[head - 5'h3];
+      _GEN_346 = _GEN[head - 5'h2];
       no_valid_left =
         {_GEN[head - 5'h1],
+         _GEN_346,
          _GEN_345,
          _GEN_344,
          _GEN_343,
@@ -3246,50 +3250,49 @@ module ROB(
          _GEN_321,
          _GEN_320,
          _GEN_319,
-         _GEN_318,
          _GEN[_head_T_3],
          _GEN[_head_T_6],
-         _GEN_0} == 32'h0;
-      _GEN_346 = head == 5'h0 | _GEN_191;
-      _GEN_347 = head == 5'h1 | _GEN_194;
-      _GEN_348 = head == 5'h2 | _GEN_197;
-      _GEN_349 = head == 5'h3 | _GEN_200;
-      _GEN_350 = head == 5'h4 | _GEN_203;
-      _GEN_351 = head == 5'h5 | _GEN_206;
-      _GEN_352 = head == 5'h6 | _GEN_209;
-      _GEN_353 = head == 5'h7 | _GEN_212;
-      _GEN_354 = head == 5'h8 | _GEN_215;
-      _GEN_355 = head == 5'h9 | _GEN_218;
-      _GEN_356 = head == 5'hA | _GEN_221;
-      _GEN_357 = head == 5'hB | _GEN_224;
-      _GEN_358 = head == 5'hC | _GEN_227;
-      _GEN_359 = head == 5'hD | _GEN_230;
-      _GEN_360 = head == 5'hE | _GEN_233;
-      _GEN_361 = head == 5'hF | _GEN_236;
-      _GEN_362 = head == 5'h10 | _GEN_239;
-      _GEN_363 = head == 5'h11 | _GEN_242;
-      _GEN_364 = head == 5'h12 | _GEN_245;
-      _GEN_365 = head == 5'h13 | _GEN_248;
-      _GEN_366 = head == 5'h14 | _GEN_251;
-      _GEN_367 = head == 5'h15 | _GEN_254;
-      _GEN_368 = head == 5'h16 | _GEN_257;
-      _GEN_369 = head == 5'h17 | _GEN_260;
-      _GEN_370 = head == 5'h18 | _GEN_263;
-      _GEN_371 = head == 5'h19 | _GEN_266;
-      _GEN_372 = head == 5'h1A | _GEN_269;
-      _GEN_373 = head == 5'h1B | _GEN_272;
-      _GEN_374 = head == 5'h1C | _GEN_275;
-      _GEN_375 = head == 5'h1D | _GEN_278;
-      _GEN_376 = head == 5'h1E | _GEN_281;
-      _GEN_377 = (&head) | _GEN_284;
-      _GEN_378 = is_empty | no_valid_left | ~_GEN_0;
+         _GEN_1} == 32'h0;
+      _GEN_347 = head == 5'h0 | _GEN_191;
+      _GEN_348 = head == 5'h1 | _GEN_194;
+      _GEN_349 = head == 5'h2 | _GEN_197;
+      _GEN_350 = head == 5'h3 | _GEN_200;
+      _GEN_351 = head == 5'h4 | _GEN_203;
+      _GEN_352 = head == 5'h5 | _GEN_206;
+      _GEN_353 = head == 5'h6 | _GEN_209;
+      _GEN_354 = head == 5'h7 | _GEN_212;
+      _GEN_355 = head == 5'h8 | _GEN_215;
+      _GEN_356 = head == 5'h9 | _GEN_218;
+      _GEN_357 = head == 5'hA | _GEN_221;
+      _GEN_358 = head == 5'hB | _GEN_224;
+      _GEN_359 = head == 5'hC | _GEN_227;
+      _GEN_360 = head == 5'hD | _GEN_230;
+      _GEN_361 = head == 5'hE | _GEN_233;
+      _GEN_362 = head == 5'hF | _GEN_236;
+      _GEN_363 = head == 5'h10 | _GEN_239;
+      _GEN_364 = head == 5'h11 | _GEN_242;
+      _GEN_365 = head == 5'h12 | _GEN_245;
+      _GEN_366 = head == 5'h13 | _GEN_248;
+      _GEN_367 = head == 5'h14 | _GEN_251;
+      _GEN_368 = head == 5'h15 | _GEN_254;
+      _GEN_369 = head == 5'h16 | _GEN_257;
+      _GEN_370 = head == 5'h17 | _GEN_260;
+      _GEN_371 = head == 5'h18 | _GEN_263;
+      _GEN_372 = head == 5'h19 | _GEN_266;
+      _GEN_373 = head == 5'h1A | _GEN_269;
+      _GEN_374 = head == 5'h1B | _GEN_272;
+      _GEN_375 = head == 5'h1C | _GEN_275;
+      _GEN_376 = head == 5'h1D | _GEN_278;
+      _GEN_377 = head == 5'h1E | _GEN_281;
+      _GEN_378 = (&head) | _GEN_284;
+      _GEN_379 = is_empty | no_valid_left | ~_GEN_1;
       entries_0_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_192
              : can_commit1
-                 ? ~(_head_T_6 == 5'h0 | _GEN_346) & _GEN_127
-                 : can_commit0 ? ~_GEN_346 & _GEN_127 : _GEN_192);
+                 ? ~(_head_T_6 == 5'h0 | _GEN_347) & _GEN_127
+                 : can_commit0 ? ~_GEN_347 & _GEN_127 : _GEN_192);
       if (_GEN_31) begin
         if (_GEN_63) begin
           entries_0_pc <= io_alloc1_pc;
@@ -3915,7 +3918,7 @@ module ROB(
       else
         entries_0_branch_mask <= ~(tag_bit[3:0]) & entries_0_branch_mask;
       entries_0_has_exc <=
-        _GEN_286
+        _GEN_287
         | (match1
              ? io_cdb1_bits_hasException
              : match0
@@ -3923,7 +3926,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_64 & entries_0_has_exc
                      : ~_GEN_126 & entries_0_has_exc);
-      if (_GEN_286) begin
+      if (_GEN_287) begin
         entries_0_ecode <= 6'h3E;
         entries_0_exc_addr <= io_lsq_violation_pc;
       end
@@ -3979,11 +3982,11 @@ module ROB(
               : _GEN_31 ? ~_GEN_64 & entries_0_tlbrd_we : ~_GEN_126 & entries_0_tlbrd_we;
       entries_1_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_195
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1 | _GEN_347) & _GEN_129
-                 : can_commit0 ? ~_GEN_347 & _GEN_129 : _GEN_195);
+                 ? ~(_head_T_6 == 5'h1 | _GEN_348) & _GEN_129
+                 : can_commit0 ? ~_GEN_348 & _GEN_129 : _GEN_195);
       if (match1_1) begin
         entries_1_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_1_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4029,7 +4032,7 @@ module ROB(
       else
         entries_1_branch_mask <= ~(tag_bit[3:0]) & entries_1_branch_mask;
       entries_1_has_exc <=
-        _GEN_287
+        _GEN_288
         | (match1_1
              ? io_cdb1_bits_hasException
              : match0_1
@@ -4037,7 +4040,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_66 & entries_1_has_exc
                      : ~_GEN_128 & entries_1_has_exc);
-      if (_GEN_287) begin
+      if (_GEN_288) begin
         entries_1_ecode <= 6'h3E;
         entries_1_exc_addr <= io_lsq_violation_pc;
       end
@@ -4093,11 +4096,11 @@ module ROB(
               : _GEN_31 ? ~_GEN_66 & entries_1_tlbrd_we : ~_GEN_128 & entries_1_tlbrd_we;
       entries_2_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_198
              : can_commit1
-                 ? ~(_head_T_6 == 5'h2 | _GEN_348) & _GEN_131
-                 : can_commit0 ? ~_GEN_348 & _GEN_131 : _GEN_198);
+                 ? ~(_head_T_6 == 5'h2 | _GEN_349) & _GEN_131
+                 : can_commit0 ? ~_GEN_349 & _GEN_131 : _GEN_198);
       if (match1_2) begin
         entries_2_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_2_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4143,7 +4146,7 @@ module ROB(
       else
         entries_2_branch_mask <= ~(tag_bit[3:0]) & entries_2_branch_mask;
       entries_2_has_exc <=
-        _GEN_288
+        _GEN_289
         | (match1_2
              ? io_cdb1_bits_hasException
              : match0_2
@@ -4151,7 +4154,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_68 & entries_2_has_exc
                      : ~_GEN_130 & entries_2_has_exc);
-      if (_GEN_288) begin
+      if (_GEN_289) begin
         entries_2_ecode <= 6'h3E;
         entries_2_exc_addr <= io_lsq_violation_pc;
       end
@@ -4207,11 +4210,11 @@ module ROB(
               : _GEN_31 ? ~_GEN_68 & entries_2_tlbrd_we : ~_GEN_130 & entries_2_tlbrd_we;
       entries_3_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_201
              : can_commit1
-                 ? ~(_head_T_6 == 5'h3 | _GEN_349) & _GEN_133
-                 : can_commit0 ? ~_GEN_349 & _GEN_133 : _GEN_201);
+                 ? ~(_head_T_6 == 5'h3 | _GEN_350) & _GEN_133
+                 : can_commit0 ? ~_GEN_350 & _GEN_133 : _GEN_201);
       if (match1_3) begin
         entries_3_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_3_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4257,7 +4260,7 @@ module ROB(
       else
         entries_3_branch_mask <= ~(tag_bit[3:0]) & entries_3_branch_mask;
       entries_3_has_exc <=
-        _GEN_289
+        _GEN_290
         | (match1_3
              ? io_cdb1_bits_hasException
              : match0_3
@@ -4265,7 +4268,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_70 & entries_3_has_exc
                      : ~_GEN_132 & entries_3_has_exc);
-      if (_GEN_289) begin
+      if (_GEN_290) begin
         entries_3_ecode <= 6'h3E;
         entries_3_exc_addr <= io_lsq_violation_pc;
       end
@@ -4321,11 +4324,11 @@ module ROB(
               : _GEN_31 ? ~_GEN_70 & entries_3_tlbrd_we : ~_GEN_132 & entries_3_tlbrd_we;
       entries_4_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_204
              : can_commit1
-                 ? ~(_head_T_6 == 5'h4 | _GEN_350) & _GEN_135
-                 : can_commit0 ? ~_GEN_350 & _GEN_135 : _GEN_204);
+                 ? ~(_head_T_6 == 5'h4 | _GEN_351) & _GEN_135
+                 : can_commit0 ? ~_GEN_351 & _GEN_135 : _GEN_204);
       if (match1_4) begin
         entries_4_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_4_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4371,7 +4374,7 @@ module ROB(
       else
         entries_4_branch_mask <= ~(tag_bit[3:0]) & entries_4_branch_mask;
       entries_4_has_exc <=
-        _GEN_290
+        _GEN_291
         | (match1_4
              ? io_cdb1_bits_hasException
              : match0_4
@@ -4379,7 +4382,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_72 & entries_4_has_exc
                      : ~_GEN_134 & entries_4_has_exc);
-      if (_GEN_290) begin
+      if (_GEN_291) begin
         entries_4_ecode <= 6'h3E;
         entries_4_exc_addr <= io_lsq_violation_pc;
       end
@@ -4435,11 +4438,11 @@ module ROB(
               : _GEN_31 ? ~_GEN_72 & entries_4_tlbrd_we : ~_GEN_134 & entries_4_tlbrd_we;
       entries_5_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_207
              : can_commit1
-                 ? ~(_head_T_6 == 5'h5 | _GEN_351) & _GEN_137
-                 : can_commit0 ? ~_GEN_351 & _GEN_137 : _GEN_207);
+                 ? ~(_head_T_6 == 5'h5 | _GEN_352) & _GEN_137
+                 : can_commit0 ? ~_GEN_352 & _GEN_137 : _GEN_207);
       if (match1_5) begin
         entries_5_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_5_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4485,7 +4488,7 @@ module ROB(
       else
         entries_5_branch_mask <= ~(tag_bit[3:0]) & entries_5_branch_mask;
       entries_5_has_exc <=
-        _GEN_291
+        _GEN_292
         | (match1_5
              ? io_cdb1_bits_hasException
              : match0_5
@@ -4493,7 +4496,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_74 & entries_5_has_exc
                      : ~_GEN_136 & entries_5_has_exc);
-      if (_GEN_291) begin
+      if (_GEN_292) begin
         entries_5_ecode <= 6'h3E;
         entries_5_exc_addr <= io_lsq_violation_pc;
       end
@@ -4549,11 +4552,11 @@ module ROB(
               : _GEN_31 ? ~_GEN_74 & entries_5_tlbrd_we : ~_GEN_136 & entries_5_tlbrd_we;
       entries_6_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_210
              : can_commit1
-                 ? ~(_head_T_6 == 5'h6 | _GEN_352) & _GEN_139
-                 : can_commit0 ? ~_GEN_352 & _GEN_139 : _GEN_210);
+                 ? ~(_head_T_6 == 5'h6 | _GEN_353) & _GEN_139
+                 : can_commit0 ? ~_GEN_353 & _GEN_139 : _GEN_210);
       if (match1_6) begin
         entries_6_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_6_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4599,7 +4602,7 @@ module ROB(
       else
         entries_6_branch_mask <= ~(tag_bit[3:0]) & entries_6_branch_mask;
       entries_6_has_exc <=
-        _GEN_292
+        _GEN_293
         | (match1_6
              ? io_cdb1_bits_hasException
              : match0_6
@@ -4607,7 +4610,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_76 & entries_6_has_exc
                      : ~_GEN_138 & entries_6_has_exc);
-      if (_GEN_292) begin
+      if (_GEN_293) begin
         entries_6_ecode <= 6'h3E;
         entries_6_exc_addr <= io_lsq_violation_pc;
       end
@@ -4663,11 +4666,11 @@ module ROB(
               : _GEN_31 ? ~_GEN_76 & entries_6_tlbrd_we : ~_GEN_138 & entries_6_tlbrd_we;
       entries_7_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_213
              : can_commit1
-                 ? ~(_head_T_6 == 5'h7 | _GEN_353) & _GEN_141
-                 : can_commit0 ? ~_GEN_353 & _GEN_141 : _GEN_213);
+                 ? ~(_head_T_6 == 5'h7 | _GEN_354) & _GEN_141
+                 : can_commit0 ? ~_GEN_354 & _GEN_141 : _GEN_213);
       if (match1_7) begin
         entries_7_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_7_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4713,7 +4716,7 @@ module ROB(
       else
         entries_7_branch_mask <= ~(tag_bit[3:0]) & entries_7_branch_mask;
       entries_7_has_exc <=
-        _GEN_293
+        _GEN_294
         | (match1_7
              ? io_cdb1_bits_hasException
              : match0_7
@@ -4721,7 +4724,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_78 & entries_7_has_exc
                      : ~_GEN_140 & entries_7_has_exc);
-      if (_GEN_293) begin
+      if (_GEN_294) begin
         entries_7_ecode <= 6'h3E;
         entries_7_exc_addr <= io_lsq_violation_pc;
       end
@@ -4777,11 +4780,11 @@ module ROB(
               : _GEN_31 ? ~_GEN_78 & entries_7_tlbrd_we : ~_GEN_140 & entries_7_tlbrd_we;
       entries_8_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_216
              : can_commit1
-                 ? ~(_head_T_6 == 5'h8 | _GEN_354) & _GEN_143
-                 : can_commit0 ? ~_GEN_354 & _GEN_143 : _GEN_216);
+                 ? ~(_head_T_6 == 5'h8 | _GEN_355) & _GEN_143
+                 : can_commit0 ? ~_GEN_355 & _GEN_143 : _GEN_216);
       if (match1_8) begin
         entries_8_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_8_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4827,7 +4830,7 @@ module ROB(
       else
         entries_8_branch_mask <= ~(tag_bit[3:0]) & entries_8_branch_mask;
       entries_8_has_exc <=
-        _GEN_294
+        _GEN_295
         | (match1_8
              ? io_cdb1_bits_hasException
              : match0_8
@@ -4835,7 +4838,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_80 & entries_8_has_exc
                      : ~_GEN_142 & entries_8_has_exc);
-      if (_GEN_294) begin
+      if (_GEN_295) begin
         entries_8_ecode <= 6'h3E;
         entries_8_exc_addr <= io_lsq_violation_pc;
       end
@@ -4891,11 +4894,11 @@ module ROB(
               : _GEN_31 ? ~_GEN_80 & entries_8_tlbrd_we : ~_GEN_142 & entries_8_tlbrd_we;
       entries_9_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_219
              : can_commit1
-                 ? ~(_head_T_6 == 5'h9 | _GEN_355) & _GEN_145
-                 : can_commit0 ? ~_GEN_355 & _GEN_145 : _GEN_219);
+                 ? ~(_head_T_6 == 5'h9 | _GEN_356) & _GEN_145
+                 : can_commit0 ? ~_GEN_356 & _GEN_145 : _GEN_219);
       if (match1_9) begin
         entries_9_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_9_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4941,7 +4944,7 @@ module ROB(
       else
         entries_9_branch_mask <= ~(tag_bit[3:0]) & entries_9_branch_mask;
       entries_9_has_exc <=
-        _GEN_295
+        _GEN_296
         | (match1_9
              ? io_cdb1_bits_hasException
              : match0_9
@@ -4949,7 +4952,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_82 & entries_9_has_exc
                      : ~_GEN_144 & entries_9_has_exc);
-      if (_GEN_295) begin
+      if (_GEN_296) begin
         entries_9_ecode <= 6'h3E;
         entries_9_exc_addr <= io_lsq_violation_pc;
       end
@@ -5005,11 +5008,11 @@ module ROB(
               : _GEN_31 ? ~_GEN_82 & entries_9_tlbrd_we : ~_GEN_144 & entries_9_tlbrd_we;
       entries_10_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_222
              : can_commit1
-                 ? ~(_head_T_6 == 5'hA | _GEN_356) & _GEN_147
-                 : can_commit0 ? ~_GEN_356 & _GEN_147 : _GEN_222);
+                 ? ~(_head_T_6 == 5'hA | _GEN_357) & _GEN_147
+                 : can_commit0 ? ~_GEN_357 & _GEN_147 : _GEN_222);
       if (match1_10) begin
         entries_10_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_10_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5055,7 +5058,7 @@ module ROB(
       else
         entries_10_branch_mask <= ~(tag_bit[3:0]) & entries_10_branch_mask;
       entries_10_has_exc <=
-        _GEN_296
+        _GEN_297
         | (match1_10
              ? io_cdb1_bits_hasException
              : match0_10
@@ -5063,7 +5066,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_84 & entries_10_has_exc
                      : ~_GEN_146 & entries_10_has_exc);
-      if (_GEN_296) begin
+      if (_GEN_297) begin
         entries_10_ecode <= 6'h3E;
         entries_10_exc_addr <= io_lsq_violation_pc;
       end
@@ -5125,11 +5128,11 @@ module ROB(
                   : ~_GEN_146 & entries_10_tlbrd_we;
       entries_11_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_225
              : can_commit1
-                 ? ~(_head_T_6 == 5'hB | _GEN_357) & _GEN_149
-                 : can_commit0 ? ~_GEN_357 & _GEN_149 : _GEN_225);
+                 ? ~(_head_T_6 == 5'hB | _GEN_358) & _GEN_149
+                 : can_commit0 ? ~_GEN_358 & _GEN_149 : _GEN_225);
       if (match1_11) begin
         entries_11_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_11_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5175,7 +5178,7 @@ module ROB(
       else
         entries_11_branch_mask <= ~(tag_bit[3:0]) & entries_11_branch_mask;
       entries_11_has_exc <=
-        _GEN_297
+        _GEN_298
         | (match1_11
              ? io_cdb1_bits_hasException
              : match0_11
@@ -5183,7 +5186,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_86 & entries_11_has_exc
                      : ~_GEN_148 & entries_11_has_exc);
-      if (_GEN_297) begin
+      if (_GEN_298) begin
         entries_11_ecode <= 6'h3E;
         entries_11_exc_addr <= io_lsq_violation_pc;
       end
@@ -5245,11 +5248,11 @@ module ROB(
                   : ~_GEN_148 & entries_11_tlbrd_we;
       entries_12_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_228
              : can_commit1
-                 ? ~(_head_T_6 == 5'hC | _GEN_358) & _GEN_151
-                 : can_commit0 ? ~_GEN_358 & _GEN_151 : _GEN_228);
+                 ? ~(_head_T_6 == 5'hC | _GEN_359) & _GEN_151
+                 : can_commit0 ? ~_GEN_359 & _GEN_151 : _GEN_228);
       if (match1_12) begin
         entries_12_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_12_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5295,7 +5298,7 @@ module ROB(
       else
         entries_12_branch_mask <= ~(tag_bit[3:0]) & entries_12_branch_mask;
       entries_12_has_exc <=
-        _GEN_298
+        _GEN_299
         | (match1_12
              ? io_cdb1_bits_hasException
              : match0_12
@@ -5303,7 +5306,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_88 & entries_12_has_exc
                      : ~_GEN_150 & entries_12_has_exc);
-      if (_GEN_298) begin
+      if (_GEN_299) begin
         entries_12_ecode <= 6'h3E;
         entries_12_exc_addr <= io_lsq_violation_pc;
       end
@@ -5365,11 +5368,11 @@ module ROB(
                   : ~_GEN_150 & entries_12_tlbrd_we;
       entries_13_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_231
              : can_commit1
-                 ? ~(_head_T_6 == 5'hD | _GEN_359) & _GEN_153
-                 : can_commit0 ? ~_GEN_359 & _GEN_153 : _GEN_231);
+                 ? ~(_head_T_6 == 5'hD | _GEN_360) & _GEN_153
+                 : can_commit0 ? ~_GEN_360 & _GEN_153 : _GEN_231);
       if (match1_13) begin
         entries_13_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_13_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5415,7 +5418,7 @@ module ROB(
       else
         entries_13_branch_mask <= ~(tag_bit[3:0]) & entries_13_branch_mask;
       entries_13_has_exc <=
-        _GEN_299
+        _GEN_300
         | (match1_13
              ? io_cdb1_bits_hasException
              : match0_13
@@ -5423,7 +5426,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_90 & entries_13_has_exc
                      : ~_GEN_152 & entries_13_has_exc);
-      if (_GEN_299) begin
+      if (_GEN_300) begin
         entries_13_ecode <= 6'h3E;
         entries_13_exc_addr <= io_lsq_violation_pc;
       end
@@ -5485,11 +5488,11 @@ module ROB(
                   : ~_GEN_152 & entries_13_tlbrd_we;
       entries_14_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_234
              : can_commit1
-                 ? ~(_head_T_6 == 5'hE | _GEN_360) & _GEN_155
-                 : can_commit0 ? ~_GEN_360 & _GEN_155 : _GEN_234);
+                 ? ~(_head_T_6 == 5'hE | _GEN_361) & _GEN_155
+                 : can_commit0 ? ~_GEN_361 & _GEN_155 : _GEN_234);
       if (match1_14) begin
         entries_14_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_14_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5535,7 +5538,7 @@ module ROB(
       else
         entries_14_branch_mask <= ~(tag_bit[3:0]) & entries_14_branch_mask;
       entries_14_has_exc <=
-        _GEN_300
+        _GEN_301
         | (match1_14
              ? io_cdb1_bits_hasException
              : match0_14
@@ -5543,7 +5546,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_92 & entries_14_has_exc
                      : ~_GEN_154 & entries_14_has_exc);
-      if (_GEN_300) begin
+      if (_GEN_301) begin
         entries_14_ecode <= 6'h3E;
         entries_14_exc_addr <= io_lsq_violation_pc;
       end
@@ -5605,11 +5608,11 @@ module ROB(
                   : ~_GEN_154 & entries_14_tlbrd_we;
       entries_15_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_237
              : can_commit1
-                 ? ~(_head_T_6 == 5'hF | _GEN_361) & _GEN_157
-                 : can_commit0 ? ~_GEN_361 & _GEN_157 : _GEN_237);
+                 ? ~(_head_T_6 == 5'hF | _GEN_362) & _GEN_157
+                 : can_commit0 ? ~_GEN_362 & _GEN_157 : _GEN_237);
       if (match1_15) begin
         entries_15_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_15_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5655,7 +5658,7 @@ module ROB(
       else
         entries_15_branch_mask <= ~(tag_bit[3:0]) & entries_15_branch_mask;
       entries_15_has_exc <=
-        _GEN_301
+        _GEN_302
         | (match1_15
              ? io_cdb1_bits_hasException
              : match0_15
@@ -5663,7 +5666,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_94 & entries_15_has_exc
                      : ~_GEN_156 & entries_15_has_exc);
-      if (_GEN_301) begin
+      if (_GEN_302) begin
         entries_15_ecode <= 6'h3E;
         entries_15_exc_addr <= io_lsq_violation_pc;
       end
@@ -5725,11 +5728,11 @@ module ROB(
                   : ~_GEN_156 & entries_15_tlbrd_we;
       entries_16_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_240
              : can_commit1
-                 ? ~(_head_T_6 == 5'h10 | _GEN_362) & _GEN_159
-                 : can_commit0 ? ~_GEN_362 & _GEN_159 : _GEN_240);
+                 ? ~(_head_T_6 == 5'h10 | _GEN_363) & _GEN_159
+                 : can_commit0 ? ~_GEN_363 & _GEN_159 : _GEN_240);
       if (match1_16) begin
         entries_16_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_16_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5775,7 +5778,7 @@ module ROB(
       else
         entries_16_branch_mask <= ~(tag_bit[3:0]) & entries_16_branch_mask;
       entries_16_has_exc <=
-        _GEN_302
+        _GEN_303
         | (match1_16
              ? io_cdb1_bits_hasException
              : match0_16
@@ -5783,7 +5786,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_96 & entries_16_has_exc
                      : ~_GEN_158 & entries_16_has_exc);
-      if (_GEN_302) begin
+      if (_GEN_303) begin
         entries_16_ecode <= 6'h3E;
         entries_16_exc_addr <= io_lsq_violation_pc;
       end
@@ -5845,11 +5848,11 @@ module ROB(
                   : ~_GEN_158 & entries_16_tlbrd_we;
       entries_17_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_243
              : can_commit1
-                 ? ~(_head_T_6 == 5'h11 | _GEN_363) & _GEN_161
-                 : can_commit0 ? ~_GEN_363 & _GEN_161 : _GEN_243);
+                 ? ~(_head_T_6 == 5'h11 | _GEN_364) & _GEN_161
+                 : can_commit0 ? ~_GEN_364 & _GEN_161 : _GEN_243);
       if (match1_17) begin
         entries_17_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_17_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5895,7 +5898,7 @@ module ROB(
       else
         entries_17_branch_mask <= ~(tag_bit[3:0]) & entries_17_branch_mask;
       entries_17_has_exc <=
-        _GEN_303
+        _GEN_304
         | (match1_17
              ? io_cdb1_bits_hasException
              : match0_17
@@ -5903,7 +5906,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_98 & entries_17_has_exc
                      : ~_GEN_160 & entries_17_has_exc);
-      if (_GEN_303) begin
+      if (_GEN_304) begin
         entries_17_ecode <= 6'h3E;
         entries_17_exc_addr <= io_lsq_violation_pc;
       end
@@ -5965,11 +5968,11 @@ module ROB(
                   : ~_GEN_160 & entries_17_tlbrd_we;
       entries_18_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_246
              : can_commit1
-                 ? ~(_head_T_6 == 5'h12 | _GEN_364) & _GEN_163
-                 : can_commit0 ? ~_GEN_364 & _GEN_163 : _GEN_246);
+                 ? ~(_head_T_6 == 5'h12 | _GEN_365) & _GEN_163
+                 : can_commit0 ? ~_GEN_365 & _GEN_163 : _GEN_246);
       if (match1_18) begin
         entries_18_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_18_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6015,7 +6018,7 @@ module ROB(
       else
         entries_18_branch_mask <= ~(tag_bit[3:0]) & entries_18_branch_mask;
       entries_18_has_exc <=
-        _GEN_304
+        _GEN_305
         | (match1_18
              ? io_cdb1_bits_hasException
              : match0_18
@@ -6023,7 +6026,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_100 & entries_18_has_exc
                      : ~_GEN_162 & entries_18_has_exc);
-      if (_GEN_304) begin
+      if (_GEN_305) begin
         entries_18_ecode <= 6'h3E;
         entries_18_exc_addr <= io_lsq_violation_pc;
       end
@@ -6085,11 +6088,11 @@ module ROB(
                   : ~_GEN_162 & entries_18_tlbrd_we;
       entries_19_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_249
              : can_commit1
-                 ? ~(_head_T_6 == 5'h13 | _GEN_365) & _GEN_165
-                 : can_commit0 ? ~_GEN_365 & _GEN_165 : _GEN_249);
+                 ? ~(_head_T_6 == 5'h13 | _GEN_366) & _GEN_165
+                 : can_commit0 ? ~_GEN_366 & _GEN_165 : _GEN_249);
       if (match1_19) begin
         entries_19_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_19_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6135,7 +6138,7 @@ module ROB(
       else
         entries_19_branch_mask <= ~(tag_bit[3:0]) & entries_19_branch_mask;
       entries_19_has_exc <=
-        _GEN_305
+        _GEN_306
         | (match1_19
              ? io_cdb1_bits_hasException
              : match0_19
@@ -6143,7 +6146,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_102 & entries_19_has_exc
                      : ~_GEN_164 & entries_19_has_exc);
-      if (_GEN_305) begin
+      if (_GEN_306) begin
         entries_19_ecode <= 6'h3E;
         entries_19_exc_addr <= io_lsq_violation_pc;
       end
@@ -6205,11 +6208,11 @@ module ROB(
                   : ~_GEN_164 & entries_19_tlbrd_we;
       entries_20_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_252
              : can_commit1
-                 ? ~(_head_T_6 == 5'h14 | _GEN_366) & _GEN_167
-                 : can_commit0 ? ~_GEN_366 & _GEN_167 : _GEN_252);
+                 ? ~(_head_T_6 == 5'h14 | _GEN_367) & _GEN_167
+                 : can_commit0 ? ~_GEN_367 & _GEN_167 : _GEN_252);
       if (match1_20) begin
         entries_20_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_20_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6255,7 +6258,7 @@ module ROB(
       else
         entries_20_branch_mask <= ~(tag_bit[3:0]) & entries_20_branch_mask;
       entries_20_has_exc <=
-        _GEN_306
+        _GEN_307
         | (match1_20
              ? io_cdb1_bits_hasException
              : match0_20
@@ -6263,7 +6266,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_104 & entries_20_has_exc
                      : ~_GEN_166 & entries_20_has_exc);
-      if (_GEN_306) begin
+      if (_GEN_307) begin
         entries_20_ecode <= 6'h3E;
         entries_20_exc_addr <= io_lsq_violation_pc;
       end
@@ -6325,11 +6328,11 @@ module ROB(
                   : ~_GEN_166 & entries_20_tlbrd_we;
       entries_21_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_255
              : can_commit1
-                 ? ~(_head_T_6 == 5'h15 | _GEN_367) & _GEN_169
-                 : can_commit0 ? ~_GEN_367 & _GEN_169 : _GEN_255);
+                 ? ~(_head_T_6 == 5'h15 | _GEN_368) & _GEN_169
+                 : can_commit0 ? ~_GEN_368 & _GEN_169 : _GEN_255);
       if (match1_21) begin
         entries_21_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_21_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6375,7 +6378,7 @@ module ROB(
       else
         entries_21_branch_mask <= ~(tag_bit[3:0]) & entries_21_branch_mask;
       entries_21_has_exc <=
-        _GEN_307
+        _GEN_308
         | (match1_21
              ? io_cdb1_bits_hasException
              : match0_21
@@ -6383,7 +6386,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_106 & entries_21_has_exc
                      : ~_GEN_168 & entries_21_has_exc);
-      if (_GEN_307) begin
+      if (_GEN_308) begin
         entries_21_ecode <= 6'h3E;
         entries_21_exc_addr <= io_lsq_violation_pc;
       end
@@ -6445,11 +6448,11 @@ module ROB(
                   : ~_GEN_168 & entries_21_tlbrd_we;
       entries_22_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_258
              : can_commit1
-                 ? ~(_head_T_6 == 5'h16 | _GEN_368) & _GEN_171
-                 : can_commit0 ? ~_GEN_368 & _GEN_171 : _GEN_258);
+                 ? ~(_head_T_6 == 5'h16 | _GEN_369) & _GEN_171
+                 : can_commit0 ? ~_GEN_369 & _GEN_171 : _GEN_258);
       if (match1_22) begin
         entries_22_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_22_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6495,7 +6498,7 @@ module ROB(
       else
         entries_22_branch_mask <= ~(tag_bit[3:0]) & entries_22_branch_mask;
       entries_22_has_exc <=
-        _GEN_308
+        _GEN_309
         | (match1_22
              ? io_cdb1_bits_hasException
              : match0_22
@@ -6503,7 +6506,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_108 & entries_22_has_exc
                      : ~_GEN_170 & entries_22_has_exc);
-      if (_GEN_308) begin
+      if (_GEN_309) begin
         entries_22_ecode <= 6'h3E;
         entries_22_exc_addr <= io_lsq_violation_pc;
       end
@@ -6565,11 +6568,11 @@ module ROB(
                   : ~_GEN_170 & entries_22_tlbrd_we;
       entries_23_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_261
              : can_commit1
-                 ? ~(_head_T_6 == 5'h17 | _GEN_369) & _GEN_173
-                 : can_commit0 ? ~_GEN_369 & _GEN_173 : _GEN_261);
+                 ? ~(_head_T_6 == 5'h17 | _GEN_370) & _GEN_173
+                 : can_commit0 ? ~_GEN_370 & _GEN_173 : _GEN_261);
       if (match1_23) begin
         entries_23_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_23_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6615,7 +6618,7 @@ module ROB(
       else
         entries_23_branch_mask <= ~(tag_bit[3:0]) & entries_23_branch_mask;
       entries_23_has_exc <=
-        _GEN_309
+        _GEN_310
         | (match1_23
              ? io_cdb1_bits_hasException
              : match0_23
@@ -6623,7 +6626,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_110 & entries_23_has_exc
                      : ~_GEN_172 & entries_23_has_exc);
-      if (_GEN_309) begin
+      if (_GEN_310) begin
         entries_23_ecode <= 6'h3E;
         entries_23_exc_addr <= io_lsq_violation_pc;
       end
@@ -6685,11 +6688,11 @@ module ROB(
                   : ~_GEN_172 & entries_23_tlbrd_we;
       entries_24_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_264
              : can_commit1
-                 ? ~(_head_T_6 == 5'h18 | _GEN_370) & _GEN_175
-                 : can_commit0 ? ~_GEN_370 & _GEN_175 : _GEN_264);
+                 ? ~(_head_T_6 == 5'h18 | _GEN_371) & _GEN_175
+                 : can_commit0 ? ~_GEN_371 & _GEN_175 : _GEN_264);
       if (match1_24) begin
         entries_24_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_24_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6735,7 +6738,7 @@ module ROB(
       else
         entries_24_branch_mask <= ~(tag_bit[3:0]) & entries_24_branch_mask;
       entries_24_has_exc <=
-        _GEN_310
+        _GEN_311
         | (match1_24
              ? io_cdb1_bits_hasException
              : match0_24
@@ -6743,7 +6746,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_112 & entries_24_has_exc
                      : ~_GEN_174 & entries_24_has_exc);
-      if (_GEN_310) begin
+      if (_GEN_311) begin
         entries_24_ecode <= 6'h3E;
         entries_24_exc_addr <= io_lsq_violation_pc;
       end
@@ -6805,11 +6808,11 @@ module ROB(
                   : ~_GEN_174 & entries_24_tlbrd_we;
       entries_25_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_267
              : can_commit1
-                 ? ~(_head_T_6 == 5'h19 | _GEN_371) & _GEN_177
-                 : can_commit0 ? ~_GEN_371 & _GEN_177 : _GEN_267);
+                 ? ~(_head_T_6 == 5'h19 | _GEN_372) & _GEN_177
+                 : can_commit0 ? ~_GEN_372 & _GEN_177 : _GEN_267);
       if (match1_25) begin
         entries_25_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_25_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6855,7 +6858,7 @@ module ROB(
       else
         entries_25_branch_mask <= ~(tag_bit[3:0]) & entries_25_branch_mask;
       entries_25_has_exc <=
-        _GEN_311
+        _GEN_312
         | (match1_25
              ? io_cdb1_bits_hasException
              : match0_25
@@ -6863,7 +6866,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_114 & entries_25_has_exc
                      : ~_GEN_176 & entries_25_has_exc);
-      if (_GEN_311) begin
+      if (_GEN_312) begin
         entries_25_ecode <= 6'h3E;
         entries_25_exc_addr <= io_lsq_violation_pc;
       end
@@ -6925,11 +6928,11 @@ module ROB(
                   : ~_GEN_176 & entries_25_tlbrd_we;
       entries_26_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_270
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1A | _GEN_372) & _GEN_179
-                 : can_commit0 ? ~_GEN_372 & _GEN_179 : _GEN_270);
+                 ? ~(_head_T_6 == 5'h1A | _GEN_373) & _GEN_179
+                 : can_commit0 ? ~_GEN_373 & _GEN_179 : _GEN_270);
       if (match1_26) begin
         entries_26_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_26_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6975,7 +6978,7 @@ module ROB(
       else
         entries_26_branch_mask <= ~(tag_bit[3:0]) & entries_26_branch_mask;
       entries_26_has_exc <=
-        _GEN_312
+        _GEN_313
         | (match1_26
              ? io_cdb1_bits_hasException
              : match0_26
@@ -6983,7 +6986,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_116 & entries_26_has_exc
                      : ~_GEN_178 & entries_26_has_exc);
-      if (_GEN_312) begin
+      if (_GEN_313) begin
         entries_26_ecode <= 6'h3E;
         entries_26_exc_addr <= io_lsq_violation_pc;
       end
@@ -7045,11 +7048,11 @@ module ROB(
                   : ~_GEN_178 & entries_26_tlbrd_we;
       entries_27_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_273
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1B | _GEN_373) & _GEN_181
-                 : can_commit0 ? ~_GEN_373 & _GEN_181 : _GEN_273);
+                 ? ~(_head_T_6 == 5'h1B | _GEN_374) & _GEN_181
+                 : can_commit0 ? ~_GEN_374 & _GEN_181 : _GEN_273);
       if (match1_27) begin
         entries_27_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_27_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7095,7 +7098,7 @@ module ROB(
       else
         entries_27_branch_mask <= ~(tag_bit[3:0]) & entries_27_branch_mask;
       entries_27_has_exc <=
-        _GEN_313
+        _GEN_314
         | (match1_27
              ? io_cdb1_bits_hasException
              : match0_27
@@ -7103,7 +7106,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_118 & entries_27_has_exc
                      : ~_GEN_180 & entries_27_has_exc);
-      if (_GEN_313) begin
+      if (_GEN_314) begin
         entries_27_ecode <= 6'h3E;
         entries_27_exc_addr <= io_lsq_violation_pc;
       end
@@ -7165,11 +7168,11 @@ module ROB(
                   : ~_GEN_180 & entries_27_tlbrd_we;
       entries_28_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_276
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1C | _GEN_374) & _GEN_183
-                 : can_commit0 ? ~_GEN_374 & _GEN_183 : _GEN_276);
+                 ? ~(_head_T_6 == 5'h1C | _GEN_375) & _GEN_183
+                 : can_commit0 ? ~_GEN_375 & _GEN_183 : _GEN_276);
       if (match1_28) begin
         entries_28_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_28_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7215,7 +7218,7 @@ module ROB(
       else
         entries_28_branch_mask <= ~(tag_bit[3:0]) & entries_28_branch_mask;
       entries_28_has_exc <=
-        _GEN_314
+        _GEN_315
         | (match1_28
              ? io_cdb1_bits_hasException
              : match0_28
@@ -7223,7 +7226,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_120 & entries_28_has_exc
                      : ~_GEN_182 & entries_28_has_exc);
-      if (_GEN_314) begin
+      if (_GEN_315) begin
         entries_28_ecode <= 6'h3E;
         entries_28_exc_addr <= io_lsq_violation_pc;
       end
@@ -7285,11 +7288,11 @@ module ROB(
                   : ~_GEN_182 & entries_28_tlbrd_we;
       entries_29_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_279
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1D | _GEN_375) & _GEN_185
-                 : can_commit0 ? ~_GEN_375 & _GEN_185 : _GEN_279);
+                 ? ~(_head_T_6 == 5'h1D | _GEN_376) & _GEN_185
+                 : can_commit0 ? ~_GEN_376 & _GEN_185 : _GEN_279);
       if (match1_29) begin
         entries_29_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_29_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7335,7 +7338,7 @@ module ROB(
       else
         entries_29_branch_mask <= ~(tag_bit[3:0]) & entries_29_branch_mask;
       entries_29_has_exc <=
-        _GEN_315
+        _GEN_316
         | (match1_29
              ? io_cdb1_bits_hasException
              : match0_29
@@ -7343,7 +7346,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_122 & entries_29_has_exc
                      : ~_GEN_184 & entries_29_has_exc);
-      if (_GEN_315) begin
+      if (_GEN_316) begin
         entries_29_ecode <= 6'h3E;
         entries_29_exc_addr <= io_lsq_violation_pc;
       end
@@ -7405,11 +7408,11 @@ module ROB(
                   : ~_GEN_184 & entries_29_tlbrd_we;
       entries_30_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_282
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1E | _GEN_376) & _GEN_187
-                 : can_commit0 ? ~_GEN_376 & _GEN_187 : _GEN_282);
+                 ? ~(_head_T_6 == 5'h1E | _GEN_377) & _GEN_187
+                 : can_commit0 ? ~_GEN_377 & _GEN_187 : _GEN_282);
       if (match1_30) begin
         entries_30_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_30_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7455,7 +7458,7 @@ module ROB(
       else
         entries_30_branch_mask <= ~(tag_bit[3:0]) & entries_30_branch_mask;
       entries_30_has_exc <=
-        _GEN_316
+        _GEN_317
         | (match1_30
              ? io_cdb1_bits_hasException
              : match0_30
@@ -7463,7 +7466,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_124 & entries_30_has_exc
                      : ~_GEN_186 & entries_30_has_exc);
-      if (_GEN_316) begin
+      if (_GEN_317) begin
         entries_30_ecode <= 6'h3E;
         entries_30_exc_addr <= io_lsq_violation_pc;
       end
@@ -7525,11 +7528,11 @@ module ROB(
                   : ~_GEN_186 & entries_30_tlbrd_we;
       entries_31_valid <=
         ~io_flush
-        & (_GEN_378
+        & (_GEN_379
              ? _GEN_285
              : can_commit1
-                 ? ~((&_head_T_6) | _GEN_377) & _GEN_189
-                 : can_commit0 ? ~_GEN_377 & _GEN_189 : _GEN_285);
+                 ? ~((&_head_T_6) | _GEN_378) & _GEN_189
+                 : can_commit0 ? ~_GEN_378 & _GEN_189 : _GEN_285);
       if (match1_31) begin
         entries_31_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_31_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7575,7 +7578,7 @@ module ROB(
       else
         entries_31_branch_mask <= ~(tag_bit[3:0]) & entries_31_branch_mask;
       entries_31_has_exc <=
-        _GEN_317
+        _GEN_318
         | (match1_31
              ? io_cdb1_bits_hasException
              : match0_31
@@ -7583,7 +7586,7 @@ module ROB(
                  : _GEN_31
                      ? ~_GEN_125 & entries_31_has_exc
                      : ~_GEN_188 & entries_31_has_exc);
-      if (_GEN_317) begin
+      if (_GEN_318) begin
         entries_31_ecode <= 6'h3E;
         entries_31_exc_addr <= io_lsq_violation_pc;
       end
@@ -7651,7 +7654,7 @@ module ROB(
         if (~is_empty) begin
           if (no_valid_left)
             head <= tail;
-          else if (_GEN_0) begin
+          else if (_GEN_1) begin
             if (can_commit1)
               head <= _head_T_3;
             else if (can_commit0)
@@ -7660,68 +7663,68 @@ module ROB(
           else
             head <=
               head
-              + (_GEN_0
+              + (_GEN_1
                    ? 5'h0
                    : _GEN[_head_T_6]
                        ? 5'h1
                        : _GEN[_head_T_3]
                            ? 5'h2
-                           : _GEN_318
+                           : _GEN_319
                                ? 5'h3
-                               : _GEN_319
+                               : _GEN_320
                                    ? 5'h4
-                                   : _GEN_320
+                                   : _GEN_321
                                        ? 5'h5
-                                       : _GEN_321
+                                       : _GEN_322
                                            ? 5'h6
-                                           : _GEN_322
+                                           : _GEN_323
                                                ? 5'h7
-                                               : _GEN_323
+                                               : _GEN_324
                                                    ? 5'h8
-                                                   : _GEN_324
+                                                   : _GEN_325
                                                        ? 5'h9
-                                                       : _GEN_325
+                                                       : _GEN_326
                                                            ? 5'hA
-                                                           : _GEN_326
+                                                           : _GEN_327
                                                                ? 5'hB
-                                                               : _GEN_327
+                                                               : _GEN_328
                                                                    ? 5'hC
-                                                                   : _GEN_328
+                                                                   : _GEN_329
                                                                        ? 5'hD
-                                                                       : _GEN_329
+                                                                       : _GEN_330
                                                                            ? 5'hE
-                                                                           : _GEN_330
+                                                                           : _GEN_331
                                                                                ? 5'hF
-                                                                               : _GEN_331
+                                                                               : _GEN_332
                                                                                    ? 5'h10
-                                                                                   : _GEN_332
+                                                                                   : _GEN_333
                                                                                        ? 5'h11
-                                                                                       : _GEN_333
+                                                                                       : _GEN_334
                                                                                            ? 5'h12
-                                                                                           : _GEN_334
+                                                                                           : _GEN_335
                                                                                                ? 5'h13
-                                                                                               : _GEN_335
+                                                                                               : _GEN_336
                                                                                                    ? 5'h14
-                                                                                                   : _GEN_336
+                                                                                                   : _GEN_337
                                                                                                        ? 5'h15
-                                                                                                       : _GEN_337
+                                                                                                       : _GEN_338
                                                                                                            ? 5'h16
-                                                                                                           : _GEN_338
+                                                                                                           : _GEN_339
                                                                                                                ? 5'h17
-                                                                                                               : _GEN_339
+                                                                                                               : _GEN_340
                                                                                                                    ? 5'h18
-                                                                                                                   : _GEN_340
+                                                                                                                   : _GEN_341
                                                                                                                        ? 5'h19
-                                                                                                                       : _GEN_341
+                                                                                                                       : _GEN_342
                                                                                                                            ? 5'h1A
-                                                                                                                           : _GEN_342
+                                                                                                                           : _GEN_343
                                                                                                                                ? 5'h1B
-                                                                                                                               : _GEN_343
+                                                                                                                               : _GEN_344
                                                                                                                                    ? 5'h1C
-                                                                                                                                   : _GEN_344
+                                                                                                                                   : _GEN_345
                                                                                                                                        ? 5'h1D
                                                                                                                                        : {4'hF,
-                                                                                                                                          ~_GEN_345});
+                                                                                                                                          ~_GEN_346});
         end
         if (_GEN_31)
           tail <= _tail_next2_T;
@@ -7729,7 +7732,7 @@ module ROB(
           tail <= _tail_next_T;
       end
       is_full <=
-        ~(io_flush | ~is_empty & (no_valid_left | ~_GEN_0 | can_commit1 | can_commit0))
+        ~(io_flush | ~is_empty & (no_valid_left | ~_GEN_1 | can_commit1 | can_commit0))
         & (_GEN_31
              ? _tail_next2_T == head | is_full
              : fire0 & _is_full_for_2_T | is_full);
@@ -8515,7 +8518,7 @@ module ROB(
   assign io_commit_paddr = _GEN_4[head];
   assign io_commit_old_p = _GEN_5[head];
   assign io_commit1_valid = ~is_empty & can_commit1;
-  assign io_commit1_pc = _GEN_1[_head_T_6];
+  assign io_commit1_pc = _GEN_0[_head_T_6];
   assign io_commit1_we = can_commit1 & _GEN_2[_head_T_6];
   assign io_commit1_waddr = _GEN_3[_head_T_6];
   assign io_commit1_wdata = _GEN_6[_head_T_6];

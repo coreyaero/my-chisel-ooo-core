@@ -112,36 +112,40 @@ module StageID(
   input         io_flush
 );
 
-  wire       _dec1_io_out_hasException;
-  wire [5:0] _dec1_io_out_ecode;
-  wire       _dec1_io_out_isCsr;
-  wire       _dec1_io_out_inst_ertn;
-  wire [4:0] _dec1_io_out_tlbOp;
-  wire       _dec1_io_out_is_cacop;
-  wire       _dec0_io_out_hasException;
-  wire [5:0] _dec0_io_out_ecode;
-  wire       _dec0_io_out_isCsr;
-  wire       _dec0_io_out_inst_ertn;
-  wire [4:0] _dec0_io_out_tlbOp;
-  wire       _dec0_io_out_is_cacop;
-  wire       d0_is_branch =
-    io_in_inst0_inst[31:27] == 5'hB | io_in_inst0_inst[31:28] == 4'h6
-    | io_in_inst0_inst[31:26] == 6'h14 | io_in_inst0_inst[31:26] == 6'h15
-    | io_in_inst0_inst[31:26] == 6'h13;
-  wire       d1_is_branch =
-    io_in_inst1_inst[31:27] == 5'hB | io_in_inst1_inst[31:28] == 4'h6
-    | io_in_inst1_inst[31:26] == 6'h14 | io_in_inst1_inst[31:26] == 6'h15
-    | io_in_inst1_inst[31:26] == 6'h13;
-  wire       real_valid0 = io_in_valid0 & ~io_flush;
-  wire       real_valid1 =
+  wire        _dec1_io_out_hasException;
+  wire [5:0]  _dec1_io_out_ecode;
+  wire        _dec1_io_out_isCsr;
+  wire        _dec1_io_out_inst_ertn;
+  wire [4:0]  _dec1_io_out_tlbOp;
+  wire        _dec1_io_out_is_refetch;
+  wire        _dec1_io_out_is_cacop;
+  wire        _dec0_io_out_hasException;
+  wire [5:0]  _dec0_io_out_ecode;
+  wire        _dec0_io_out_isCsr;
+  wire        _dec0_io_out_inst_ertn;
+  wire [4:0]  _dec0_io_out_tlbOp;
+  wire        _dec0_io_out_is_refetch;
+  wire        _dec0_io_out_is_cacop;
+  wire [31:0] d0_inst = io_in_valid0 ? io_in_inst0_inst : 32'h2800000;
+  wire        safe_inst0_data_hasException = io_in_valid0 & io_in_inst0_hasException;
+  wire [31:0] d1_inst = io_in_valid1 ? io_in_inst1_inst : 32'h2800000;
+  wire        safe_inst1_data_hasException = io_in_valid1 & io_in_inst1_hasException;
+  wire        d0_is_branch =
+    d0_inst[31:27] == 5'hB | d0_inst[31:28] == 4'h6 | d0_inst[31:26] == 6'h14
+    | d0_inst[31:26] == 6'h15 | d0_inst[31:26] == 6'h13;
+  wire        d1_is_branch =
+    d1_inst[31:27] == 5'hB | d1_inst[31:28] == 4'h6 | d1_inst[31:26] == 6'h14
+    | d1_inst[31:26] == 6'h15 | d1_inst[31:26] == 6'h13;
+  wire        real_valid0 = io_in_valid0 & ~io_flush;
+  wire        real_valid1 =
     io_in_valid1 & ~io_flush
     & ~((|{_dec0_io_out_isCsr | _dec0_io_out_inst_ertn, _dec0_io_out_tlbOp})
         | _dec0_io_out_is_cacop)
     & ~((|{_dec1_io_out_isCsr | _dec1_io_out_inst_ertn, _dec1_io_out_tlbOp})
         | _dec1_io_out_is_cacop);
-  wire       pop0 = real_valid0 & io_out0_ready;
+  wire        pop0 = real_valid0 & io_out0_ready;
   Decoder dec0 (
-    .io_inst              (io_in_inst0_inst),
+    .io_inst              (d0_inst),
     .io_out_aluOp         (io_out0_bits_aluOp),
     .io_out_lsOp          (io_out0_bits_lsOp),
     .io_out_mduOp         (io_out0_bits_mduOp),
@@ -167,12 +171,12 @@ module StageID(
     .io_out_src2_read     (io_out0_bits_src2_read),
     .io_out_tlbOp         (_dec0_io_out_tlbOp),
     .io_out_invtlb_op     (io_out0_bits_invtlb_op),
-    .io_out_is_refetch    (io_out0_bits_is_refetch),
+    .io_out_is_refetch    (_dec0_io_out_is_refetch),
     .io_out_is_cacop      (_dec0_io_out_is_cacop),
     .io_out_cacop_op      (io_out0_bits_cacop_op)
   );
   Decoder dec1 (
-    .io_inst              (io_in_inst1_inst),
+    .io_inst              (d1_inst),
     .io_out_aluOp         (io_out1_bits_aluOp),
     .io_out_lsOp          (io_out1_bits_lsOp),
     .io_out_mduOp         (io_out1_bits_mduOp),
@@ -198,28 +202,31 @@ module StageID(
     .io_out_src2_read     (io_out1_bits_src2_read),
     .io_out_tlbOp         (_dec1_io_out_tlbOp),
     .io_out_invtlb_op     (io_out1_bits_invtlb_op),
-    .io_out_is_refetch    (io_out1_bits_is_refetch),
+    .io_out_is_refetch    (_dec1_io_out_is_refetch),
     .io_out_is_cacop      (_dec1_io_out_is_cacop),
     .io_out_cacop_op      (io_out1_bits_cacop_op)
   );
   assign io_in_pop = pop0 & real_valid1 & io_out1_ready ? 2'h2 : {1'h0, pop0};
   assign io_out0_valid = real_valid0;
   assign io_out0_bits_pc = io_in_inst0_pc;
-  assign io_out0_bits_inst = io_in_inst0_inst;
-  assign io_out0_bits_src1_addr = io_in_inst0_inst[9:5];
+  assign io_out0_bits_inst = d0_inst;
+  assign io_out0_bits_src1_addr = d0_inst[9:5];
   assign io_out0_bits_src2_addr =
-    io_in_inst0_inst[31:26] == 6'hA & io_in_inst0_inst[24] | d0_is_branch
-    | io_in_inst0_inst[31:24] == 8'h4 & (|(io_in_inst0_inst[9:5]))
-      ? io_in_inst0_inst[4:0]
-      : io_in_inst0_inst[14:10];
+    d0_inst[31:26] == 6'hA & d0_inst[24] | d0_is_branch | d0_inst[31:24] == 8'h4
+    & (|(d0_inst[9:5]))
+      ? d0_inst[4:0]
+      : d0_inst[14:10];
   assign io_out0_bits_aux_data = io_in_inst0_aux_data;
-  assign io_out0_bits_hasException = io_in_inst0_hasException | _dec0_io_out_hasException;
+  assign io_out0_bits_hasException =
+    safe_inst0_data_hasException | _dec0_io_out_hasException;
   assign io_out0_bits_ecode =
-    io_in_inst0_hasException ? io_in_inst0_ecode : _dec0_io_out_ecode;
+    safe_inst0_data_hasException ? io_in_inst0_ecode : _dec0_io_out_ecode;
   assign io_out0_bits_esubcode = io_in_inst0_esubcode;
   assign io_out0_bits_isCsr = _dec0_io_out_isCsr;
   assign io_out0_bits_inst_ertn = _dec0_io_out_inst_ertn;
   assign io_out0_bits_tlbOp = _dec0_io_out_tlbOp;
+  assign io_out0_bits_is_refetch =
+    _dec0_io_out_is_refetch | io_in_inst0_pred_taken & ~d0_is_branch;
   assign io_out0_bits_is_cacop = _dec0_io_out_is_cacop;
   assign io_out0_bits_is_branch = d0_is_branch;
   assign io_out0_bits_pred_taken = io_in_inst0_pred_taken;
@@ -229,21 +236,24 @@ module StageID(
   assign io_out0_bits_ras_tos = io_in_inst0_ras_tos;
   assign io_out1_valid = real_valid1;
   assign io_out1_bits_pc = io_in_inst1_pc;
-  assign io_out1_bits_inst = io_in_inst1_inst;
-  assign io_out1_bits_src1_addr = io_in_inst1_inst[9:5];
+  assign io_out1_bits_inst = d1_inst;
+  assign io_out1_bits_src1_addr = d1_inst[9:5];
   assign io_out1_bits_src2_addr =
-    io_in_inst1_inst[31:26] == 6'hA & io_in_inst1_inst[24] | d1_is_branch
-    | io_in_inst1_inst[31:24] == 8'h4 & (|(io_in_inst1_inst[9:5]))
-      ? io_in_inst1_inst[4:0]
-      : io_in_inst1_inst[14:10];
+    d1_inst[31:26] == 6'hA & d1_inst[24] | d1_is_branch | d1_inst[31:24] == 8'h4
+    & (|(d1_inst[9:5]))
+      ? d1_inst[4:0]
+      : d1_inst[14:10];
   assign io_out1_bits_aux_data = io_in_inst1_aux_data;
-  assign io_out1_bits_hasException = io_in_inst1_hasException | _dec1_io_out_hasException;
+  assign io_out1_bits_hasException =
+    safe_inst1_data_hasException | _dec1_io_out_hasException;
   assign io_out1_bits_ecode =
-    io_in_inst1_hasException ? io_in_inst1_ecode : _dec1_io_out_ecode;
+    safe_inst1_data_hasException ? io_in_inst1_ecode : _dec1_io_out_ecode;
   assign io_out1_bits_esubcode = io_in_inst1_esubcode;
   assign io_out1_bits_isCsr = _dec1_io_out_isCsr;
   assign io_out1_bits_inst_ertn = _dec1_io_out_inst_ertn;
   assign io_out1_bits_tlbOp = _dec1_io_out_tlbOp;
+  assign io_out1_bits_is_refetch =
+    _dec1_io_out_is_refetch | io_in_inst1_pred_taken & ~d1_is_branch;
   assign io_out1_bits_is_cacop = _dec1_io_out_is_cacop;
   assign io_out1_bits_is_branch = d1_is_branch;
   assign io_out1_bits_pred_taken = io_in_inst1_pred_taken;

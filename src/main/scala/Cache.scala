@@ -146,7 +146,7 @@ class CacheArray1R1W(implicit p: CacheConfig) extends Module {
 class CacheToCpuIO(implicit p: CacheConfig) extends Bundle {
     val valid    = Input(Bool())
     val op       = Input(Bool())
-    val req_id   = Input(UInt(8.W)) 
+    val req_id   = Input(UInt(9.W)) 
     // ★ 核心修改：位宽全部跟随配置动态变化
     val index    = Input(UInt(p.indexBits.W)) 
     val tag      = Input(UInt(p.tagBits.W))
@@ -160,7 +160,7 @@ class CacheToCpuIO(implicit p: CacheConfig) extends Bundle {
     
     val addr_ok  = Output(Bool())
     val data_ok  = Output(Bool())
-    val ret_id   = Output(UInt(8.W))
+    val ret_id   = Output(UInt(9.W))
     val rdata    = Output(UInt(64.W)) // 没变，双发射依然一次拿 64 位
 }
 
@@ -182,7 +182,7 @@ object MshrState extends ChiselEnum {
 // =========================================================================
 class MshrSubEntry(implicit p: CacheConfig) extends Bundle {
     val valid  = Bool()
-    val req_id = UInt(8.W)
+    val req_id = UInt(9.W)
     val op     = Bool()
     // ★ 致命修复：这里必须是 p.offsetBits.W，千万不能是 4.W！
     val offset = UInt(p.offsetBits.W) 
@@ -262,7 +262,7 @@ class Cache(implicit p: CacheConfig) extends Module {
 
     // --- 请求缓冲 ---
     val req_op       = RegInit(false.B)
-    val req_req_id   = RegInit(0.U(8.W))
+    val req_req_id   = RegInit(0.U(9.W))
     val req_index    = RegInit(0.U(p.indexBits.W)) // ★
     val req_tag      = RegInit(0.U(p.tagBits.W))   // ★
     val req_offset   = RegInit(0.U(p.offsetBits.W)) // ★
@@ -369,7 +369,11 @@ class Cache(implicit p: CacheConfig) extends Module {
     // 此时绝对不能放同地址的 Load 进来读 SRAM，否则会读到旧数据（读比写早了一拍）！
     // 必须让 Load 阻塞 1 拍。下一拍 Store 进入 wbWrite，Load 进入 SRAM 读取，完美触发 1R1W 旁路前递！
     val hazard_with_lookup = is_lookup_write && (io.cpu.index === req_index)
-    val hazard_with_wb     = (wb_state === wbWrite) && io.cpu.cacop_en
+    // 修复前：只拦截 CACOP，导致普通访存长驱直入
+    // val hazard_with_wb = (wb_state === wbWrite) && io.cpu.cacop_en
+
+    // ★ 修复后：只要组号 (Index) 撞车，或者是 CACOP，统统给我阻塞一拍！
+    val hazard_with_wb = (wb_state === wbWrite) && ((io.cpu.index === wb_index) || io.cpu.cacop_en)
     val hit_write_hazard   = hazard_with_lookup || hazard_with_wb
 
     // 2. 前台阻塞逻辑
@@ -465,8 +469,19 @@ class Cache(implicit p: CacheConfig) extends Module {
                         for (j <- 1 until SUB_ENTRY_NUM) { m.sub_entries(j).valid := false.B }
                         
                         // ★ 核心修复：利用向量化的 r_data 提取旧数据
-                        val old_line = array.io.r_data(target_way)
-                        for(b <- 0 until p.lineWords) { m.line_buffer(b) := old_line(b) }
+                        // ★ 核心修复 1：CACOP 驱逐时的 Store 旁路拯救
+                        val old_line_cacop = array.io.r_data(target_way)
+                        for(b <- 0 until p.lineWords) { 
+                            val is_wb_overlap = (wb_state === wbWrite) && (wb_index === req_index) && (wb_way === target_way)
+                            val raw_word = old_line_cacop(b)
+                            val wb_word  = wb_data(b)
+                            val wb_mask  = wb_strb(b)
+                            val merged_word = Wire(Vec(4, UInt(8.W)))
+                            for (byte <- 0 until 4) {
+                                merged_word(byte) := Mux(is_wb_overlap && wb_mask(byte), wb_word(byte*8+7, byte*8), raw_word(byte*8+7, byte*8))
+                            }
+                            m.line_buffer(b) := merged_word.asUInt
+                        }
                         
                         main_state := Mux(is_accepting, sLookup, sIdle) 
                     } .otherwise {
@@ -507,8 +522,19 @@ class Cache(implicit p: CacheConfig) extends Module {
                     for (j <- 1 until SUB_ENTRY_NUM) { m.sub_entries(j).valid := false.B }
 
                     // ★ 核心修复：提取牺牲路的旧数据用于写回
-                    val old_line = array.io.r_data(target_fill_way)
-                    for(b <- 0 until p.lineWords) { m.line_buffer(b) := old_line(b) }
+                    // ★ 核心修复 2：普通 Miss 驱逐时的 Store 旁路拯救
+                    val old_line_miss = array.io.r_data(target_fill_way)
+                    for(b <- 0 until p.lineWords) { 
+                        val is_wb_overlap = (wb_state === wbWrite) && (wb_index === req_index) && (wb_way === target_fill_way)
+                        val raw_word = old_line_miss(b)
+                        val wb_word  = wb_data(b)
+                        val wb_mask  = wb_strb(b)
+                        val merged_word = Wire(Vec(4, UInt(8.W)))
+                        for (byte <- 0 until 4) {
+                            merged_word(byte) := Mux(is_wb_overlap && wb_mask(byte), wb_word(byte*8+7, byte*8), raw_word(byte*8+7, byte*8))
+                        }
+                        m.line_buffer(b) := merged_word.asUInt
+                    }
                     
                     main_state := Mux(is_accepting, sLookup, sIdle)
                 }

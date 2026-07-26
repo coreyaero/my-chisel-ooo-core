@@ -4,6 +4,8 @@ RenameEngine.sv
 PRF.sv
 IssueQueue.sv
 ROB.sv
+ram_4x136.sv
+Queue4_FetchMeta.sv
 btb_payload_512x55.sv
 bht_1024x2.sv
 StageIF.sv
@@ -26,8 +28,6 @@ Queue2_PipelineData.sv
 ExecutionEngine.sv
 CSR.sv
 tlb.sv
-ram_16x4.sv
-Queue16_UInt4.sv
 SramToAxiBridge.sv
 tag_array_256x19.sv
 data_array_256x32.sv
@@ -40,7 +40,7 @@ Queue1_AguIcacheReq.sv
 Queue1_LsqDcacheReq.sv
 ram_2x58.sv
 Queue2_AxiArChannel.sv
-ram_2x33.sv
+ram_2x37.sv
 Queue2_AxiRChannel.sv
 Queue2_AxiAwChannel.sv
 ram_2x41.sv

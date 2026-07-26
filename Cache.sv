@@ -4,8 +4,8 @@ module Cache(
                  reset,
                  io_cpu_valid,
                  io_cpu_op,
-  input  [7:0]   io_cpu_req_id,
-                 io_cpu_index,
+  input  [8:0]   io_cpu_req_id,
+  input  [7:0]   io_cpu_index,
   input  [18:0]  io_cpu_tag,
   input  [4:0]   io_cpu_offset,
   input  [3:0]   io_cpu_wstrb,
@@ -15,7 +15,7 @@ module Cache(
   input  [2:0]   io_cpu_cacop_op,
   output         io_cpu_addr_ok,
                  io_cpu_data_ok,
-  output [7:0]   io_cpu_ret_id,
+  output [8:0]   io_cpu_ret_id,
   output [63:0]  io_cpu_rdata,
   output         io_axi_rd_req,
   output [3:0]   io_axi_rd_id,
@@ -82,25 +82,25 @@ module Cache(
   reg  [7:0]       mshr_table_0_index;
   reg  [1:0]       mshr_table_0_way;
   reg              mshr_table_0_sub_entries_0_valid;
-  reg  [7:0]       mshr_table_0_sub_entries_0_req_id;
+  reg  [8:0]       mshr_table_0_sub_entries_0_req_id;
   reg              mshr_table_0_sub_entries_0_op;
   reg  [4:0]       mshr_table_0_sub_entries_0_offset;
   reg  [3:0]       mshr_table_0_sub_entries_0_wstrb;
   reg  [31:0]      mshr_table_0_sub_entries_0_wdata;
   reg              mshr_table_0_sub_entries_1_valid;
-  reg  [7:0]       mshr_table_0_sub_entries_1_req_id;
+  reg  [8:0]       mshr_table_0_sub_entries_1_req_id;
   reg              mshr_table_0_sub_entries_1_op;
   reg  [4:0]       mshr_table_0_sub_entries_1_offset;
   reg  [3:0]       mshr_table_0_sub_entries_1_wstrb;
   reg  [31:0]      mshr_table_0_sub_entries_1_wdata;
   reg              mshr_table_0_sub_entries_2_valid;
-  reg  [7:0]       mshr_table_0_sub_entries_2_req_id;
+  reg  [8:0]       mshr_table_0_sub_entries_2_req_id;
   reg              mshr_table_0_sub_entries_2_op;
   reg  [4:0]       mshr_table_0_sub_entries_2_offset;
   reg  [3:0]       mshr_table_0_sub_entries_2_wstrb;
   reg  [31:0]      mshr_table_0_sub_entries_2_wdata;
   reg              mshr_table_0_sub_entries_3_valid;
-  reg  [7:0]       mshr_table_0_sub_entries_3_req_id;
+  reg  [8:0]       mshr_table_0_sub_entries_3_req_id;
   reg              mshr_table_0_sub_entries_3_op;
   reg  [4:0]       mshr_table_0_sub_entries_3_offset;
   reg  [3:0]       mshr_table_0_sub_entries_3_wstrb;
@@ -122,25 +122,25 @@ module Cache(
   reg  [7:0]       mshr_table_1_index;
   reg  [1:0]       mshr_table_1_way;
   reg              mshr_table_1_sub_entries_0_valid;
-  reg  [7:0]       mshr_table_1_sub_entries_0_req_id;
+  reg  [8:0]       mshr_table_1_sub_entries_0_req_id;
   reg              mshr_table_1_sub_entries_0_op;
   reg  [4:0]       mshr_table_1_sub_entries_0_offset;
   reg  [3:0]       mshr_table_1_sub_entries_0_wstrb;
   reg  [31:0]      mshr_table_1_sub_entries_0_wdata;
   reg              mshr_table_1_sub_entries_1_valid;
-  reg  [7:0]       mshr_table_1_sub_entries_1_req_id;
+  reg  [8:0]       mshr_table_1_sub_entries_1_req_id;
   reg              mshr_table_1_sub_entries_1_op;
   reg  [4:0]       mshr_table_1_sub_entries_1_offset;
   reg  [3:0]       mshr_table_1_sub_entries_1_wstrb;
   reg  [31:0]      mshr_table_1_sub_entries_1_wdata;
   reg              mshr_table_1_sub_entries_2_valid;
-  reg  [7:0]       mshr_table_1_sub_entries_2_req_id;
+  reg  [8:0]       mshr_table_1_sub_entries_2_req_id;
   reg              mshr_table_1_sub_entries_2_op;
   reg  [4:0]       mshr_table_1_sub_entries_2_offset;
   reg  [3:0]       mshr_table_1_sub_entries_2_wstrb;
   reg  [31:0]      mshr_table_1_sub_entries_2_wdata;
   reg              mshr_table_1_sub_entries_3_valid;
-  reg  [7:0]       mshr_table_1_sub_entries_3_req_id;
+  reg  [8:0]       mshr_table_1_sub_entries_3_req_id;
   reg              mshr_table_1_sub_entries_3_op;
   reg  [4:0]       mshr_table_1_sub_entries_3_offset;
   reg  [3:0]       mshr_table_1_sub_entries_3_wstrb;
@@ -162,25 +162,25 @@ module Cache(
   reg  [7:0]       mshr_table_2_index;
   reg  [1:0]       mshr_table_2_way;
   reg              mshr_table_2_sub_entries_0_valid;
-  reg  [7:0]       mshr_table_2_sub_entries_0_req_id;
+  reg  [8:0]       mshr_table_2_sub_entries_0_req_id;
   reg              mshr_table_2_sub_entries_0_op;
   reg  [4:0]       mshr_table_2_sub_entries_0_offset;
   reg  [3:0]       mshr_table_2_sub_entries_0_wstrb;
   reg  [31:0]      mshr_table_2_sub_entries_0_wdata;
   reg              mshr_table_2_sub_entries_1_valid;
-  reg  [7:0]       mshr_table_2_sub_entries_1_req_id;
+  reg  [8:0]       mshr_table_2_sub_entries_1_req_id;
   reg              mshr_table_2_sub_entries_1_op;
   reg  [4:0]       mshr_table_2_sub_entries_1_offset;
   reg  [3:0]       mshr_table_2_sub_entries_1_wstrb;
   reg  [31:0]      mshr_table_2_sub_entries_1_wdata;
   reg              mshr_table_2_sub_entries_2_valid;
-  reg  [7:0]       mshr_table_2_sub_entries_2_req_id;
+  reg  [8:0]       mshr_table_2_sub_entries_2_req_id;
   reg              mshr_table_2_sub_entries_2_op;
   reg  [4:0]       mshr_table_2_sub_entries_2_offset;
   reg  [3:0]       mshr_table_2_sub_entries_2_wstrb;
   reg  [31:0]      mshr_table_2_sub_entries_2_wdata;
   reg              mshr_table_2_sub_entries_3_valid;
-  reg  [7:0]       mshr_table_2_sub_entries_3_req_id;
+  reg  [8:0]       mshr_table_2_sub_entries_3_req_id;
   reg              mshr_table_2_sub_entries_3_op;
   reg  [4:0]       mshr_table_2_sub_entries_3_offset;
   reg  [3:0]       mshr_table_2_sub_entries_3_wstrb;
@@ -202,25 +202,25 @@ module Cache(
   reg  [7:0]       mshr_table_3_index;
   reg  [1:0]       mshr_table_3_way;
   reg              mshr_table_3_sub_entries_0_valid;
-  reg  [7:0]       mshr_table_3_sub_entries_0_req_id;
+  reg  [8:0]       mshr_table_3_sub_entries_0_req_id;
   reg              mshr_table_3_sub_entries_0_op;
   reg  [4:0]       mshr_table_3_sub_entries_0_offset;
   reg  [3:0]       mshr_table_3_sub_entries_0_wstrb;
   reg  [31:0]      mshr_table_3_sub_entries_0_wdata;
   reg              mshr_table_3_sub_entries_1_valid;
-  reg  [7:0]       mshr_table_3_sub_entries_1_req_id;
+  reg  [8:0]       mshr_table_3_sub_entries_1_req_id;
   reg              mshr_table_3_sub_entries_1_op;
   reg  [4:0]       mshr_table_3_sub_entries_1_offset;
   reg  [3:0]       mshr_table_3_sub_entries_1_wstrb;
   reg  [31:0]      mshr_table_3_sub_entries_1_wdata;
   reg              mshr_table_3_sub_entries_2_valid;
-  reg  [7:0]       mshr_table_3_sub_entries_2_req_id;
+  reg  [8:0]       mshr_table_3_sub_entries_2_req_id;
   reg              mshr_table_3_sub_entries_2_op;
   reg  [4:0]       mshr_table_3_sub_entries_2_offset;
   reg  [3:0]       mshr_table_3_sub_entries_2_wstrb;
   reg  [31:0]      mshr_table_3_sub_entries_2_wdata;
   reg              mshr_table_3_sub_entries_3_valid;
-  reg  [7:0]       mshr_table_3_sub_entries_3_req_id;
+  reg  [8:0]       mshr_table_3_sub_entries_3_req_id;
   reg              mshr_table_3_sub_entries_3_op;
   reg  [4:0]       mshr_table_3_sub_entries_3_offset;
   reg  [3:0]       mshr_table_3_sub_entries_3_wstrb;
@@ -1262,7 +1262,7 @@ module Cache(
   reg              dirty_array_3_254;
   reg              dirty_array_3_255;
   reg              req_op;
-  reg  [7:0]       req_req_id;
+  reg  [8:0]       req_req_id;
   reg  [7:0]       req_index;
   reg  [18:0]      req_tag;
   reg  [4:0]       req_offset;
@@ -1293,7 +1293,7 @@ module Cache(
   wire             way_hit_0 =
     (~req_uncached | req_cacop_en) & _array_io_r_valid_0 & _array_io_r_tag_0 == req_tag;
   wire             _d_val_0_T_1 = wb_way == 2'h0;
-  wire             _d_val_3_T_3 = wb_index == req_index;
+  wire             _is_wb_overlap_T_61 = wb_index == req_index;
   wire [255:0]     _GEN =
     {{dirty_array_0_255},
      {dirty_array_0_254},
@@ -1551,7 +1551,8 @@ module Cache(
      {dirty_array_0_2},
      {dirty_array_0_1},
      {dirty_array_0_0}};
-  wire             d_val_0 = wb_state & _d_val_0_T_1 & _d_val_3_T_3 | _GEN[req_index];
+  wire             d_val_0 =
+    wb_state & _d_val_0_T_1 & _is_wb_overlap_T_61 | _GEN[req_index];
   wire             way_hit_1 =
     (~req_uncached | req_cacop_en) & _array_io_r_valid_1 & _array_io_r_tag_1 == req_tag;
   wire             _d_val_1_T_1 = wb_way == 2'h1;
@@ -1812,7 +1813,8 @@ module Cache(
      {dirty_array_1_2},
      {dirty_array_1_1},
      {dirty_array_1_0}};
-  wire             d_val_1 = wb_state & _d_val_1_T_1 & _d_val_3_T_3 | _GEN_0[req_index];
+  wire             d_val_1 =
+    wb_state & _d_val_1_T_1 & _is_wb_overlap_T_61 | _GEN_0[req_index];
   wire             way_hit_2 =
     (~req_uncached | req_cacop_en) & _array_io_r_valid_2 & _array_io_r_tag_2 == req_tag;
   wire             _d_val_2_T_1 = wb_way == 2'h2;
@@ -2073,7 +2075,8 @@ module Cache(
      {dirty_array_2_2},
      {dirty_array_2_1},
      {dirty_array_2_0}};
-  wire             d_val_2 = wb_state & _d_val_2_T_1 & _d_val_3_T_3 | _GEN_1[req_index];
+  wire             d_val_2 =
+    wb_state & _d_val_2_T_1 & _is_wb_overlap_T_61 | _GEN_1[req_index];
   wire             way_hit_3 =
     (~req_uncached | req_cacop_en) & _array_io_r_valid_3 & _array_io_r_tag_3 == req_tag;
   wire [255:0]     _GEN_2 =
@@ -2333,7 +2336,8 @@ module Cache(
      {dirty_array_3_2},
      {dirty_array_3_1},
      {dirty_array_3_0}};
-  wire             d_val_3 = wb_state & (&wb_way) & _d_val_3_T_3 | _GEN_2[req_index];
+  wire             d_val_3 =
+    wb_state & (&wb_way) & _is_wb_overlap_T_61 | _GEN_2[req_index];
   wire [3:0]       _hit_dirty_T = {way_hit_3, way_hit_2, way_hit_1, way_hit_0};
   wire             cache_hit = (|_hit_dirty_T) & (~req_uncached | req_cacop_en);
   wire [1:0]       hit_way = {|{way_hit_3, way_hit_2}, way_hit_3 | way_hit_1};
@@ -2430,8 +2434,9 @@ module Cache(
      addr_match & ~safe_to_merge | addr_match
        & (mshr_table_0_is_uncached | req_uncached | mshr_table_0_is_cacop)} == 5'h0;
   assign io_cpu_addr_ok_0 =
-    ~(main_state & req_op & io_cpu_index == req_index | wb_state & io_cpu_cacop_en)
-    & _cacop_hit_inval_done_T_2 & (~main_state | main_state & ~req_cacop_en);
+    ~(main_state & req_op & io_cpu_index == req_index | wb_state
+      & (io_cpu_index == wb_index | io_cpu_cacop_en)) & _cacop_hit_inval_done_T_2
+    & (~main_state | main_state & ~req_cacop_en);
   reg  [2:0]       plru_array_0;
   reg  [2:0]       plru_array_1;
   reg  [2:0]       plru_array_2;
@@ -3178,22 +3183,22 @@ module Cache(
   wire             is_wakeup_vec_2 = mshr_table_2_state == 3'h5;
   wire [1:0]       wakeup_mshr_idx =
     is_wakeup_vec_0 ? 2'h0 : is_wakeup_vec_1 ? 2'h1 : {1'h1, ~is_wakeup_vec_2};
-  wire [3:0][7:0]  _GEN_37 =
+  wire [3:0][8:0]  _GEN_37 =
     {{mshr_table_3_sub_entries_0_req_id},
      {mshr_table_2_sub_entries_0_req_id},
      {mshr_table_1_sub_entries_0_req_id},
      {mshr_table_0_sub_entries_0_req_id}};
-  wire [3:0][7:0]  _GEN_38 =
+  wire [3:0][8:0]  _GEN_38 =
     {{mshr_table_3_sub_entries_1_req_id},
      {mshr_table_2_sub_entries_1_req_id},
      {mshr_table_1_sub_entries_1_req_id},
      {mshr_table_0_sub_entries_1_req_id}};
-  wire [3:0][7:0]  _GEN_39 =
+  wire [3:0][8:0]  _GEN_39 =
     {{mshr_table_3_sub_entries_2_req_id},
      {mshr_table_2_sub_entries_2_req_id},
      {mshr_table_1_sub_entries_2_req_id},
      {mshr_table_0_sub_entries_2_req_id}};
-  wire [3:0][7:0]  _GEN_40 =
+  wire [3:0][8:0]  _GEN_40 =
     {{mshr_table_3_sub_entries_3_req_id},
      {mshr_table_2_sub_entries_3_req_id},
      {mshr_table_1_sub_entries_3_req_id},
@@ -3240,7 +3245,7 @@ module Cache(
      {_array_io_r_data_3_2},
      {_array_io_r_data_3_1},
      {_array_io_r_data_3_0}};
-  wire [3:0][7:0]  _GEN_45 =
+  wire [3:0][8:0]  _GEN_45 =
     {{_GEN_40[wakeup_mshr_idx]},
      {_GEN_39[wakeup_mshr_idx]},
      {_GEN_38[wakeup_mshr_idx]},
@@ -3290,25 +3295,25 @@ module Cache(
       mshr_table_0_index <= 8'h0;
       mshr_table_0_way <= 2'h0;
       mshr_table_0_sub_entries_0_valid <= 1'h0;
-      mshr_table_0_sub_entries_0_req_id <= 8'h0;
+      mshr_table_0_sub_entries_0_req_id <= 9'h0;
       mshr_table_0_sub_entries_0_op <= 1'h0;
       mshr_table_0_sub_entries_0_offset <= 5'h0;
       mshr_table_0_sub_entries_0_wstrb <= 4'h0;
       mshr_table_0_sub_entries_0_wdata <= 32'h0;
       mshr_table_0_sub_entries_1_valid <= 1'h0;
-      mshr_table_0_sub_entries_1_req_id <= 8'h0;
+      mshr_table_0_sub_entries_1_req_id <= 9'h0;
       mshr_table_0_sub_entries_1_op <= 1'h0;
       mshr_table_0_sub_entries_1_offset <= 5'h0;
       mshr_table_0_sub_entries_1_wstrb <= 4'h0;
       mshr_table_0_sub_entries_1_wdata <= 32'h0;
       mshr_table_0_sub_entries_2_valid <= 1'h0;
-      mshr_table_0_sub_entries_2_req_id <= 8'h0;
+      mshr_table_0_sub_entries_2_req_id <= 9'h0;
       mshr_table_0_sub_entries_2_op <= 1'h0;
       mshr_table_0_sub_entries_2_offset <= 5'h0;
       mshr_table_0_sub_entries_2_wstrb <= 4'h0;
       mshr_table_0_sub_entries_2_wdata <= 32'h0;
       mshr_table_0_sub_entries_3_valid <= 1'h0;
-      mshr_table_0_sub_entries_3_req_id <= 8'h0;
+      mshr_table_0_sub_entries_3_req_id <= 9'h0;
       mshr_table_0_sub_entries_3_op <= 1'h0;
       mshr_table_0_sub_entries_3_offset <= 5'h0;
       mshr_table_0_sub_entries_3_wstrb <= 4'h0;
@@ -3330,25 +3335,25 @@ module Cache(
       mshr_table_1_index <= 8'h0;
       mshr_table_1_way <= 2'h0;
       mshr_table_1_sub_entries_0_valid <= 1'h0;
-      mshr_table_1_sub_entries_0_req_id <= 8'h0;
+      mshr_table_1_sub_entries_0_req_id <= 9'h0;
       mshr_table_1_sub_entries_0_op <= 1'h0;
       mshr_table_1_sub_entries_0_offset <= 5'h0;
       mshr_table_1_sub_entries_0_wstrb <= 4'h0;
       mshr_table_1_sub_entries_0_wdata <= 32'h0;
       mshr_table_1_sub_entries_1_valid <= 1'h0;
-      mshr_table_1_sub_entries_1_req_id <= 8'h0;
+      mshr_table_1_sub_entries_1_req_id <= 9'h0;
       mshr_table_1_sub_entries_1_op <= 1'h0;
       mshr_table_1_sub_entries_1_offset <= 5'h0;
       mshr_table_1_sub_entries_1_wstrb <= 4'h0;
       mshr_table_1_sub_entries_1_wdata <= 32'h0;
       mshr_table_1_sub_entries_2_valid <= 1'h0;
-      mshr_table_1_sub_entries_2_req_id <= 8'h0;
+      mshr_table_1_sub_entries_2_req_id <= 9'h0;
       mshr_table_1_sub_entries_2_op <= 1'h0;
       mshr_table_1_sub_entries_2_offset <= 5'h0;
       mshr_table_1_sub_entries_2_wstrb <= 4'h0;
       mshr_table_1_sub_entries_2_wdata <= 32'h0;
       mshr_table_1_sub_entries_3_valid <= 1'h0;
-      mshr_table_1_sub_entries_3_req_id <= 8'h0;
+      mshr_table_1_sub_entries_3_req_id <= 9'h0;
       mshr_table_1_sub_entries_3_op <= 1'h0;
       mshr_table_1_sub_entries_3_offset <= 5'h0;
       mshr_table_1_sub_entries_3_wstrb <= 4'h0;
@@ -3370,25 +3375,25 @@ module Cache(
       mshr_table_2_index <= 8'h0;
       mshr_table_2_way <= 2'h0;
       mshr_table_2_sub_entries_0_valid <= 1'h0;
-      mshr_table_2_sub_entries_0_req_id <= 8'h0;
+      mshr_table_2_sub_entries_0_req_id <= 9'h0;
       mshr_table_2_sub_entries_0_op <= 1'h0;
       mshr_table_2_sub_entries_0_offset <= 5'h0;
       mshr_table_2_sub_entries_0_wstrb <= 4'h0;
       mshr_table_2_sub_entries_0_wdata <= 32'h0;
       mshr_table_2_sub_entries_1_valid <= 1'h0;
-      mshr_table_2_sub_entries_1_req_id <= 8'h0;
+      mshr_table_2_sub_entries_1_req_id <= 9'h0;
       mshr_table_2_sub_entries_1_op <= 1'h0;
       mshr_table_2_sub_entries_1_offset <= 5'h0;
       mshr_table_2_sub_entries_1_wstrb <= 4'h0;
       mshr_table_2_sub_entries_1_wdata <= 32'h0;
       mshr_table_2_sub_entries_2_valid <= 1'h0;
-      mshr_table_2_sub_entries_2_req_id <= 8'h0;
+      mshr_table_2_sub_entries_2_req_id <= 9'h0;
       mshr_table_2_sub_entries_2_op <= 1'h0;
       mshr_table_2_sub_entries_2_offset <= 5'h0;
       mshr_table_2_sub_entries_2_wstrb <= 4'h0;
       mshr_table_2_sub_entries_2_wdata <= 32'h0;
       mshr_table_2_sub_entries_3_valid <= 1'h0;
-      mshr_table_2_sub_entries_3_req_id <= 8'h0;
+      mshr_table_2_sub_entries_3_req_id <= 9'h0;
       mshr_table_2_sub_entries_3_op <= 1'h0;
       mshr_table_2_sub_entries_3_offset <= 5'h0;
       mshr_table_2_sub_entries_3_wstrb <= 4'h0;
@@ -3410,25 +3415,25 @@ module Cache(
       mshr_table_3_index <= 8'h0;
       mshr_table_3_way <= 2'h0;
       mshr_table_3_sub_entries_0_valid <= 1'h0;
-      mshr_table_3_sub_entries_0_req_id <= 8'h0;
+      mshr_table_3_sub_entries_0_req_id <= 9'h0;
       mshr_table_3_sub_entries_0_op <= 1'h0;
       mshr_table_3_sub_entries_0_offset <= 5'h0;
       mshr_table_3_sub_entries_0_wstrb <= 4'h0;
       mshr_table_3_sub_entries_0_wdata <= 32'h0;
       mshr_table_3_sub_entries_1_valid <= 1'h0;
-      mshr_table_3_sub_entries_1_req_id <= 8'h0;
+      mshr_table_3_sub_entries_1_req_id <= 9'h0;
       mshr_table_3_sub_entries_1_op <= 1'h0;
       mshr_table_3_sub_entries_1_offset <= 5'h0;
       mshr_table_3_sub_entries_1_wstrb <= 4'h0;
       mshr_table_3_sub_entries_1_wdata <= 32'h0;
       mshr_table_3_sub_entries_2_valid <= 1'h0;
-      mshr_table_3_sub_entries_2_req_id <= 8'h0;
+      mshr_table_3_sub_entries_2_req_id <= 9'h0;
       mshr_table_3_sub_entries_2_op <= 1'h0;
       mshr_table_3_sub_entries_2_offset <= 5'h0;
       mshr_table_3_sub_entries_2_wstrb <= 4'h0;
       mshr_table_3_sub_entries_2_wdata <= 32'h0;
       mshr_table_3_sub_entries_3_valid <= 1'h0;
-      mshr_table_3_sub_entries_3_req_id <= 8'h0;
+      mshr_table_3_sub_entries_3_req_id <= 9'h0;
       mshr_table_3_sub_entries_3_op <= 1'h0;
       mshr_table_3_sub_entries_3_offset <= 5'h0;
       mshr_table_3_sub_entries_3_wstrb <= 4'h0;
@@ -4470,7 +4475,7 @@ module Cache(
       dirty_array_3_254 <= 1'h0;
       dirty_array_3_255 <= 1'h0;
       req_op <= 1'h0;
-      req_req_id <= 8'h0;
+      req_req_id <= 9'h0;
       req_index <= 8'h0;
       req_tag <= 19'h0;
       req_offset <= 5'h0;
@@ -4774,6 +4779,8 @@ module Cache(
       automatic logic              _GEN_55;
       automatic logic              _GEN_56;
       automatic logic              _GEN_57;
+      automatic logic              _is_wb_overlap_T_31;
+      automatic logic              is_wb_overlap;
       automatic logic [3:0][31:0]  _GEN_58 =
         {{_array_io_r_data_3_0},
          {_array_io_r_data_2_0},
@@ -4814,6 +4821,21 @@ module Cache(
          {_array_io_r_data_2_7},
          {_array_io_r_data_1_7},
          {_array_io_r_data_0_7}};
+      automatic logic [31:0]       _mshr_table_line_buffer_0_T;
+      automatic logic              is_wb_overlap_1;
+      automatic logic [31:0]       _mshr_table_line_buffer_1_T;
+      automatic logic              is_wb_overlap_2;
+      automatic logic [31:0]       _mshr_table_line_buffer_2_T;
+      automatic logic              is_wb_overlap_3;
+      automatic logic [31:0]       _mshr_table_line_buffer_3_T;
+      automatic logic              is_wb_overlap_4;
+      automatic logic [31:0]       _mshr_table_line_buffer_4_T;
+      automatic logic              is_wb_overlap_5;
+      automatic logic [31:0]       _mshr_table_line_buffer_5_T;
+      automatic logic              is_wb_overlap_6;
+      automatic logic [31:0]       _mshr_table_line_buffer_6_T;
+      automatic logic              is_wb_overlap_7;
+      automatic logic [31:0]       _mshr_table_line_buffer_7_T;
       automatic logic              _GEN_66 = match_idx == 2'h0;
       automatic logic              _GEN_67 = alloc_sub_idx == 2'h0;
       automatic logic              _GEN_68 = _GEN_66 & _GEN_67;
@@ -4847,6 +4869,23 @@ module Cache(
       automatic logic              _GEN_96;
       automatic logic              _GEN_97;
       automatic logic              _GEN_98;
+      automatic logic              _is_wb_overlap_T_63;
+      automatic logic              is_wb_overlap_8;
+      automatic logic [31:0]       _mshr_table_line_buffer_0_T_1;
+      automatic logic              is_wb_overlap_9;
+      automatic logic [31:0]       _mshr_table_line_buffer_1_T_1;
+      automatic logic              is_wb_overlap_10;
+      automatic logic [31:0]       _mshr_table_line_buffer_2_T_1;
+      automatic logic              is_wb_overlap_11;
+      automatic logic [31:0]       _mshr_table_line_buffer_3_T_1;
+      automatic logic              is_wb_overlap_12;
+      automatic logic [31:0]       _mshr_table_line_buffer_4_T_1;
+      automatic logic              is_wb_overlap_13;
+      automatic logic [31:0]       _mshr_table_line_buffer_5_T_1;
+      automatic logic              is_wb_overlap_14;
+      automatic logic [31:0]       _mshr_table_line_buffer_6_T_1;
+      automatic logic              is_wb_overlap_15;
+      automatic logic [31:0]       _mshr_table_line_buffer_7_T_1;
       automatic logic              _GEN_99;
       automatic logic              _GEN_100;
       automatic logic              _GEN_101;
@@ -5682,6 +5721,55 @@ module Cache(
       _GEN_55 = alloc_mshr_idx == 2'h2;
       _GEN_56 = _cacop_hit_inval_done_T_2 & cacop_need_wb & _GEN_55;
       _GEN_57 = _cacop_hit_inval_done_T_2 & cacop_need_wb & (&alloc_mshr_idx);
+      _is_wb_overlap_T_31 = wb_way == target_way;
+      is_wb_overlap = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_31;
+      _mshr_table_line_buffer_0_T =
+        {is_wb_overlap & wb_strb_0[3] ? wb_data_0[31:24] : _GEN_58[target_way][31:24],
+         is_wb_overlap & wb_strb_0[2] ? wb_data_0[23:16] : _GEN_58[target_way][23:16],
+         is_wb_overlap & wb_strb_0[1] ? wb_data_0[15:8] : _GEN_58[target_way][15:8],
+         is_wb_overlap & wb_strb_0[0] ? wb_data_0[7:0] : _GEN_58[target_way][7:0]};
+      is_wb_overlap_1 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_31;
+      _mshr_table_line_buffer_1_T =
+        {is_wb_overlap_1 & wb_strb_1[3] ? wb_data_1[31:24] : _GEN_59[target_way][31:24],
+         is_wb_overlap_1 & wb_strb_1[2] ? wb_data_1[23:16] : _GEN_59[target_way][23:16],
+         is_wb_overlap_1 & wb_strb_1[1] ? wb_data_1[15:8] : _GEN_59[target_way][15:8],
+         is_wb_overlap_1 & wb_strb_1[0] ? wb_data_1[7:0] : _GEN_59[target_way][7:0]};
+      is_wb_overlap_2 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_31;
+      _mshr_table_line_buffer_2_T =
+        {is_wb_overlap_2 & wb_strb_2[3] ? wb_data_2[31:24] : _GEN_60[target_way][31:24],
+         is_wb_overlap_2 & wb_strb_2[2] ? wb_data_2[23:16] : _GEN_60[target_way][23:16],
+         is_wb_overlap_2 & wb_strb_2[1] ? wb_data_2[15:8] : _GEN_60[target_way][15:8],
+         is_wb_overlap_2 & wb_strb_2[0] ? wb_data_2[7:0] : _GEN_60[target_way][7:0]};
+      is_wb_overlap_3 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_31;
+      _mshr_table_line_buffer_3_T =
+        {is_wb_overlap_3 & wb_strb_3[3] ? wb_data_3[31:24] : _GEN_61[target_way][31:24],
+         is_wb_overlap_3 & wb_strb_3[2] ? wb_data_3[23:16] : _GEN_61[target_way][23:16],
+         is_wb_overlap_3 & wb_strb_3[1] ? wb_data_3[15:8] : _GEN_61[target_way][15:8],
+         is_wb_overlap_3 & wb_strb_3[0] ? wb_data_3[7:0] : _GEN_61[target_way][7:0]};
+      is_wb_overlap_4 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_31;
+      _mshr_table_line_buffer_4_T =
+        {is_wb_overlap_4 & wb_strb_4[3] ? wb_data_4[31:24] : _GEN_62[target_way][31:24],
+         is_wb_overlap_4 & wb_strb_4[2] ? wb_data_4[23:16] : _GEN_62[target_way][23:16],
+         is_wb_overlap_4 & wb_strb_4[1] ? wb_data_4[15:8] : _GEN_62[target_way][15:8],
+         is_wb_overlap_4 & wb_strb_4[0] ? wb_data_4[7:0] : _GEN_62[target_way][7:0]};
+      is_wb_overlap_5 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_31;
+      _mshr_table_line_buffer_5_T =
+        {is_wb_overlap_5 & wb_strb_5[3] ? wb_data_5[31:24] : _GEN_63[target_way][31:24],
+         is_wb_overlap_5 & wb_strb_5[2] ? wb_data_5[23:16] : _GEN_63[target_way][23:16],
+         is_wb_overlap_5 & wb_strb_5[1] ? wb_data_5[15:8] : _GEN_63[target_way][15:8],
+         is_wb_overlap_5 & wb_strb_5[0] ? wb_data_5[7:0] : _GEN_63[target_way][7:0]};
+      is_wb_overlap_6 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_31;
+      _mshr_table_line_buffer_6_T =
+        {is_wb_overlap_6 & wb_strb_6[3] ? wb_data_6[31:24] : _GEN_64[target_way][31:24],
+         is_wb_overlap_6 & wb_strb_6[2] ? wb_data_6[23:16] : _GEN_64[target_way][23:16],
+         is_wb_overlap_6 & wb_strb_6[1] ? wb_data_6[15:8] : _GEN_64[target_way][15:8],
+         is_wb_overlap_6 & wb_strb_6[0] ? wb_data_6[7:0] : _GEN_64[target_way][7:0]};
+      is_wb_overlap_7 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_31;
+      _mshr_table_line_buffer_7_T =
+        {is_wb_overlap_7 & wb_strb_7[3] ? wb_data_7[31:24] : _GEN_65[target_way][31:24],
+         is_wb_overlap_7 & wb_strb_7[2] ? wb_data_7[23:16] : _GEN_65[target_way][23:16],
+         is_wb_overlap_7 & wb_strb_7[1] ? wb_data_7[15:8] : _GEN_65[target_way][15:8],
+         is_wb_overlap_7 & wb_strb_7[0] ? wb_data_7[7:0] : _GEN_65[target_way][7:0]};
       _GEN_88 = req_cacop_en | cache_hit;
       _GEN_89 =
         {1'h0,
@@ -5699,6 +5787,115 @@ module Cache(
       _GEN_97 = _cacop_hit_inval_done_T_2 & ((|_has_match_T) ? _GEN_80 : _GEN_55);
       _GEN_98 =
         _cacop_hit_inval_done_T_2 & ((|_has_match_T) ? _GEN_84 : (&alloc_mshr_idx));
+      _is_wb_overlap_T_63 = wb_way == target_fill_way;
+      is_wb_overlap_8 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_63;
+      _mshr_table_line_buffer_0_T_1 =
+        {is_wb_overlap_8 & wb_strb_0[3]
+           ? wb_data_0[31:24]
+           : _GEN_58[target_fill_way][31:24],
+         is_wb_overlap_8 & wb_strb_0[2]
+           ? wb_data_0[23:16]
+           : _GEN_58[target_fill_way][23:16],
+         is_wb_overlap_8 & wb_strb_0[1]
+           ? wb_data_0[15:8]
+           : _GEN_58[target_fill_way][15:8],
+         is_wb_overlap_8 & wb_strb_0[0] ? wb_data_0[7:0] : _GEN_58[target_fill_way][7:0]};
+      is_wb_overlap_9 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_63;
+      _mshr_table_line_buffer_1_T_1 =
+        {is_wb_overlap_9 & wb_strb_1[3]
+           ? wb_data_1[31:24]
+           : _GEN_59[target_fill_way][31:24],
+         is_wb_overlap_9 & wb_strb_1[2]
+           ? wb_data_1[23:16]
+           : _GEN_59[target_fill_way][23:16],
+         is_wb_overlap_9 & wb_strb_1[1]
+           ? wb_data_1[15:8]
+           : _GEN_59[target_fill_way][15:8],
+         is_wb_overlap_9 & wb_strb_1[0] ? wb_data_1[7:0] : _GEN_59[target_fill_way][7:0]};
+      is_wb_overlap_10 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_63;
+      _mshr_table_line_buffer_2_T_1 =
+        {is_wb_overlap_10 & wb_strb_2[3]
+           ? wb_data_2[31:24]
+           : _GEN_60[target_fill_way][31:24],
+         is_wb_overlap_10 & wb_strb_2[2]
+           ? wb_data_2[23:16]
+           : _GEN_60[target_fill_way][23:16],
+         is_wb_overlap_10 & wb_strb_2[1]
+           ? wb_data_2[15:8]
+           : _GEN_60[target_fill_way][15:8],
+         is_wb_overlap_10 & wb_strb_2[0]
+           ? wb_data_2[7:0]
+           : _GEN_60[target_fill_way][7:0]};
+      is_wb_overlap_11 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_63;
+      _mshr_table_line_buffer_3_T_1 =
+        {is_wb_overlap_11 & wb_strb_3[3]
+           ? wb_data_3[31:24]
+           : _GEN_61[target_fill_way][31:24],
+         is_wb_overlap_11 & wb_strb_3[2]
+           ? wb_data_3[23:16]
+           : _GEN_61[target_fill_way][23:16],
+         is_wb_overlap_11 & wb_strb_3[1]
+           ? wb_data_3[15:8]
+           : _GEN_61[target_fill_way][15:8],
+         is_wb_overlap_11 & wb_strb_3[0]
+           ? wb_data_3[7:0]
+           : _GEN_61[target_fill_way][7:0]};
+      is_wb_overlap_12 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_63;
+      _mshr_table_line_buffer_4_T_1 =
+        {is_wb_overlap_12 & wb_strb_4[3]
+           ? wb_data_4[31:24]
+           : _GEN_62[target_fill_way][31:24],
+         is_wb_overlap_12 & wb_strb_4[2]
+           ? wb_data_4[23:16]
+           : _GEN_62[target_fill_way][23:16],
+         is_wb_overlap_12 & wb_strb_4[1]
+           ? wb_data_4[15:8]
+           : _GEN_62[target_fill_way][15:8],
+         is_wb_overlap_12 & wb_strb_4[0]
+           ? wb_data_4[7:0]
+           : _GEN_62[target_fill_way][7:0]};
+      is_wb_overlap_13 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_63;
+      _mshr_table_line_buffer_5_T_1 =
+        {is_wb_overlap_13 & wb_strb_5[3]
+           ? wb_data_5[31:24]
+           : _GEN_63[target_fill_way][31:24],
+         is_wb_overlap_13 & wb_strb_5[2]
+           ? wb_data_5[23:16]
+           : _GEN_63[target_fill_way][23:16],
+         is_wb_overlap_13 & wb_strb_5[1]
+           ? wb_data_5[15:8]
+           : _GEN_63[target_fill_way][15:8],
+         is_wb_overlap_13 & wb_strb_5[0]
+           ? wb_data_5[7:0]
+           : _GEN_63[target_fill_way][7:0]};
+      is_wb_overlap_14 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_63;
+      _mshr_table_line_buffer_6_T_1 =
+        {is_wb_overlap_14 & wb_strb_6[3]
+           ? wb_data_6[31:24]
+           : _GEN_64[target_fill_way][31:24],
+         is_wb_overlap_14 & wb_strb_6[2]
+           ? wb_data_6[23:16]
+           : _GEN_64[target_fill_way][23:16],
+         is_wb_overlap_14 & wb_strb_6[1]
+           ? wb_data_6[15:8]
+           : _GEN_64[target_fill_way][15:8],
+         is_wb_overlap_14 & wb_strb_6[0]
+           ? wb_data_6[7:0]
+           : _GEN_64[target_fill_way][7:0]};
+      is_wb_overlap_15 = wb_state & _is_wb_overlap_T_61 & _is_wb_overlap_T_63;
+      _mshr_table_line_buffer_7_T_1 =
+        {is_wb_overlap_15 & wb_strb_7[3]
+           ? wb_data_7[31:24]
+           : _GEN_65[target_fill_way][31:24],
+         is_wb_overlap_15 & wb_strb_7[2]
+           ? wb_data_7[23:16]
+           : _GEN_65[target_fill_way][23:16],
+         is_wb_overlap_15 & wb_strb_7[1]
+           ? wb_data_7[15:8]
+           : _GEN_65[target_fill_way][15:8],
+         is_wb_overlap_15 & wb_strb_7[0]
+           ? wb_data_7[7:0]
+           : _GEN_65[target_fill_way][7:0]};
       _GEN_99 = main_state & cache_hit & req_op & ~req_uncached;
       _GEN_100 = wb_index == 8'h0;
       _GEN_101 = wb_index == 8'h1;
@@ -6259,12 +6456,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_52)
-            mshr_table_0_line_buffer_0 <= _GEN_58[target_way];
+            mshr_table_0_line_buffer_0 <= _mshr_table_line_buffer_0_T;
         end
         else if (_GEN_90) begin
         end
         else
-          mshr_table_0_line_buffer_0 <= _GEN_58[target_fill_way];
+          mshr_table_0_line_buffer_0 <= _mshr_table_line_buffer_0_T_1;
       end
       if (io_axi_ret_valid & _GEN_634 & _GEN_636)
         mshr_table_0_line_buffer_1 <= io_axi_ret_data;
@@ -6273,12 +6470,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_52)
-            mshr_table_0_line_buffer_1 <= _GEN_59[target_way];
+            mshr_table_0_line_buffer_1 <= _mshr_table_line_buffer_1_T;
         end
         else if (_GEN_90) begin
         end
         else
-          mshr_table_0_line_buffer_1 <= _GEN_59[target_fill_way];
+          mshr_table_0_line_buffer_1 <= _mshr_table_line_buffer_1_T_1;
       end
       if (io_axi_ret_valid & _GEN_634 & _GEN_637)
         mshr_table_0_line_buffer_2 <= io_axi_ret_data;
@@ -6287,12 +6484,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_52)
-            mshr_table_0_line_buffer_2 <= _GEN_60[target_way];
+            mshr_table_0_line_buffer_2 <= _mshr_table_line_buffer_2_T;
         end
         else if (_GEN_90) begin
         end
         else
-          mshr_table_0_line_buffer_2 <= _GEN_60[target_fill_way];
+          mshr_table_0_line_buffer_2 <= _mshr_table_line_buffer_2_T_1;
       end
       if (io_axi_ret_valid & _GEN_634 & _GEN_638)
         mshr_table_0_line_buffer_3 <= io_axi_ret_data;
@@ -6301,12 +6498,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_52)
-            mshr_table_0_line_buffer_3 <= _GEN_61[target_way];
+            mshr_table_0_line_buffer_3 <= _mshr_table_line_buffer_3_T;
         end
         else if (_GEN_90) begin
         end
         else
-          mshr_table_0_line_buffer_3 <= _GEN_61[target_fill_way];
+          mshr_table_0_line_buffer_3 <= _mshr_table_line_buffer_3_T_1;
       end
       if (io_axi_ret_valid & _GEN_634 & _GEN_639)
         mshr_table_0_line_buffer_4 <= io_axi_ret_data;
@@ -6315,12 +6512,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_52)
-            mshr_table_0_line_buffer_4 <= _GEN_62[target_way];
+            mshr_table_0_line_buffer_4 <= _mshr_table_line_buffer_4_T;
         end
         else if (_GEN_90) begin
         end
         else
-          mshr_table_0_line_buffer_4 <= _GEN_62[target_fill_way];
+          mshr_table_0_line_buffer_4 <= _mshr_table_line_buffer_4_T_1;
       end
       if (io_axi_ret_valid & _GEN_634 & _GEN_640)
         mshr_table_0_line_buffer_5 <= io_axi_ret_data;
@@ -6329,12 +6526,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_52)
-            mshr_table_0_line_buffer_5 <= _GEN_63[target_way];
+            mshr_table_0_line_buffer_5 <= _mshr_table_line_buffer_5_T;
         end
         else if (_GEN_90) begin
         end
         else
-          mshr_table_0_line_buffer_5 <= _GEN_63[target_fill_way];
+          mshr_table_0_line_buffer_5 <= _mshr_table_line_buffer_5_T_1;
       end
       if (io_axi_ret_valid & _GEN_634 & _GEN_641)
         mshr_table_0_line_buffer_6 <= io_axi_ret_data;
@@ -6343,12 +6540,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_52)
-            mshr_table_0_line_buffer_6 <= _GEN_64[target_way];
+            mshr_table_0_line_buffer_6 <= _mshr_table_line_buffer_6_T;
         end
         else if (_GEN_90) begin
         end
         else
-          mshr_table_0_line_buffer_6 <= _GEN_64[target_fill_way];
+          mshr_table_0_line_buffer_6 <= _mshr_table_line_buffer_6_T_1;
       end
       if (io_axi_ret_valid & _GEN_634 & (&(_GEN_633[2:0])))
         mshr_table_0_line_buffer_7 <= io_axi_ret_data;
@@ -6357,12 +6554,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_52)
-            mshr_table_0_line_buffer_7 <= _GEN_65[target_way];
+            mshr_table_0_line_buffer_7 <= _mshr_table_line_buffer_7_T;
         end
         else if (_GEN_90) begin
         end
         else
-          mshr_table_0_line_buffer_7 <= _GEN_65[target_fill_way];
+          mshr_table_0_line_buffer_7 <= _mshr_table_line_buffer_7_T_1;
       end
       if (io_axi_ret_valid & io_axi_ret_last & _GEN_642)
         mshr_table_1_state <= 3'h4;
@@ -6481,12 +6678,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_54)
-            mshr_table_1_line_buffer_0 <= _GEN_58[target_way];
+            mshr_table_1_line_buffer_0 <= _mshr_table_line_buffer_0_T;
         end
         else if (_GEN_91) begin
         end
         else
-          mshr_table_1_line_buffer_0 <= _GEN_58[target_fill_way];
+          mshr_table_1_line_buffer_0 <= _mshr_table_line_buffer_0_T_1;
       end
       if (io_axi_ret_valid & _GEN_642 & _GEN_636)
         mshr_table_1_line_buffer_1 <= io_axi_ret_data;
@@ -6495,12 +6692,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_54)
-            mshr_table_1_line_buffer_1 <= _GEN_59[target_way];
+            mshr_table_1_line_buffer_1 <= _mshr_table_line_buffer_1_T;
         end
         else if (_GEN_91) begin
         end
         else
-          mshr_table_1_line_buffer_1 <= _GEN_59[target_fill_way];
+          mshr_table_1_line_buffer_1 <= _mshr_table_line_buffer_1_T_1;
       end
       if (io_axi_ret_valid & _GEN_642 & _GEN_637)
         mshr_table_1_line_buffer_2 <= io_axi_ret_data;
@@ -6509,12 +6706,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_54)
-            mshr_table_1_line_buffer_2 <= _GEN_60[target_way];
+            mshr_table_1_line_buffer_2 <= _mshr_table_line_buffer_2_T;
         end
         else if (_GEN_91) begin
         end
         else
-          mshr_table_1_line_buffer_2 <= _GEN_60[target_fill_way];
+          mshr_table_1_line_buffer_2 <= _mshr_table_line_buffer_2_T_1;
       end
       if (io_axi_ret_valid & _GEN_642 & _GEN_638)
         mshr_table_1_line_buffer_3 <= io_axi_ret_data;
@@ -6523,12 +6720,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_54)
-            mshr_table_1_line_buffer_3 <= _GEN_61[target_way];
+            mshr_table_1_line_buffer_3 <= _mshr_table_line_buffer_3_T;
         end
         else if (_GEN_91) begin
         end
         else
-          mshr_table_1_line_buffer_3 <= _GEN_61[target_fill_way];
+          mshr_table_1_line_buffer_3 <= _mshr_table_line_buffer_3_T_1;
       end
       if (io_axi_ret_valid & _GEN_642 & _GEN_639)
         mshr_table_1_line_buffer_4 <= io_axi_ret_data;
@@ -6537,12 +6734,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_54)
-            mshr_table_1_line_buffer_4 <= _GEN_62[target_way];
+            mshr_table_1_line_buffer_4 <= _mshr_table_line_buffer_4_T;
         end
         else if (_GEN_91) begin
         end
         else
-          mshr_table_1_line_buffer_4 <= _GEN_62[target_fill_way];
+          mshr_table_1_line_buffer_4 <= _mshr_table_line_buffer_4_T_1;
       end
       if (io_axi_ret_valid & _GEN_642 & _GEN_640)
         mshr_table_1_line_buffer_5 <= io_axi_ret_data;
@@ -6551,12 +6748,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_54)
-            mshr_table_1_line_buffer_5 <= _GEN_63[target_way];
+            mshr_table_1_line_buffer_5 <= _mshr_table_line_buffer_5_T;
         end
         else if (_GEN_91) begin
         end
         else
-          mshr_table_1_line_buffer_5 <= _GEN_63[target_fill_way];
+          mshr_table_1_line_buffer_5 <= _mshr_table_line_buffer_5_T_1;
       end
       if (io_axi_ret_valid & _GEN_642 & _GEN_641)
         mshr_table_1_line_buffer_6 <= io_axi_ret_data;
@@ -6565,12 +6762,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_54)
-            mshr_table_1_line_buffer_6 <= _GEN_64[target_way];
+            mshr_table_1_line_buffer_6 <= _mshr_table_line_buffer_6_T;
         end
         else if (_GEN_91) begin
         end
         else
-          mshr_table_1_line_buffer_6 <= _GEN_64[target_fill_way];
+          mshr_table_1_line_buffer_6 <= _mshr_table_line_buffer_6_T_1;
       end
       if (io_axi_ret_valid & _GEN_642 & (&(_GEN_633[2:0])))
         mshr_table_1_line_buffer_7 <= io_axi_ret_data;
@@ -6579,12 +6776,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_54)
-            mshr_table_1_line_buffer_7 <= _GEN_65[target_way];
+            mshr_table_1_line_buffer_7 <= _mshr_table_line_buffer_7_T;
         end
         else if (_GEN_91) begin
         end
         else
-          mshr_table_1_line_buffer_7 <= _GEN_65[target_fill_way];
+          mshr_table_1_line_buffer_7 <= _mshr_table_line_buffer_7_T_1;
       end
       if (io_axi_ret_valid & io_axi_ret_last & _GEN_643)
         mshr_table_2_state <= 3'h4;
@@ -6703,12 +6900,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_56)
-            mshr_table_2_line_buffer_0 <= _GEN_58[target_way];
+            mshr_table_2_line_buffer_0 <= _mshr_table_line_buffer_0_T;
         end
         else if (_GEN_92) begin
         end
         else
-          mshr_table_2_line_buffer_0 <= _GEN_58[target_fill_way];
+          mshr_table_2_line_buffer_0 <= _mshr_table_line_buffer_0_T_1;
       end
       if (io_axi_ret_valid & _GEN_643 & _GEN_636)
         mshr_table_2_line_buffer_1 <= io_axi_ret_data;
@@ -6717,12 +6914,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_56)
-            mshr_table_2_line_buffer_1 <= _GEN_59[target_way];
+            mshr_table_2_line_buffer_1 <= _mshr_table_line_buffer_1_T;
         end
         else if (_GEN_92) begin
         end
         else
-          mshr_table_2_line_buffer_1 <= _GEN_59[target_fill_way];
+          mshr_table_2_line_buffer_1 <= _mshr_table_line_buffer_1_T_1;
       end
       if (io_axi_ret_valid & _GEN_643 & _GEN_637)
         mshr_table_2_line_buffer_2 <= io_axi_ret_data;
@@ -6731,12 +6928,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_56)
-            mshr_table_2_line_buffer_2 <= _GEN_60[target_way];
+            mshr_table_2_line_buffer_2 <= _mshr_table_line_buffer_2_T;
         end
         else if (_GEN_92) begin
         end
         else
-          mshr_table_2_line_buffer_2 <= _GEN_60[target_fill_way];
+          mshr_table_2_line_buffer_2 <= _mshr_table_line_buffer_2_T_1;
       end
       if (io_axi_ret_valid & _GEN_643 & _GEN_638)
         mshr_table_2_line_buffer_3 <= io_axi_ret_data;
@@ -6745,12 +6942,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_56)
-            mshr_table_2_line_buffer_3 <= _GEN_61[target_way];
+            mshr_table_2_line_buffer_3 <= _mshr_table_line_buffer_3_T;
         end
         else if (_GEN_92) begin
         end
         else
-          mshr_table_2_line_buffer_3 <= _GEN_61[target_fill_way];
+          mshr_table_2_line_buffer_3 <= _mshr_table_line_buffer_3_T_1;
       end
       if (io_axi_ret_valid & _GEN_643 & _GEN_639)
         mshr_table_2_line_buffer_4 <= io_axi_ret_data;
@@ -6759,12 +6956,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_56)
-            mshr_table_2_line_buffer_4 <= _GEN_62[target_way];
+            mshr_table_2_line_buffer_4 <= _mshr_table_line_buffer_4_T;
         end
         else if (_GEN_92) begin
         end
         else
-          mshr_table_2_line_buffer_4 <= _GEN_62[target_fill_way];
+          mshr_table_2_line_buffer_4 <= _mshr_table_line_buffer_4_T_1;
       end
       if (io_axi_ret_valid & _GEN_643 & _GEN_640)
         mshr_table_2_line_buffer_5 <= io_axi_ret_data;
@@ -6773,12 +6970,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_56)
-            mshr_table_2_line_buffer_5 <= _GEN_63[target_way];
+            mshr_table_2_line_buffer_5 <= _mshr_table_line_buffer_5_T;
         end
         else if (_GEN_92) begin
         end
         else
-          mshr_table_2_line_buffer_5 <= _GEN_63[target_fill_way];
+          mshr_table_2_line_buffer_5 <= _mshr_table_line_buffer_5_T_1;
       end
       if (io_axi_ret_valid & _GEN_643 & _GEN_641)
         mshr_table_2_line_buffer_6 <= io_axi_ret_data;
@@ -6787,12 +6984,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_56)
-            mshr_table_2_line_buffer_6 <= _GEN_64[target_way];
+            mshr_table_2_line_buffer_6 <= _mshr_table_line_buffer_6_T;
         end
         else if (_GEN_92) begin
         end
         else
-          mshr_table_2_line_buffer_6 <= _GEN_64[target_fill_way];
+          mshr_table_2_line_buffer_6 <= _mshr_table_line_buffer_6_T_1;
       end
       if (io_axi_ret_valid & _GEN_643 & (&(_GEN_633[2:0])))
         mshr_table_2_line_buffer_7 <= io_axi_ret_data;
@@ -6801,12 +6998,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_56)
-            mshr_table_2_line_buffer_7 <= _GEN_65[target_way];
+            mshr_table_2_line_buffer_7 <= _mshr_table_line_buffer_7_T;
         end
         else if (_GEN_92) begin
         end
         else
-          mshr_table_2_line_buffer_7 <= _GEN_65[target_fill_way];
+          mshr_table_2_line_buffer_7 <= _mshr_table_line_buffer_7_T_1;
       end
       if (io_axi_ret_valid & io_axi_ret_last & (&(io_axi_ret_id[1:0])))
         mshr_table_3_state <= 3'h4;
@@ -6925,12 +7122,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_57)
-            mshr_table_3_line_buffer_0 <= _GEN_58[target_way];
+            mshr_table_3_line_buffer_0 <= _mshr_table_line_buffer_0_T;
         end
         else if (_GEN_93) begin
         end
         else
-          mshr_table_3_line_buffer_0 <= _GEN_58[target_fill_way];
+          mshr_table_3_line_buffer_0 <= _mshr_table_line_buffer_0_T_1;
       end
       if (io_axi_ret_valid & (&(io_axi_ret_id[1:0])) & _GEN_636)
         mshr_table_3_line_buffer_1 <= io_axi_ret_data;
@@ -6939,12 +7136,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_57)
-            mshr_table_3_line_buffer_1 <= _GEN_59[target_way];
+            mshr_table_3_line_buffer_1 <= _mshr_table_line_buffer_1_T;
         end
         else if (_GEN_93) begin
         end
         else
-          mshr_table_3_line_buffer_1 <= _GEN_59[target_fill_way];
+          mshr_table_3_line_buffer_1 <= _mshr_table_line_buffer_1_T_1;
       end
       if (io_axi_ret_valid & (&(io_axi_ret_id[1:0])) & _GEN_637)
         mshr_table_3_line_buffer_2 <= io_axi_ret_data;
@@ -6953,12 +7150,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_57)
-            mshr_table_3_line_buffer_2 <= _GEN_60[target_way];
+            mshr_table_3_line_buffer_2 <= _mshr_table_line_buffer_2_T;
         end
         else if (_GEN_93) begin
         end
         else
-          mshr_table_3_line_buffer_2 <= _GEN_60[target_fill_way];
+          mshr_table_3_line_buffer_2 <= _mshr_table_line_buffer_2_T_1;
       end
       if (io_axi_ret_valid & (&(io_axi_ret_id[1:0])) & _GEN_638)
         mshr_table_3_line_buffer_3 <= io_axi_ret_data;
@@ -6967,12 +7164,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_57)
-            mshr_table_3_line_buffer_3 <= _GEN_61[target_way];
+            mshr_table_3_line_buffer_3 <= _mshr_table_line_buffer_3_T;
         end
         else if (_GEN_93) begin
         end
         else
-          mshr_table_3_line_buffer_3 <= _GEN_61[target_fill_way];
+          mshr_table_3_line_buffer_3 <= _mshr_table_line_buffer_3_T_1;
       end
       if (io_axi_ret_valid & (&(io_axi_ret_id[1:0])) & _GEN_639)
         mshr_table_3_line_buffer_4 <= io_axi_ret_data;
@@ -6981,12 +7178,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_57)
-            mshr_table_3_line_buffer_4 <= _GEN_62[target_way];
+            mshr_table_3_line_buffer_4 <= _mshr_table_line_buffer_4_T;
         end
         else if (_GEN_93) begin
         end
         else
-          mshr_table_3_line_buffer_4 <= _GEN_62[target_fill_way];
+          mshr_table_3_line_buffer_4 <= _mshr_table_line_buffer_4_T_1;
       end
       if (io_axi_ret_valid & (&(io_axi_ret_id[1:0])) & _GEN_640)
         mshr_table_3_line_buffer_5 <= io_axi_ret_data;
@@ -6995,12 +7192,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_57)
-            mshr_table_3_line_buffer_5 <= _GEN_63[target_way];
+            mshr_table_3_line_buffer_5 <= _mshr_table_line_buffer_5_T;
         end
         else if (_GEN_93) begin
         end
         else
-          mshr_table_3_line_buffer_5 <= _GEN_63[target_fill_way];
+          mshr_table_3_line_buffer_5 <= _mshr_table_line_buffer_5_T_1;
       end
       if (io_axi_ret_valid & (&(io_axi_ret_id[1:0])) & _GEN_641)
         mshr_table_3_line_buffer_6 <= io_axi_ret_data;
@@ -7009,12 +7206,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_57)
-            mshr_table_3_line_buffer_6 <= _GEN_64[target_way];
+            mshr_table_3_line_buffer_6 <= _mshr_table_line_buffer_6_T;
         end
         else if (_GEN_93) begin
         end
         else
-          mshr_table_3_line_buffer_6 <= _GEN_64[target_fill_way];
+          mshr_table_3_line_buffer_6 <= _mshr_table_line_buffer_6_T_1;
       end
       if (io_axi_ret_valid & (&(io_axi_ret_id[1:0])) & (&(_GEN_633[2:0])))
         mshr_table_3_line_buffer_7 <= io_axi_ret_data;
@@ -7023,12 +7220,12 @@ module Cache(
       else if (main_state) begin
         if (req_cacop_en) begin
           if (_GEN_57)
-            mshr_table_3_line_buffer_7 <= _GEN_65[target_way];
+            mshr_table_3_line_buffer_7 <= _mshr_table_line_buffer_7_T;
         end
         else if (_GEN_93) begin
         end
         else
-          mshr_table_3_line_buffer_7 <= _GEN_65[target_fill_way];
+          mshr_table_3_line_buffer_7 <= _mshr_table_line_buffer_7_T_1;
       end
       main_state <=
         main_state
@@ -11704,25 +11901,25 @@ module Cache(
         mshr_table_0_index = 8'h0;
         mshr_table_0_way = 2'h0;
         mshr_table_0_sub_entries_0_valid = 1'h0;
-        mshr_table_0_sub_entries_0_req_id = 8'h0;
+        mshr_table_0_sub_entries_0_req_id = 9'h0;
         mshr_table_0_sub_entries_0_op = 1'h0;
         mshr_table_0_sub_entries_0_offset = 5'h0;
         mshr_table_0_sub_entries_0_wstrb = 4'h0;
         mshr_table_0_sub_entries_0_wdata = 32'h0;
         mshr_table_0_sub_entries_1_valid = 1'h0;
-        mshr_table_0_sub_entries_1_req_id = 8'h0;
+        mshr_table_0_sub_entries_1_req_id = 9'h0;
         mshr_table_0_sub_entries_1_op = 1'h0;
         mshr_table_0_sub_entries_1_offset = 5'h0;
         mshr_table_0_sub_entries_1_wstrb = 4'h0;
         mshr_table_0_sub_entries_1_wdata = 32'h0;
         mshr_table_0_sub_entries_2_valid = 1'h0;
-        mshr_table_0_sub_entries_2_req_id = 8'h0;
+        mshr_table_0_sub_entries_2_req_id = 9'h0;
         mshr_table_0_sub_entries_2_op = 1'h0;
         mshr_table_0_sub_entries_2_offset = 5'h0;
         mshr_table_0_sub_entries_2_wstrb = 4'h0;
         mshr_table_0_sub_entries_2_wdata = 32'h0;
         mshr_table_0_sub_entries_3_valid = 1'h0;
-        mshr_table_0_sub_entries_3_req_id = 8'h0;
+        mshr_table_0_sub_entries_3_req_id = 9'h0;
         mshr_table_0_sub_entries_3_op = 1'h0;
         mshr_table_0_sub_entries_3_offset = 5'h0;
         mshr_table_0_sub_entries_3_wstrb = 4'h0;
@@ -11744,25 +11941,25 @@ module Cache(
         mshr_table_1_index = 8'h0;
         mshr_table_1_way = 2'h0;
         mshr_table_1_sub_entries_0_valid = 1'h0;
-        mshr_table_1_sub_entries_0_req_id = 8'h0;
+        mshr_table_1_sub_entries_0_req_id = 9'h0;
         mshr_table_1_sub_entries_0_op = 1'h0;
         mshr_table_1_sub_entries_0_offset = 5'h0;
         mshr_table_1_sub_entries_0_wstrb = 4'h0;
         mshr_table_1_sub_entries_0_wdata = 32'h0;
         mshr_table_1_sub_entries_1_valid = 1'h0;
-        mshr_table_1_sub_entries_1_req_id = 8'h0;
+        mshr_table_1_sub_entries_1_req_id = 9'h0;
         mshr_table_1_sub_entries_1_op = 1'h0;
         mshr_table_1_sub_entries_1_offset = 5'h0;
         mshr_table_1_sub_entries_1_wstrb = 4'h0;
         mshr_table_1_sub_entries_1_wdata = 32'h0;
         mshr_table_1_sub_entries_2_valid = 1'h0;
-        mshr_table_1_sub_entries_2_req_id = 8'h0;
+        mshr_table_1_sub_entries_2_req_id = 9'h0;
         mshr_table_1_sub_entries_2_op = 1'h0;
         mshr_table_1_sub_entries_2_offset = 5'h0;
         mshr_table_1_sub_entries_2_wstrb = 4'h0;
         mshr_table_1_sub_entries_2_wdata = 32'h0;
         mshr_table_1_sub_entries_3_valid = 1'h0;
-        mshr_table_1_sub_entries_3_req_id = 8'h0;
+        mshr_table_1_sub_entries_3_req_id = 9'h0;
         mshr_table_1_sub_entries_3_op = 1'h0;
         mshr_table_1_sub_entries_3_offset = 5'h0;
         mshr_table_1_sub_entries_3_wstrb = 4'h0;
@@ -11784,25 +11981,25 @@ module Cache(
         mshr_table_2_index = 8'h0;
         mshr_table_2_way = 2'h0;
         mshr_table_2_sub_entries_0_valid = 1'h0;
-        mshr_table_2_sub_entries_0_req_id = 8'h0;
+        mshr_table_2_sub_entries_0_req_id = 9'h0;
         mshr_table_2_sub_entries_0_op = 1'h0;
         mshr_table_2_sub_entries_0_offset = 5'h0;
         mshr_table_2_sub_entries_0_wstrb = 4'h0;
         mshr_table_2_sub_entries_0_wdata = 32'h0;
         mshr_table_2_sub_entries_1_valid = 1'h0;
-        mshr_table_2_sub_entries_1_req_id = 8'h0;
+        mshr_table_2_sub_entries_1_req_id = 9'h0;
         mshr_table_2_sub_entries_1_op = 1'h0;
         mshr_table_2_sub_entries_1_offset = 5'h0;
         mshr_table_2_sub_entries_1_wstrb = 4'h0;
         mshr_table_2_sub_entries_1_wdata = 32'h0;
         mshr_table_2_sub_entries_2_valid = 1'h0;
-        mshr_table_2_sub_entries_2_req_id = 8'h0;
+        mshr_table_2_sub_entries_2_req_id = 9'h0;
         mshr_table_2_sub_entries_2_op = 1'h0;
         mshr_table_2_sub_entries_2_offset = 5'h0;
         mshr_table_2_sub_entries_2_wstrb = 4'h0;
         mshr_table_2_sub_entries_2_wdata = 32'h0;
         mshr_table_2_sub_entries_3_valid = 1'h0;
-        mshr_table_2_sub_entries_3_req_id = 8'h0;
+        mshr_table_2_sub_entries_3_req_id = 9'h0;
         mshr_table_2_sub_entries_3_op = 1'h0;
         mshr_table_2_sub_entries_3_offset = 5'h0;
         mshr_table_2_sub_entries_3_wstrb = 4'h0;
@@ -11824,25 +12021,25 @@ module Cache(
         mshr_table_3_index = 8'h0;
         mshr_table_3_way = 2'h0;
         mshr_table_3_sub_entries_0_valid = 1'h0;
-        mshr_table_3_sub_entries_0_req_id = 8'h0;
+        mshr_table_3_sub_entries_0_req_id = 9'h0;
         mshr_table_3_sub_entries_0_op = 1'h0;
         mshr_table_3_sub_entries_0_offset = 5'h0;
         mshr_table_3_sub_entries_0_wstrb = 4'h0;
         mshr_table_3_sub_entries_0_wdata = 32'h0;
         mshr_table_3_sub_entries_1_valid = 1'h0;
-        mshr_table_3_sub_entries_1_req_id = 8'h0;
+        mshr_table_3_sub_entries_1_req_id = 9'h0;
         mshr_table_3_sub_entries_1_op = 1'h0;
         mshr_table_3_sub_entries_1_offset = 5'h0;
         mshr_table_3_sub_entries_1_wstrb = 4'h0;
         mshr_table_3_sub_entries_1_wdata = 32'h0;
         mshr_table_3_sub_entries_2_valid = 1'h0;
-        mshr_table_3_sub_entries_2_req_id = 8'h0;
+        mshr_table_3_sub_entries_2_req_id = 9'h0;
         mshr_table_3_sub_entries_2_op = 1'h0;
         mshr_table_3_sub_entries_2_offset = 5'h0;
         mshr_table_3_sub_entries_2_wstrb = 4'h0;
         mshr_table_3_sub_entries_2_wdata = 32'h0;
         mshr_table_3_sub_entries_3_valid = 1'h0;
-        mshr_table_3_sub_entries_3_req_id = 8'h0;
+        mshr_table_3_sub_entries_3_req_id = 9'h0;
         mshr_table_3_sub_entries_3_op = 1'h0;
         mshr_table_3_sub_entries_3_offset = 5'h0;
         mshr_table_3_sub_entries_3_wstrb = 4'h0;
@@ -12884,7 +13081,7 @@ module Cache(
         dirty_array_3_254 = 1'h0;
         dirty_array_3_255 = 1'h0;
         req_op = 1'h0;
-        req_req_id = 8'h0;
+        req_req_id = 9'h0;
         req_index = 8'h0;
         req_tag = 19'h0;
         req_offset = 5'h0;

@@ -1,3 +1,25 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:wb_flush
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: wb_flush
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/ctrl/io/wb_flush.
+	 -chisel3/ctrl/io/wb_flush#
+	 -chisel3/ctrl/io/wb_flush().
+	 -chisel3/util/ctrl/io/wb_flush.
+	 -chisel3/util/ctrl/io/wb_flush#
+	 -chisel3/util/ctrl/io/wb_flush().
+	 -ctrl/io/wb_flush.
+	 -ctrl/io/wb_flush#
+	 -ctrl/io/wb_flush().
+	 -scala/Predef.ctrl.io.wb_flush.
+	 -scala/Predef.ctrl.io.wb_flush#
+	 -scala/Predef.ctrl.io.wb_flush().
+offset: 6152
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -140,6 +162,7 @@ class core_top extends RawModule {
         id_stage.io.in <> fetch_buffer.io.out
 
         // ---------------- ID -> Rename -> IQ/ROB ----------------
+        // ★ 核心替换：使用维持保序的统一 DispatchBuffer，彻底替换错误的独立队列！
         val id_flush = reset_high.asBool || ctrl.io.flush_id
         val disp_buf = Module(new DispatchBuffer())
         disp_buf.io.flush := id_flush
@@ -150,24 +173,14 @@ class core_top extends RawModule {
         val d0 = disp_buf.io.out0.bits
         val d1 = disp_buf.io.out1.bits
 
-        // =================================================================
-        // ★ 终极修复：延长一拍的时序隔离墙！
-        // Rename 模块为了优化时序，把分支恢复延迟了一拍 (delayed_is_mispredict)。
-        // 因此，Dispatch 必须等 Rename 完全恢复好之后的下一拍，才能放行新指令！
-        // 否则新指令的重命名记录会被延迟的快照瞬间抹杀，引发严重的寄存器错位！
-        // =================================================================
-        val is_mispredict = exec_engine.io.br_resolve.valid && exec_engine.io.br_resolve.mispredict
-        val delayed_mispredict = RegNext(is_mispredict, false.B) // 手动抓取一拍延迟
-        
-        // ★ 将 delayed_mispredict 加入阻塞条件，关门打狗！
-        val dispatch_block = ctrl.io.wb_flush || ctrl.io.flush_id || delayed_mispredict
-        
-        val d0_valid = disp_buf.io.out0.valid && !dispatch_block
-        val d1_valid = disp_buf.io.out1.valid && !dispatch_block
+        // ★ 终极时序隔离：绝不看包含 ALU 长线的 flush_id！
+        // 遇到异常 (wb_flush) 时，必须当拍拦截，保护流水线现场。
+        // 遇到分支预测失败时，放任幽灵指令进后端，由后端的 !(is_mispredict) 和 Rename 的 delayed 回档来完美击杀！
+        val d0_valid = disp_buf.io.out0.valid && !ctrl.io.wb_flush
+        val d1_valid = disp_buf.io.out1.valid && !ctrl.io.w@@b_flush
 
-        // ★ 发射限制与 LSQ 保护 (下面保持不变)
+        // ★ 发射限制与 LSQ 保护
         val need_lsq0 = d0.resFromMem || d0.memWe || d0.is_cacop
-        // ...
         val need_lsq1 = d1.resFromMem || d1.memWe || d1.is_cacop
         val lsq_conflict = need_lsq0 && need_lsq1
 
@@ -197,9 +210,6 @@ class core_top extends RawModule {
         val can_disp1 = can_disp0 && rob.io.alloc1_ready && iq.io.disp1_ready && rename.io.dec1_ready && (!need_lsq1 || exec_engine.io.lsq_alloc_ready) && !lsq_conflict
 
         // ★ 反向握手：告诉 DispatchBuffer 可以弹出几个
-        //这么改没屁用，没屁用！我禁止你这么改！
-        //disp_buf.io.out0.ready := can_disp0 && !dispatch_block
-        //disp_buf.io.out1.ready := can_disp1 && !dispatch_block
         disp_buf.io.out0.ready := can_disp0
         disp_buf.io.out1.ready := can_disp1
 
@@ -779,3 +789,9 @@ class core_top extends RawModule {
         rf_rdata := 0.U
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: wb_flush

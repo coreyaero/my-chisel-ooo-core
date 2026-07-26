@@ -174,6 +174,8 @@ class LSQ extends Module {
     val violation_reg = RegInit(false.B)
     val violation_rob = RegInit(0.U(Config.robPtrWidth.W))
     val violation_pc  = RegInit(0.U(32.W))
+    // ★ 新增：记录是 LSQ 的哪一个位置惹的祸
+    val violation_lsq = RegInit(0.U(4.W))
 
     // 1. 仅当拍写入信息 (剥离了庞大的 CAM 逻辑，让它极速完成)
     when(io.agu_in_valid && entries(io.agu_in_lsqIdx).valid) {
@@ -211,7 +213,7 @@ class LSQ extends Module {
         // 使用打过一拍的 check_paddr 进行地址行比对，彻底斩断上游的 34 级逻辑链！
         val addr_conflict = e.addr_valid && (e.paddr(31,2) === check_paddr(31,2))
         
-        when(check_valid && e.valid && e.is_load && e.executed && is_younger && addr_conflict) {
+        when(check_valid && e.valid && e.is_load && e.executed && !e.committed && is_younger && addr_conflict) {
             v_vec(i) := true.B
         }
     }
@@ -224,11 +226,18 @@ class LSQ extends Module {
         violation_reg := true.B
         violation_rob := entries(v_idx).rob_idx
         violation_pc  := entries(v_idx).pc
+        violation_lsq := v_idx // ★ 记下肇事者的 LSQ 编号
     }
     
     io.lsq_violation_valid := violation_reg
     io.lsq_violation_rob   := violation_rob
     io.lsq_violation_pc    := violation_pc
+
+    // ★ 核心破咒逻辑：找个空白处（或者直接放在上面这段后面）加上这段代码：
+    // 如果肇事者在 LSQ 里被分支预测杀死了（valid 变成了 0），立刻解除全线警报！
+    when(violation_reg && !entries(violation_lsq).valid) {
+        violation_reg := false.B
+    }
 
     // ==========================================
     // 4. 接收 ROB 提交信号
@@ -470,11 +479,19 @@ class LSQ extends Module {
 
     // ---------------- 队头出队 ----------------
     val head_entry = entries(head)
-    // ★ 退役条件更严谨：必须 committed，且如果是 Load，必须确保它已经成功塞进写回队列了！
+    
+    // 正常指令的退役条件 (必须有效，且完成执行，且被 ROB 提交)
     val head_is_done = head_entry.executed || head_entry.has_exc
-    val head_can_pop = !is_empty && head_entry.valid && head_is_done && head_entry.committed && (!head_entry.is_load || head_entry.wb_sent)
+    val normal_can_pop = head_entry.valid && head_is_done && head_entry.committed && (!head_entry.is_load || head_entry.wb_sent)
+    
+    // ★ 终极防死锁修复：如果队头是一具已经被分支预测杀死的尸体（valid == 0），必须无条件直接弹出！
+    val ghost_can_pop = !head_entry.valid
+
+    // 只要是非空状态，无论是正常提交还是清理尸体，都允许出队！
+    val head_can_pop = !is_empty && (normal_can_pop || ghost_can_pop)
+    
     when(head_can_pop) {
-        entries(head).valid := false.B
+        entries(head).valid := false.B // 虽然 ghost 已经是 false，再写一次也没关系
         head := head + 1.U
         is_full := false.B
     }

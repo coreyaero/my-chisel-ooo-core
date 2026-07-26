@@ -282,9 +282,13 @@ class ROB extends Module {
     }
     when(io.lsq_violation_valid) {
         val v_idx = io.lsq_violation_rob
-        entries(v_idx).has_exc  := true.B
-        entries(v_idx).ecode    := "h3E".U
-        entries(v_idx).exc_addr := io.lsq_violation_pc 
+        // ★ 核心防线：必须核对 DNA (PC)！且该表项必须有效！
+        // 绝不接受“前朝”的 LSQ 违例感染当前的无辜指令！
+        when(entries(v_idx).valid && entries(v_idx).pc === io.lsq_violation_pc) {
+            entries(v_idx).has_exc  := true.B
+            entries(v_idx).ecode    := "h3E".U
+            entries(v_idx).exc_addr := io.lsq_violation_pc 
+        }
     }
     // ==========================================
     // ★ 队头按序双提交 (Dual Commit) 与极限闪避
