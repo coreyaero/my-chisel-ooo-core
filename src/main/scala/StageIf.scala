@@ -263,12 +263,13 @@ class StageIF extends Module {
                         Mux(is_ret0,  ras_val_tos_minus_2, 
                                       ras_val_tos_minus_1))
 
-    val pred_target0 = Mux(is_ret0, ras_pop_addr0, payload0.target)
-    val pred_type0   = payload0.bpu_type
+    // ★ 防毒面具：未命中时强制清零，绝不让 Mem 的 X 态流出！
+    val pred_target0 = Mux(hit0, Mux(is_ret0, ras_pop_addr0, payload0.target), 0.U(32.W))
+    val pred_type0   = Mux(hit0, payload0.bpu_type, BpuType.UNCOND) // 未命中当做非条件分支，绝不触发 GHR 移位
 
     val pred_taken1  = Mux(is_cond1, bht_out1(1), hit1) && !pred_taken0
-    val pred_target1 = Mux(is_ret1, ras_pop_addr1, payload1.target)
-    val pred_type1   = payload1.bpu_type
+    val pred_target1 = Mux(hit1, Mux(is_ret1, ras_pop_addr1, payload1.target), 0.U(32.W))
+    val pred_type1   = Mux(hit1, payload1.bpu_type, BpuType.UNCOND)
 
     val next_pc_base = pc_reg + pc_step
     val btb_target_pc = Mux(pred_taken0, pred_target0, Mux(pred_taken1, pred_target1, next_pc_base))
@@ -457,6 +458,10 @@ class StageIF extends Module {
     out0_data.ghr          := meta.ghr
     out0_data.ras_tos      := meta.ras_tos
 
+    // ★ 修复：如果 inst0 是条件分支，计算它移位后的新 GHR
+    val ghr_after_0 = Mux(meta.pred_type0 === BpuType.COND, 
+                          Cat(meta.ghr(8, 0), meta.pred_taken0), 
+                          meta.ghr)
     val out1_data = WireDefault(0.U.asTypeOf(new PipelineData()))
     out1_data.pc           := (meta.pc + 4.U)(31, 0)
     out1_data.inst         := final_rdata(63, 32) 
@@ -465,7 +470,8 @@ class StageIF extends Module {
     out1_data.pred_taken   := meta.pred_taken1
     out1_data.pred_target  := meta.pred_target1
     out1_data.bpu_type     := meta.pred_type1
-    out1_data.ghr          := meta.ghr
+    // ★ 让 inst1 使用接力后的 GHR，杜绝历史污染！
+    out1_data.ghr          := ghr_after_0
     out1_data.ras_tos      := meta.ras_tos1
 
     io.out0.valid := if2_fire

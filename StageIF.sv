@@ -76,6 +76,7 @@ module StageIF(
   wire               _meta_queue_io_deq_bits_has_exc;
   wire [5:0]         _meta_queue_io_deq_bits_ecode;
   wire               _meta_queue_io_deq_bits_pred_taken0;
+  wire [1:0]         _meta_queue_io_deq_bits_pred_type0;
   wire [9:0]         _meta_queue_io_deq_bits_ghr;
   wire [7:0]         _meta_queue_io_deq_bits_ticket;
   wire [1:0]         _bht_ext_R0_data;
@@ -109,7 +110,7 @@ module StageIF(
   wire               exc_ppi_if =
     _exc_ppi_if_T & io_tlb_s0_v & (&io_mmu_config_crmd_plv) & io_tlb_s0_plv == 2'h0;
   wire               mmu_exc_now = exc_tlb_refill_if | exc_pif | exc_ppi_if;
-  wire               is_cross_line = (&(pc_reg[3:2])) | io_inst_uncached_0;
+  wire               is_cross_line = (&(pc_reg[4:2])) | io_inst_uncached_0;
   reg                btb_valid_0;
   reg                btb_valid_1;
   reg                btb_valid_2;
@@ -3243,15 +3244,19 @@ module StageIF(
      {ras_1},
      {ras_0}};
   wire [31:0]        pred_target0 =
-    is_ret0 ? _GEN_3[_ras_val_tos_minus_1_T] : _btb_payload_ext_R1_data[33:2];
+    hit0
+      ? (is_ret0 ? _GEN_3[_ras_val_tos_minus_1_T] : _btb_payload_ext_R1_data[33:2])
+      : 32'h0;
   wire               pred_taken1 =
     (is_cond1 ? _GEN_1[hash1] & _bht_ext_R1_data[1] : hit1) & ~pred_taken0;
   wire [31:0]        pred_target1 =
-    is_ret1
-      ? (is_call0
-           ? _call_ret_pc0_T
-           : is_ret0 ? _GEN_3[tos - 4'h2] : _GEN_3[_ras_val_tos_minus_1_T])
-      : _btb_payload_ext_R0_data[33:2];
+    hit1
+      ? (is_ret1
+           ? (is_call0
+                ? _call_ret_pc0_T
+                : is_ret0 ? _GEN_3[tos - 4'h2] : _GEN_3[_ras_val_tos_minus_1_T])
+           : _btb_payload_ext_R0_data[33:2])
+      : 32'h0;
   reg  [63:0]        rdata_table_0;
   reg  [63:0]        rdata_table_1;
   reg  [63:0]        rdata_table_2;
@@ -15902,10 +15907,10 @@ module StageIF(
       (exc_tlb_refill_if ? 6'h3F : exc_pif ? 6'h3 : exc_ppi_if ? 6'h7 : 6'h0),
     .io_enq_bits_pred_taken0  (pred_taken0),
     .io_enq_bits_pred_target0 (pred_target0),
-    .io_enq_bits_pred_type0   (_btb_payload_ext_R1_data[1:0]),
+    .io_enq_bits_pred_type0   (hit0 ? _btb_payload_ext_R1_data[1:0] : 2'h1),
     .io_enq_bits_pred_taken1  (pred_taken1),
     .io_enq_bits_pred_target1 (pred_target1),
-    .io_enq_bits_pred_type1   (_btb_payload_ext_R0_data[1:0]),
+    .io_enq_bits_pred_type1   (hit1 ? _btb_payload_ext_R0_data[1:0] : 2'h1),
     .io_enq_bits_ghr          (ghr),
     .io_enq_bits_ras_tos      (tos),
     .io_enq_bits_ras_tos1     (tos_after_0),
@@ -15918,7 +15923,7 @@ module StageIF(
     .io_deq_bits_ecode        (_meta_queue_io_deq_bits_ecode),
     .io_deq_bits_pred_taken0  (_meta_queue_io_deq_bits_pred_taken0),
     .io_deq_bits_pred_target0 (io_out0_bits_pred_target),
-    .io_deq_bits_pred_type0   (io_out0_bits_bpu_type),
+    .io_deq_bits_pred_type0   (_meta_queue_io_deq_bits_pred_type0),
     .io_deq_bits_pred_taken1  (io_out1_bits_pred_taken),
     .io_deq_bits_pred_target1 (io_out1_bits_pred_target),
     .io_deq_bits_pred_type1   (io_out1_bits_bpu_type),
@@ -15935,6 +15940,7 @@ module StageIF(
   assign io_out0_bits_ecode =
     (|(_meta_queue_io_deq_bits_pc[1:0])) ? 6'h8 : _meta_queue_io_deq_bits_ecode;
   assign io_out0_bits_pred_taken = _meta_queue_io_deq_bits_pred_taken0;
+  assign io_out0_bits_bpu_type = _meta_queue_io_deq_bits_pred_type0;
   assign io_out0_bits_ghr = _meta_queue_io_deq_bits_ghr;
   assign io_out1_valid =
     if2_fire & ~_meta_queue_io_deq_bits_is_cross & ~_meta_queue_io_deq_bits_pred_taken0;
@@ -15944,7 +15950,10 @@ module StageIF(
     |{_meta_queue_io_deq_bits_has_exc, _out1_data_pc_T[1:0]};
   assign io_out1_bits_ecode =
     (|(_out1_data_pc_T[1:0])) ? 6'h8 : _meta_queue_io_deq_bits_ecode;
-  assign io_out1_bits_ghr = _meta_queue_io_deq_bits_ghr;
+  assign io_out1_bits_ghr =
+    _meta_queue_io_deq_bits_pred_type0 == 2'h0
+      ? {_meta_queue_io_deq_bits_ghr[8:0], _meta_queue_io_deq_bits_pred_taken0}
+      : _meta_queue_io_deq_bits_ghr;
   assign io_inst_sram_req = can_req;
   assign io_inst_sram_addr =
     (|(pc_reg[1:0])) | mmu_exc_now

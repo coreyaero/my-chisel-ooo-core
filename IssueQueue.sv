@@ -1506,22 +1506,22 @@ module IssueQueue(
      _alu0_idx_T_3[2] | _alu0_idx_T_3[0]};
   wire [15:0]       _alu1_cands_T = ~alu0_oh;
   wire [15:0]       _alu1_cands_T_3 =
-    ~{iq_15_data_is_branch | iq_15_data_isCsr,
-      iq_14_data_is_branch | iq_14_data_isCsr,
-      iq_13_data_is_branch | iq_13_data_isCsr,
-      iq_12_data_is_branch | iq_12_data_isCsr,
-      iq_11_data_is_branch | iq_11_data_isCsr,
-      iq_10_data_is_branch | iq_10_data_isCsr,
-      iq_9_data_is_branch | iq_9_data_isCsr,
-      iq_8_data_is_branch | iq_8_data_isCsr,
-      iq_7_data_is_branch | iq_7_data_isCsr,
-      iq_6_data_is_branch | iq_6_data_isCsr,
-      iq_5_data_is_branch | iq_5_data_isCsr,
-      iq_4_data_is_branch | iq_4_data_isCsr,
-      iq_3_data_is_branch | iq_3_data_isCsr,
-      iq_2_data_is_branch | iq_2_data_isCsr,
-      iq_1_data_is_branch | iq_1_data_isCsr,
-      iq_0_data_is_branch | iq_0_data_isCsr};
+    ~{iq_15_data_is_branch | iq_15_data_isCsr | iq_15_data_rdtimel | iq_15_data_rdtimeh,
+      iq_14_data_is_branch | iq_14_data_isCsr | iq_14_data_rdtimel | iq_14_data_rdtimeh,
+      iq_13_data_is_branch | iq_13_data_isCsr | iq_13_data_rdtimel | iq_13_data_rdtimeh,
+      iq_12_data_is_branch | iq_12_data_isCsr | iq_12_data_rdtimel | iq_12_data_rdtimeh,
+      iq_11_data_is_branch | iq_11_data_isCsr | iq_11_data_rdtimel | iq_11_data_rdtimeh,
+      iq_10_data_is_branch | iq_10_data_isCsr | iq_10_data_rdtimel | iq_10_data_rdtimeh,
+      iq_9_data_is_branch | iq_9_data_isCsr | iq_9_data_rdtimel | iq_9_data_rdtimeh,
+      iq_8_data_is_branch | iq_8_data_isCsr | iq_8_data_rdtimel | iq_8_data_rdtimeh,
+      iq_7_data_is_branch | iq_7_data_isCsr | iq_7_data_rdtimel | iq_7_data_rdtimeh,
+      iq_6_data_is_branch | iq_6_data_isCsr | iq_6_data_rdtimel | iq_6_data_rdtimeh,
+      iq_5_data_is_branch | iq_5_data_isCsr | iq_5_data_rdtimel | iq_5_data_rdtimeh,
+      iq_4_data_is_branch | iq_4_data_isCsr | iq_4_data_rdtimel | iq_4_data_rdtimeh,
+      iq_3_data_is_branch | iq_3_data_isCsr | iq_3_data_rdtimel | iq_3_data_rdtimeh,
+      iq_2_data_is_branch | iq_2_data_isCsr | iq_2_data_rdtimel | iq_2_data_rdtimeh,
+      iq_1_data_is_branch | iq_1_data_isCsr | iq_1_data_rdtimel | iq_1_data_rdtimeh,
+      iq_0_data_is_branch | iq_0_data_isCsr | iq_0_data_rdtimel | iq_0_data_rdtimeh};
   wire [15:0]       alu1_cands = alu_all_cands & _alu1_cands_T & _alu1_cands_T_3;
   wire [3:0]        alu1_idx =
     _GEN_15 & _alu_all_cands_T_4[0] & _alu1_cands_T[0] & _alu1_cands_T_3[0]

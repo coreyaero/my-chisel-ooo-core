@@ -163,7 +163,7 @@ class IssueQueue extends Module {
         
         is_mdu_vec(i) := d.resFromMulDiv
         is_agu_vec(i) := d.resFromMem || d.memWe || d.is_cacop || (d.tlbOp =/= TlbOp.NOP)
-        is_br_csr(i)  := d.is_branch || d.isCsr
+        is_br_csr(i)  := d.is_branch || d.isCsr || d.rdtimel || d.rdtimeh
 
         // ★ 终极解耦：IQ 的当拍仲裁，绝对不看当拍的分支失败信号！只看当拍初的寄存器状态！
         ready_vec(i) := iq(i).valid && iq(i).psrc1_rdy && iq(i).psrc2_rdy
