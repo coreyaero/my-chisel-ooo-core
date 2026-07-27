@@ -4,8 +4,8 @@ RenameEngine.sv
 PRF.sv
 IssueQueue.sv
 ROB.sv
-ram_4x136.sv
-Queue4_FetchMeta.sv
+ram_32x136.sv
+Queue32_FetchMeta.sv
 btb_payload_512x55.sv
 bht_1024x2.sv
 StageIF.sv

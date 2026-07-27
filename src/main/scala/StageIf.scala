@@ -275,7 +275,7 @@ class StageIF extends Module {
     val btb_target_pc = Mux(pred_taken0, pred_target0, Mux(pred_taken1, pred_target1, next_pc_base))
 
     val q_reset = reset.asBool || io.flush
-    val meta_queue = withReset(q_reset) { Module(new Queue(new FetchMeta(), 4)) }
+    val meta_queue = withReset(q_reset) { Module(new Queue(new FetchMeta(), 32)) }
     // ★ 新增：256 项的乱序数据接收台与就绪状态表
     val rdata_table = Reg(Vec(256, UInt(64.W)))
     val data_ready_table = RegInit(VecInit(Seq.fill(256)(false.B)))

@@ -15895,7 +15895,7 @@ module StageIF(
          ? ((&old_ctr) ? 2'h3 : old_ctr + 2'h1)
          : old_ctr == 2'h0 ? 2'h0 : old_ctr - 2'h1)
   );
-  Queue4_FetchMeta meta_queue (
+  Queue32_FetchMeta meta_queue (
     .clock                    (clock),
     .reset                    (reset | io_flush),
     .io_enq_ready             (_meta_queue_io_enq_ready),
