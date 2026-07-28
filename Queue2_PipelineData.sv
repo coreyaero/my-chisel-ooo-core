@@ -57,7 +57,8 @@ module Queue2_PipelineData(
   input  [3:0]  io_enq_bits_ras_tos,
   input         io_deq_ready,
   output        io_deq_valid,
-  output [31:0] io_deq_bits_src2_value,
+  output [31:0] io_deq_bits_pc,
+                io_deq_bits_src2_value,
   output        io_deq_bits_memWe,
                 io_deq_bits_resFromMem,
                 io_deq_bits_regWriteEn,
@@ -76,7 +77,7 @@ module Queue2_PipelineData(
   output [5:0]  io_deq_bits_pdest
 );
 
-  wire [140:0] _ram_ext_R0_data;
+  wire [172:0] _ram_ext_R0_data;
   reg          enq_ptr_value;
   reg          deq_ptr_value;
   reg          maybe_full;
@@ -100,7 +101,7 @@ module Queue2_PipelineData(
         maybe_full <= do_enq;
     end
   end // always @(posedge)
-  ram_2x141 ram_ext (
+  ram_2x173 ram_ext (
     .R0_addr (deq_ptr_value),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -109,7 +110,8 @@ module Queue2_PipelineData(
     .W0_en   (do_enq),
     .W0_clk  (clock),
     .W0_data
-      ({io_enq_bits_src2_value,
+      ({io_enq_bits_pc,
+        io_enq_bits_src2_value,
         io_enq_bits_memWe,
         io_enq_bits_resFromMem,
         io_enq_bits_regWriteEn,
@@ -129,6 +131,7 @@ module Queue2_PipelineData(
   );
   assign io_enq_ready = ~full;
   assign io_deq_valid = ~empty;
+  assign io_deq_bits_pc = _ram_ext_R0_data[172:141];
   assign io_deq_bits_src2_value = _ram_ext_R0_data[140:109];
   assign io_deq_bits_memWe = _ram_ext_R0_data[108];
   assign io_deq_bits_resFromMem = _ram_ext_R0_data[107];

@@ -30,7 +30,8 @@ module AluSimpleUnit(
   input  [3:0]  io_in_bits_branch_mask,
   input         io_out_ready,
   output        io_out_valid,
-  output [31:0] io_out_bits_src2_value,
+  output [31:0] io_out_bits_pc,
+                io_out_bits_src2_value,
   output        io_out_bits_memWe,
                 io_out_bits_resFromMem,
                 io_out_bits_regWriteEn,
@@ -53,6 +54,8 @@ module AluSimpleUnit(
   input  [1:0]  io_br_resolve_in_tag
 );
 
+  wire        br_fail = io_br_resolve_in_valid & io_br_resolve_in_mispredict;
+  wire [6:0]  br_tag_bit = 7'h1 << io_br_resolve_in_tag;
   reg         valid_reg;
   reg  [31:0] data_reg_pc;
   reg  [12:0] data_reg_aluOp;
@@ -78,11 +81,9 @@ module AluSimpleUnit(
   reg  [4:0]  data_reg_rob_idx;
   reg  [5:0]  data_reg_pdest;
   reg  [3:0]  data_reg_branch_mask;
-  wire [6:0]  _clear_mask_T = 7'h1 << io_br_resolve_in_tag;
-  wire        current_is_killed =
-    valid_reg & io_br_resolve_in_valid & io_br_resolve_in_mispredict
-    & (|(_clear_mask_T[3:0] & data_reg_branch_mask));
-  wire        allow_in = ~valid_reg | current_is_killed | io_out_ready;
+  wire [3:0]  _GEN = br_tag_bit[3:0] & data_reg_branch_mask;
+  wire        active = valid_reg & ~(br_fail & (|_GEN));
+  wire        in_ready = ~active | io_out_ready;
   always @(posedge clock or posedge reset) begin
     if (reset) begin
       valid_reg <= 1'h0;
@@ -112,16 +113,14 @@ module AluSimpleUnit(
       data_reg_branch_mask <= 4'h0;
     end
     else begin
-      automatic logic _GEN;
-      _GEN = io_in_valid & allow_in;
       valid_reg <=
         ~io_flush
-        & (allow_in
-             ? io_in_valid
-               & ~(io_in_valid & io_br_resolve_in_valid & io_br_resolve_in_mispredict
-                   & (|(_clear_mask_T[3:0] & io_in_bits_branch_mask)))
-             : ~current_is_killed & valid_reg);
-      if (_GEN) begin
+        & (in_ready
+             ? io_in_valid & ~(br_fail & (|(br_tag_bit[3:0] & io_in_bits_branch_mask)))
+             : ~(br_fail & (|_GEN)) & valid_reg);
+      if (io_flush | ~in_ready) begin
+      end
+      else begin
         data_reg_pc <= io_in_bits_pc;
         data_reg_aluOp <= io_in_bits_aluOp;
         data_reg_imm <= io_in_bits_imm;
@@ -146,12 +145,14 @@ module AluSimpleUnit(
         data_reg_rob_idx <= io_in_bits_rob_idx;
         data_reg_pdest <= io_in_bits_pdest;
       end
-      if (io_br_resolve_in_valid & ~io_br_resolve_in_mispredict)
+      if (io_flush) begin
+      end
+      else begin
+        automatic logic [3:0] _GEN_0 =
+          {4{io_br_resolve_in_valid & ~io_br_resolve_in_mispredict}} & br_tag_bit[3:0];
         data_reg_branch_mask <=
-          ~(_clear_mask_T[3:0])
-          & (io_in_valid & allow_in ? io_in_bits_branch_mask : data_reg_branch_mask);
-      else if (_GEN)
-        data_reg_branch_mask <= io_in_bits_branch_mask;
+          in_ready ? ~_GEN_0 & io_in_bits_branch_mask : ~_GEN_0 & data_reg_branch_mask;
+      end
     end
   end // always @(posedge, posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -200,8 +201,9 @@ module AluSimpleUnit(
          : data_reg_src2IsFour ? 32'h4 : data_reg_src2_value),
     .io_res   (io_out_bits_ex_result)
   );
-  assign io_in_ready = allow_in;
-  assign io_out_valid = valid_reg;
+  assign io_in_ready = in_ready;
+  assign io_out_valid = active;
+  assign io_out_bits_pc = data_reg_pc;
   assign io_out_bits_src2_value = data_reg_src2_value;
   assign io_out_bits_memWe = data_reg_memWe;
   assign io_out_bits_resFromMem = data_reg_resFromMem;

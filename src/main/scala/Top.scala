@@ -63,89 +63,87 @@ class core_top extends RawModule {
     val debug1_wb_rf_wnum  = IO(Output(UInt(5.W)))
     val debug1_wb_rf_wdata = IO(Output(UInt(32.W)))
 
+    val probe_cdb0_pc = IO(Output(UInt(32.W)))
+    val probe_cdb1_pc = IO(Output(UInt(32.W)))
+
     
     val reset_high = (!aresetn).asAsyncReset
 
     withClockAndReset(aclk, reset_high) {
-        implicit val cacheConfig = CacheConfig()
 
-        val ctrl   = Module(new Ctrl())
-        val timer  = Module(new StableCounter())
+        //==========================================
+        // Frontend
+        //==========================================
+        val if_module       = Module(new StageIF())
+        val fetch_buf       = Module(new FetchBuffer(8))
+        val id_module       = Module(new StageID())
+        val disp_buf        = Module(new DispatchBuffer())
+
+        val icfg = CacheConfig(enablePrefetch = true)
+        val dcfg = CacheConfig(enablePrefetch = false)
+        implicit val bridgeConfig = dcfg // Bridge 只需要用到行宽等通用配置，传 dcfg 即可
         val rename = Module(new RenameEngine())
         val prf    = Module(new PRF())
         val iq     = Module(new IssueQueue())
         val rob    = Module(new ROB())
         
-        val if_stage = Module(new StageIF())
-        val id_stage = Module(new StageID())
+        
         
         // ★ 核心替换：双发射乱序大心脏登场！
         val exec_engine = Module(new ExecutionEngine())
-        
-        // ★ 新增：将 CSR 和 TLB 提至全局顶层！
-        val csr        = Module(new CSR())
-        val tlb_module = Module(new tlb())
 
+        //==========================================
+        // Flush logic
+        //==========================================
+        val flush_global    = rob.io.wb_flush
+        val flush_branch    = exec_engine.io.branch_req
+        val flush_frontend  = flush_global || flush_branch
+
+        if_module.io.flush              := flush_frontend
+        if_module.io.flush_target_pc    := Mux(flush_global, rob.io.wb_target_pc, exec_engine.io.branch_pc)
+        fetch_buf.io.flush              := flush_frontend
+        id_module.io.flush              := flush_frontend
+        disp_buf.io.flush               := flush_frontend
+        
+        val csr        = Module(new CSR())
+        val timer  = Module(new StableCounter())
+        val tlb_module = Module(new tlb())
         val bridge = Module(new SramToAxiBridge())
-        val icache = Module(new Cache())
-        val dcache = Module(new Cache())
+        val icache = Module(new Cache()(icfg))
+        val dcache = Module(new Cache()(dcfg))
 
         // ---------------- BPU 训练大环路 ----------------
-        if_stage.io.bpu_update := exec_engine.io.bpu_update
+        if_module.io.bpu_update := exec_engine.io.bpu_update
 
         // ==========================================
         // 全局 MMU 与中断配置
         // ==========================================
-        if_stage.io.mmu_config    := csr.io.mmu_config
-        exec_engine.io.mmu_config := csr.io.mmu_config
-        csr.io.hw_int_in          := 0.U(8.W)
+        if_module.io.mmu_config     := csr.io.mmu_config
+        exec_engine.io.mmu_config   := csr.io.mmu_config
+        csr.io.hw_int_in            := 0.U(8.W)
 
         // ---------------- TLB 连线 ----------------
-        tlb_module.io.s0_vppn     := if_stage.io.tlb_s0_vppn
-        tlb_module.io.s0_va_bit12 := if_stage.io.tlb_s0_va_bit12
-        tlb_module.io.s0_asid     := if_stage.io.tlb_s0_asid
-        if_stage.io.tlb_s0_found  := tlb_module.io.s0_found
-        if_stage.io.tlb_s0_ppn    := tlb_module.io.s0_ppn
-        if_stage.io.tlb_s0_ps     := tlb_module.io.s0_ps
-        if_stage.io.tlb_s0_plv    := tlb_module.io.s0_plv
-        if_stage.io.tlb_s0_mat    := tlb_module.io.s0_mat
-        if_stage.io.tlb_s0_v      := tlb_module.io.s0_v
-
-        tlb_module.io.s1_vppn     := exec_engine.io.tlb_s1_vppn
-        tlb_module.io.s1_va_bit12 := exec_engine.io.tlb_s1_va_bit12
-        tlb_module.io.s1_asid     := exec_engine.io.tlb_s1_asid
-        exec_engine.io.tlb_s1_found  := tlb_module.io.s1_found
-        exec_engine.io.tlb_s1_index  := tlb_module.io.s1_index
-        exec_engine.io.tlb_s1_ppn    := tlb_module.io.s1_ppn
-        exec_engine.io.tlb_s1_ps     := tlb_module.io.s1_ps
-        exec_engine.io.tlb_s1_plv    := tlb_module.io.s1_plv
-        exec_engine.io.tlb_s1_mat    := tlb_module.io.s1_mat
-        exec_engine.io.tlb_s1_d      := tlb_module.io.s1_d
-        exec_engine.io.tlb_s1_v      := tlb_module.io.s1_v
+        if_module.io.tlb_port   <> tlb_module.io.s0
+        exec_engine.io.tlb_port <> tlb_module.io.s1
         
-        tlb_module.io.invtlb_valid := exec_engine.io.invtlb_valid
-        tlb_module.io.invtlb_op    := exec_engine.io.invtlb_op
+        tlb_module.io.invtlb_valid  := exec_engine.io.invtlb_valid
+        tlb_module.io.invtlb_op     := exec_engine.io.invtlb_op
         
         // ---------------- 前端 IF -> ID (自适应双进单出缓冲) ----------------
-        val fetch_buffer_reset = reset_high.asBool | ctrl.io.flush_id
-        val fetch_buffer = withReset(fetch_buffer_reset) { Module(new DualFetchBuffer(8)) }
-
-        fetch_buffer.io.flush := fetch_buffer_reset
+        
 
         // 接收双发输入
-        fetch_buffer.io.in0 <> if_stage.io.out0
-        fetch_buffer.io.in1 <> if_stage.io.out1
+        fetch_buf.io.in0 <> if_module.io.out0
+        fetch_buf.io.in1 <> if_module.io.out1
 
-        // 依然单发喂给后面的 ID 级
-        id_stage.io.in <> fetch_buffer.io.out
+        id_module.io.in <> fetch_buf.io.out
 
         // ---------------- ID -> Rename -> IQ/ROB ----------------
-        val id_flush = reset_high.asBool || ctrl.io.flush_id
-        val disp_buf = Module(new DispatchBuffer())
-        disp_buf.io.flush := id_flush
+        
+        
 
-        disp_buf.io.in0 <> id_stage.io.out0
-        disp_buf.io.in1 <> id_stage.io.out1
+        disp_buf.io.in0 <> id_module.io.out0
+        disp_buf.io.in1 <> id_module.io.out1
 
         val d0 = disp_buf.io.out0.bits
         val d1 = disp_buf.io.out1.bits
@@ -160,7 +158,7 @@ class core_top extends RawModule {
         val delayed_mispredict = RegNext(is_mispredict, false.B) // 手动抓取一拍延迟
         
         // ★ 将 delayed_mispredict 加入阻塞条件，关门打狗！
-        val dispatch_block = ctrl.io.wb_flush || ctrl.io.flush_id || delayed_mispredict
+        val dispatch_block = flush_frontend || is_mispredict || delayed_mispredict
         
         val d0_valid = disp_buf.io.out0.valid && !dispatch_block
         val d1_valid = disp_buf.io.out1.valid && !dispatch_block
@@ -189,7 +187,7 @@ class core_top extends RawModule {
         rename.io.dec1_is_br    := d1.is_branch
 
         // 控制信号
-        rename.io.flush      := ctrl.io.wb_flush
+        rename.io.flush      := flush_global
         rename.io.br_resolve := exec_engine.io.br_resolve
 
         // ★ 分配时必须同时看 LSQ 和所有模块是否有空位
@@ -207,6 +205,11 @@ class core_top extends RawModule {
         rename.io.dec0_fire := d0_valid && can_disp0
         rename.io.dec1_fire := d1_valid && can_disp1
 
+        // ★ 核心修复：防止当拍解算的 branch_mask 污染新分发的指令 (面具重用误杀)
+        val current_br_clear = Mux(exec_engine.io.br_resolve.valid && !exec_engine.io.br_resolve.mispredict, 
+                                   ~(1.U(4.W) << exec_engine.io.br_resolve.tag), 
+                                   "b1111".U(4.W))
+
         // ★ 向 LSQ 申请坑位 (动态多路复用)
         val real_need_lsq0 = d0_valid && need_lsq0 && can_disp0
         val real_need_lsq1 = d1_valid && need_lsq1 && can_disp1
@@ -217,7 +220,10 @@ class core_top extends RawModule {
         exec_engine.io.lsq_alloc_rob   := Mux(real_need_lsq0, rob.io.alloc_idx, rob.io.alloc1_idx)
         exec_engine.io.lsq_alloc_pc    := Mux(real_need_lsq0, d0.pc, d1.pc)
         exec_engine.io.lsq_alloc_pdest := Mux(real_need_lsq0, rename.io.dec0_pdest, rename.io.dec1_pdest)
-        exec_engine.io.lsq_alloc_mask  := Mux(real_need_lsq0, rename.io.dec0_br_mask, rename.io.dec1_br_mask)
+        
+        // ★ 修复：给送进 LSQ 的 mask 洗净！
+        exec_engine.io.lsq_alloc_mask  := Mux(real_need_lsq0, rename.io.dec0_br_mask, rename.io.dec1_br_mask) & current_br_clear
+        
         exec_engine.io.lsq_alloc_cacop := Mux(real_need_lsq0, d0.cacop_op, d1.cacop_op)
         exec_engine.io.lsq_alloc_lsOp  := Mux(real_need_lsq0, d0.lsOp, d1.lsOp)
 
@@ -228,7 +234,8 @@ class core_top extends RawModule {
         renamed_d0.pdest := rename.io.dec0_pdest
         renamed_d0.old_pdest := rename.io.dec0_old_p
         renamed_d0.rob_idx := rob.io.alloc_idx
-        renamed_d0.branch_mask := rename.io.dec0_br_mask
+        // ★ 修复：给送进 IQ 的 mask 洗净！
+        renamed_d0.branch_mask := rename.io.dec0_br_mask & current_br_clear 
         renamed_d0.branch_tag := rename.io.dec0_br_tag
         renamed_d0.lsq_idx := exec_engine.io.lsq_alloc_idx
 
@@ -238,12 +245,13 @@ class core_top extends RawModule {
         renamed_d1.pdest := rename.io.dec1_pdest
         renamed_d1.old_pdest := rename.io.dec1_old_p
         renamed_d1.rob_idx := rob.io.alloc1_idx
-        renamed_d1.branch_mask := rename.io.dec1_br_mask
+        // ★ 修复：给送进 IQ 的 mask 洗净！
+        renamed_d1.branch_mask := rename.io.dec1_br_mask & current_br_clear 
         renamed_d1.branch_tag := rename.io.dec1_br_tag
         renamed_d1.lsq_idx := exec_engine.io.lsq_alloc_idx
 
         // ================= IQ 连线 =================
-        iq.io.flush      := ctrl.io.wb_flush
+        iq.io.flush      := flush_global
         iq.io.br_resolve := exec_engine.io.br_resolve
 
         iq.io.disp_valid := d0_valid && can_disp0
@@ -257,7 +265,7 @@ class core_top extends RawModule {
         iq.io.psrc2_1    := rename.io.dec1_psrc2
 
         // ================= ROB 连线 =================
-        rob.io.flush         := ctrl.io.wb_flush
+        rob.io.flush         := flush_global
         rob.io.br_resolve    := exec_engine.io.br_resolve
 
         rob.io.alloc_valid   := d0_valid && can_disp0
@@ -266,7 +274,8 @@ class core_top extends RawModule {
         rob.io.alloc_waddr   := d0.destReg
         rob.io.alloc_paddr   := rename.io.dec0_pdest
         rob.io.alloc_old_p   := rename.io.dec0_old_p
-        rob.io.alloc_br_mask := rename.io.dec0_br_mask
+        // ★ 修复：给送进 ROB 的 mask 洗净！
+        rob.io.alloc_br_mask := rename.io.dec0_br_mask & current_br_clear 
 
         rob.io.alloc1_valid  := d1_valid && can_disp1
         rob.io.alloc1_pc     := d1.pc
@@ -274,14 +283,15 @@ class core_top extends RawModule {
         rob.io.alloc1_waddr  := d1.destReg
         rob.io.alloc1_paddr  := rename.io.dec1_pdest
         rob.io.alloc1_old_p  := rename.io.dec1_old_p
-        rob.io.alloc1_br_mask:= rename.io.dec1_br_mask
+        // ★ 修复：给送进 ROB 的 mask 洗净！
+        rob.io.alloc1_br_mask:= rename.io.dec1_br_mask & current_br_clear
 
         // ---------------- 乱序发射 IQ -> ExecutionEngine (流水线切片) ----------------
         // ★ 核心大改：引入【发射流水段 (Issue Buffer)】，斩断 Wakeup-Select-Read 世纪大路径！
         
         // ★ 终极修复：给流水段套上 flush 冲刷保护！
         // 任何分支预测失败或异常引发的 wb_flush，都必须彻底清空这些暂存的“幽灵指令”！
-        val issue_flush = reset_high.asBool || ctrl.io.wb_flush
+        val issue_flush = reset_high.asBool || flush_global
         
         val iss_q_alu0 = Module(new IssueBuffer())
         val iss_q_alu1 = Module(new IssueBuffer())
@@ -348,7 +358,7 @@ class core_top extends RawModule {
         exec_engine.io.in_agu.bits   := agu_in_data
         iss_q_agu.io.deq.ready       := exec_engine.io.in_agu.ready
         
-        exec_engine.io.flush    := ctrl.io.wb_flush
+        exec_engine.io.flush    := flush_global
         exec_engine.io.timer_in := timer.io.timer_out
 
         // ★ 核心连线：CSR 读路径 (ALU0 发起)
@@ -435,20 +445,12 @@ class core_top extends RawModule {
         tlb_module.io.r_index := csr.io.tlbidx_out
         csr.io.tlbrd_in       := tlb_module.io.r_dat
 
-        // ---------------- 控制流与 Flush ----------------
-        ctrl.io.ex_branch_req := exec_engine.io.branch_req
-        ctrl.io.ex_branch_pc  := exec_engine.io.branch_pc
-        ctrl.io.wb_flush      := rob.io.wb_flush
-        ctrl.io.wb_target_pc  := rob.io.wb_target_pc
-
-        if_stage.io.flush           := ctrl.io.flush_if
-        if_stage.io.flush_target_pc := ctrl.io.next_pc
-        id_stage.io.flush           := ctrl.io.flush_id
-        // (ex_stage, mem_stage 统统死掉，只有 exec_engine 监听 wb_flush)
+        // ---------------- 控制流与 Flush (前端清空执行) ----------------
+        
 
 
         // ---------------- 访存 Cache 完美还原与仲裁 ----------------
-        val if_req_valid = if_stage.io.inst_sram.req
+        val if_req_valid = if_module.io.cache_io.req
         
         // ★ 核心修复：用一个极小的 1 深度 Queue，彻底斩断 LSQ 到 ICache 的 23级长连线！
         class AguIcacheReq extends Bundle {
@@ -493,20 +495,20 @@ class core_top extends RawModule {
         agu_icache_q.io.deq.ready := icache.io.cpu.addr_ok && can_issue_agu
 
         // 3. ICache 路由 (严谨的 MUX)
-        val off_bit = cacheConfig.offsetBits - 1
-        val idx_bit = cacheConfig.offsetBits + cacheConfig.indexBits - 1
+        val off_bit = icfg.offsetBits - 1
+        val idx_bit = icfg.offsetBits + icfg.indexBits - 1
         val tag_bit = 31
 
-        icache.io.cpu.req_id := Mux(actual_agu_req, Cat(1.U(1.W), q_req_id), Cat(0.U(1.W), if_stage.io.inst_req_id))
+        icache.io.cpu.req_id := Mux(actual_agu_req, Cat(1.U(1.W), q_req_id), Cat(0.U(1.W), if_module.io.inst_req_id))
         icache.io.cpu.valid  := actual_if_req || actual_agu_req
         icache.io.cpu.op     := false.B
         // ★ 地址切片全部改用 q_addr，斩断远端组合逻辑！
-        icache.io.cpu.index  := Mux(actual_agu_req, q_addr(idx_bit, off_bit + 1), if_stage.io.inst_sram.addr(idx_bit, off_bit + 1))
-        icache.io.cpu.tag    := Mux(actual_agu_req, q_addr(tag_bit, idx_bit + 1), if_stage.io.inst_sram.addr(tag_bit, idx_bit + 1))
-        icache.io.cpu.offset := Mux(actual_agu_req, q_addr(off_bit, 0), if_stage.io.inst_sram.addr(off_bit, 0))
+        icache.io.cpu.index  := Mux(actual_agu_req, q_addr(idx_bit, off_bit + 1), if_module.io.cache_io.addr(idx_bit, off_bit + 1))
+        icache.io.cpu.tag    := Mux(actual_agu_req, q_addr(tag_bit, idx_bit + 1), if_module.io.cache_io.addr(tag_bit, idx_bit + 1))
+        icache.io.cpu.offset := Mux(actual_agu_req, q_addr(off_bit, 0), if_module.io.cache_io.addr(off_bit, 0))
         icache.io.cpu.wstrb  := 0.U
         icache.io.cpu.wdata  := 0.U
-        icache.io.cpu.uncached := if_stage.io.inst_uncached
+        icache.io.cpu.uncached := if_module.io.inst_uncached
         
         icache.io.cpu.cacop_en := actual_agu_req
         icache.io.cpu.cacop_op := Mux(actual_agu_req, q_cacop_op, 0.U)
@@ -514,10 +516,10 @@ class core_top extends RawModule {
         // 4. ★ 响应精准分发
         // ★ 修复 2：IF 的 addr_ok 只能看优先级(can_issue_if)，绝不能看 IF 当拍有没有发 req！
         // 4. ★ 响应精准分发
-        if_stage.io.inst_sram.addr_ok := icache.io.cpu.addr_ok && can_issue_if
-        if_stage.io.inst_sram.data_ok := is_if_resp   // ★ 只吃属于 IF 的数据！
-        if_stage.io.inst_sram.rdata   := icache.io.cpu.rdata
-        if_stage.io.inst_ret_id       := icache.io.cpu.ret_id(7, 0) // ★ 归还 8 位取餐码
+        if_module.io.cache_io.addr_ok := icache.io.cpu.addr_ok && can_issue_if
+        if_module.io.cache_io.data_ok := is_if_resp   // ★ 只吃属于 IF 的数据！
+        if_module.io.cache_io.rdata   := icache.io.cpu.rdata
+        if_module.io.inst_ret_id       := icache.io.cpu.ret_id(7, 0) // ★ 归还 8 位取餐码
 
         bridge.io.inst_cache <> icache.io.axi
 
@@ -777,5 +779,9 @@ class core_top extends RawModule {
 
         ws_valid := false.B
         rf_rdata := 0.U
+
+
+        probe_cdb0_pc := exec_engine.io.debug_cdb0_pc
+        probe_cdb1_pc := exec_engine.io.debug_cdb1_pc
     }
 }

@@ -11,7 +11,8 @@ module Queue16_PipelineData(
   input  [5:0]  io_enq_bits_pdest,
   input         io_deq_ready,
   output        io_deq_valid,
-  output [31:0] io_deq_bits_src2_value,
+  output [31:0] io_deq_bits_pc,
+                io_deq_bits_src2_value,
   output        io_deq_bits_memWe,
                 io_deq_bits_resFromMem,
                 io_deq_bits_regWriteEn,
@@ -30,7 +31,7 @@ module Queue16_PipelineData(
   output [5:0]  io_deq_bits_pdest
 );
 
-  wire [140:0] _ram_ext_R0_data;
+  wire [172:0] _ram_ext_R0_data;
   reg  [3:0]   enq_ptr_value;
   reg  [3:0]   deq_ptr_value;
   reg          maybe_full;
@@ -54,7 +55,7 @@ module Queue16_PipelineData(
         maybe_full <= do_enq;
     end
   end // always @(posedge)
-  ram_16x141 ram_ext (
+  ram_16x173 ram_ext (
     .R0_addr (deq_ptr_value),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -63,7 +64,7 @@ module Queue16_PipelineData(
     .W0_en   (do_enq),
     .W0_clk  (clock),
     .W0_data
-      ({35'h3,
+      ({67'h3,
         io_enq_bits_ex_result,
         32'h0,
         io_enq_bits_hasException,
@@ -74,6 +75,7 @@ module Queue16_PipelineData(
   );
   assign io_enq_ready = ~full;
   assign io_deq_valid = ~empty;
+  assign io_deq_bits_pc = _ram_ext_R0_data[172:141];
   assign io_deq_bits_src2_value = _ram_ext_R0_data[140:109];
   assign io_deq_bits_memWe = _ram_ext_R0_data[108];
   assign io_deq_bits_resFromMem = _ram_ext_R0_data[107];

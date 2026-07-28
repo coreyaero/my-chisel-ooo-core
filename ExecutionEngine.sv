@@ -66,6 +66,7 @@ module ExecutionEngine(
   input  [3:0]  io_in_alu1_bits_branch_mask,
   output        io_in_mdu_ready,
   input         io_in_mdu_valid,
+  input  [31:0] io_in_mdu_bits_pc,
   input  [6:0]  io_in_mdu_bits_mduOp,
   input  [31:0] io_in_mdu_bits_src1_value,
                 io_in_mdu_bits_src2_value,
@@ -207,17 +208,17 @@ module ExecutionEngine(
   input         io_mmu_config_dmw1_plv3,
                 io_mmu_config_dmw1_plv0,
   input  [18:0] io_mmu_config_tlbehi_vppn,
-  output [18:0] io_tlb_s1_vppn,
-  output        io_tlb_s1_va_bit12,
-  output [9:0]  io_tlb_s1_asid,
-  input         io_tlb_s1_found,
-  input  [3:0]  io_tlb_s1_index,
-  input  [19:0] io_tlb_s1_ppn,
-  input  [5:0]  io_tlb_s1_ps,
-  input  [1:0]  io_tlb_s1_plv,
-                io_tlb_s1_mat,
-  input         io_tlb_s1_d,
-                io_tlb_s1_v,
+  output [18:0] io_tlb_port_vppn,
+  output        io_tlb_port_va_bit12,
+  output [9:0]  io_tlb_port_asid,
+  input         io_tlb_port_found,
+  input  [3:0]  io_tlb_port_index,
+  input  [19:0] io_tlb_port_ppn,
+  input  [5:0]  io_tlb_port_ps,
+  input  [1:0]  io_tlb_port_plv,
+                io_tlb_port_mat,
+  input         io_tlb_port_d,
+                io_tlb_port_v,
   output        io_invtlb_valid,
   output [4:0]  io_invtlb_op,
   output [3:0]  io_lsq_current_tail,
@@ -251,11 +252,14 @@ module ExecutionEngine(
   output [1:0]  io_bpu_update_bits_bpu_type,
   output [9:0]  io_bpu_update_bits_ghr,
   output        io_bpu_update_bits_mispredict,
-  output [3:0]  io_bpu_update_bits_ras_tos
+  output [3:0]  io_bpu_update_bits_ras_tos,
+  output [31:0] io_debug_cdb0_pc,
+                io_debug_cdb1_pc
 );
 
   wire        _agu_cdb_q_io_enq_ready;
   wire        _agu_cdb_q_io_deq_valid;
+  wire [31:0] _agu_cdb_q_io_deq_bits_pc;
   wire [31:0] _agu_cdb_q_io_deq_bits_src2_value;
   wire        _agu_cdb_q_io_deq_bits_memWe;
   wire        _agu_cdb_q_io_deq_bits_resFromMem;
@@ -274,21 +278,11 @@ module ExecutionEngine(
   wire [4:0]  _agu_cdb_q_io_deq_bits_rob_idx;
   wire [5:0]  _agu_cdb_q_io_deq_bits_pdest;
   wire        _lsq_io_lsq_wb_valid;
-  wire [31:0] _lsq_io_lsq_wb_bits_src2_value;
-  wire        _lsq_io_lsq_wb_bits_memWe;
-  wire        _lsq_io_lsq_wb_bits_resFromMem;
-  wire        _lsq_io_lsq_wb_bits_regWriteEn;
+  wire [31:0] _lsq_io_lsq_wb_bits_pc;
   wire [31:0] _lsq_io_lsq_wb_bits_ex_result;
   wire [31:0] _lsq_io_lsq_wb_bits_aux_data;
   wire        _lsq_io_lsq_wb_bits_hasException;
   wire [5:0]  _lsq_io_lsq_wb_bits_ecode;
-  wire        _lsq_io_lsq_wb_bits_isCsr;
-  wire        _lsq_io_lsq_wb_bits_csrWe;
-  wire [13:0] _lsq_io_lsq_wb_bits_csrNum;
-  wire        _lsq_io_lsq_wb_bits_inst_ertn;
-  wire [4:0]  _lsq_io_lsq_wb_bits_tlbOp;
-  wire        _lsq_io_lsq_wb_bits_is_refetch;
-  wire        _lsq_io_lsq_wb_bits_is_cacop;
   wire [4:0]  _lsq_io_lsq_wb_bits_rob_idx;
   wire [5:0]  _lsq_io_lsq_wb_bits_pdest;
   wire        _arbiter_io_reqs_0_ready;
@@ -348,12 +342,17 @@ module ExecutionEngine(
   wire [1:0]  _agu_io_out_bits_bpu_type;
   wire [9:0]  _agu_io_out_bits_ghr;
   wire [3:0]  _agu_io_out_bits_ras_tos;
-  wire [1:0]  _agu_io_data_sram_size;
-  wire [3:0]  _agu_io_data_sram_wstrb;
-  wire [31:0] _agu_io_data_sram_addr;
-  wire [31:0] _agu_io_data_sram_wdata;
-  wire        _agu_io_data_uncached;
+  wire        _agu_io_to_lsq_valid;
+  wire [3:0]  _agu_io_to_lsq_bits_lsqIdx;
+  wire [31:0] _agu_io_to_lsq_bits_paddr;
+  wire [1:0]  _agu_io_to_lsq_bits_size;
+  wire        _agu_io_to_lsq_bits_uncached;
+  wire [31:0] _agu_io_to_lsq_bits_wdata;
+  wire [3:0]  _agu_io_to_lsq_bits_wstrb;
+  wire        _agu_io_to_lsq_bits_has_exc;
+  wire [5:0]  _agu_io_to_lsq_bits_ecode;
   wire        _mdu_io_out_valid;
+  wire [31:0] _mdu_io_out_bits_pc;
   wire [31:0] _mdu_io_out_bits_src2_value;
   wire        _mdu_io_out_bits_memWe;
   wire        _mdu_io_out_bits_resFromMem;
@@ -372,6 +371,7 @@ module ExecutionEngine(
   wire [4:0]  _mdu_io_out_bits_rob_idx;
   wire [5:0]  _mdu_io_out_bits_pdest;
   wire        _alu1_io_out_valid;
+  wire [31:0] _alu1_io_out_bits_pc;
   wire [31:0] _alu1_io_out_bits_src2_value;
   wire        _alu1_io_out_bits_memWe;
   wire        _alu1_io_out_bits_resFromMem;
@@ -390,6 +390,7 @@ module ExecutionEngine(
   wire [4:0]  _alu1_io_out_bits_rob_idx;
   wire [5:0]  _alu1_io_out_bits_pdest;
   wire        _alu0_io_out_valid;
+  wire [31:0] _alu0_io_out_bits_pc;
   wire [31:0] _alu0_io_out_bits_src2_value;
   wire        _alu0_io_out_bits_memWe;
   wire        _alu0_io_out_bits_resFromMem;
@@ -454,6 +455,7 @@ module ExecutionEngine(
     .io_in_bits_ras_tos            (io_in_alu0_bits_ras_tos),
     .io_out_ready                  (_arbiter_io_reqs_3_ready),
     .io_out_valid                  (_alu0_io_out_valid),
+    .io_out_bits_pc                (_alu0_io_out_bits_pc),
     .io_out_bits_src2_value        (_alu0_io_out_bits_src2_value),
     .io_out_bits_memWe             (_alu0_io_out_bits_memWe),
     .io_out_bits_resFromMem        (_alu0_io_out_bits_resFromMem),
@@ -523,6 +525,7 @@ module ExecutionEngine(
     .io_in_bits_branch_mask      (io_in_alu1_bits_branch_mask),
     .io_out_ready                (_arbiter_io_reqs_4_ready),
     .io_out_valid                (_alu1_io_out_valid),
+    .io_out_bits_pc              (_alu1_io_out_bits_pc),
     .io_out_bits_src2_value      (_alu1_io_out_bits_src2_value),
     .io_out_bits_memWe           (_alu1_io_out_bits_memWe),
     .io_out_bits_resFromMem      (_alu1_io_out_bits_resFromMem),
@@ -550,6 +553,7 @@ module ExecutionEngine(
     .reset                       (reset),
     .io_in_ready                 (io_in_mdu_ready),
     .io_in_valid                 (io_in_mdu_valid),
+    .io_in_bits_pc               (io_in_mdu_bits_pc),
     .io_in_bits_mduOp            (io_in_mdu_bits_mduOp),
     .io_in_bits_src1_value       (io_in_mdu_bits_src1_value),
     .io_in_bits_src2_value       (io_in_mdu_bits_src2_value),
@@ -572,6 +576,7 @@ module ExecutionEngine(
     .io_in_bits_branch_mask      (io_in_mdu_bits_branch_mask),
     .io_out_ready                (_arbiter_io_reqs_0_ready),
     .io_out_valid                (_mdu_io_out_valid),
+    .io_out_bits_pc              (_mdu_io_out_bits_pc),
     .io_out_bits_src2_value      (_mdu_io_out_bits_src2_value),
     .io_out_bits_memWe           (_mdu_io_out_bits_memWe),
     .io_out_bits_resFromMem      (_mdu_io_out_bits_resFromMem),
@@ -701,15 +706,19 @@ module ExecutionEngine(
     .io_out_bits_bpu_type        (_agu_io_out_bits_bpu_type),
     .io_out_bits_ghr             (_agu_io_out_bits_ghr),
     .io_out_bits_ras_tos         (_agu_io_out_bits_ras_tos),
+    .io_to_lsq_valid             (_agu_io_to_lsq_valid),
+    .io_to_lsq_bits_lsqIdx       (_agu_io_to_lsq_bits_lsqIdx),
+    .io_to_lsq_bits_paddr        (_agu_io_to_lsq_bits_paddr),
+    .io_to_lsq_bits_size         (_agu_io_to_lsq_bits_size),
+    .io_to_lsq_bits_uncached     (_agu_io_to_lsq_bits_uncached),
+    .io_to_lsq_bits_wdata        (_agu_io_to_lsq_bits_wdata),
+    .io_to_lsq_bits_wstrb        (_agu_io_to_lsq_bits_wstrb),
+    .io_to_lsq_bits_has_exc      (_agu_io_to_lsq_bits_has_exc),
+    .io_to_lsq_bits_ecode        (_agu_io_to_lsq_bits_ecode),
     .io_flush                    (io_flush),
     .io_br_resolve_in_valid      (_alu0_io_br_resolve_valid),
     .io_br_resolve_in_mispredict (_alu0_io_br_resolve_mispredict),
     .io_br_resolve_in_tag        (_alu0_io_br_resolve_tag),
-    .io_data_sram_size           (_agu_io_data_sram_size),
-    .io_data_sram_wstrb          (_agu_io_data_sram_wstrb),
-    .io_data_sram_addr           (_agu_io_data_sram_addr),
-    .io_data_sram_wdata          (_agu_io_data_sram_wdata),
-    .io_data_uncached            (_agu_io_data_uncached),
     .io_mmu_config_crmd_datm     (io_mmu_config_crmd_datm),
     .io_mmu_config_crmd_pg       (io_mmu_config_crmd_pg),
     .io_mmu_config_crmd_da       (io_mmu_config_crmd_da),
@@ -726,23 +735,24 @@ module ExecutionEngine(
     .io_mmu_config_dmw1_plv3     (io_mmu_config_dmw1_plv3),
     .io_mmu_config_dmw1_plv0     (io_mmu_config_dmw1_plv0),
     .io_mmu_config_tlbehi_vppn   (io_mmu_config_tlbehi_vppn),
-    .io_tlb_s1_vppn              (io_tlb_s1_vppn),
-    .io_tlb_s1_va_bit12          (io_tlb_s1_va_bit12),
-    .io_tlb_s1_asid              (io_tlb_s1_asid),
-    .io_tlb_s1_found             (io_tlb_s1_found),
-    .io_tlb_s1_index             (io_tlb_s1_index),
-    .io_tlb_s1_ppn               (io_tlb_s1_ppn),
-    .io_tlb_s1_ps                (io_tlb_s1_ps),
-    .io_tlb_s1_plv               (io_tlb_s1_plv),
-    .io_tlb_s1_mat               (io_tlb_s1_mat),
-    .io_tlb_s1_d                 (io_tlb_s1_d),
-    .io_tlb_s1_v                 (io_tlb_s1_v),
+    .io_tlb_port_vppn            (io_tlb_port_vppn),
+    .io_tlb_port_va_bit12        (io_tlb_port_va_bit12),
+    .io_tlb_port_asid            (io_tlb_port_asid),
+    .io_tlb_port_found           (io_tlb_port_found),
+    .io_tlb_port_index           (io_tlb_port_index),
+    .io_tlb_port_ppn             (io_tlb_port_ppn),
+    .io_tlb_port_ps              (io_tlb_port_ps),
+    .io_tlb_port_plv             (io_tlb_port_plv),
+    .io_tlb_port_mat             (io_tlb_port_mat),
+    .io_tlb_port_d               (io_tlb_port_d),
+    .io_tlb_port_v               (io_tlb_port_v),
     .io_invtlb_valid             (io_invtlb_valid),
     .io_invtlb_op                (io_invtlb_op)
   );
   CdbArbiter arbiter (
     .io_reqs_0_ready             (_arbiter_io_reqs_0_ready),
     .io_reqs_0_valid             (_mdu_io_out_valid),
+    .io_reqs_0_bits_pc           (_mdu_io_out_bits_pc),
     .io_reqs_0_bits_src2_value   (_mdu_io_out_bits_src2_value),
     .io_reqs_0_bits_memWe        (_mdu_io_out_bits_memWe),
     .io_reqs_0_bits_resFromMem   (_mdu_io_out_bits_resFromMem),
@@ -762,25 +772,16 @@ module ExecutionEngine(
     .io_reqs_0_bits_pdest        (_mdu_io_out_bits_pdest),
     .io_reqs_1_ready             (_arbiter_io_reqs_1_ready),
     .io_reqs_1_valid             (_lsq_io_lsq_wb_valid),
-    .io_reqs_1_bits_src2_value   (_lsq_io_lsq_wb_bits_src2_value),
-    .io_reqs_1_bits_memWe        (_lsq_io_lsq_wb_bits_memWe),
-    .io_reqs_1_bits_resFromMem   (_lsq_io_lsq_wb_bits_resFromMem),
-    .io_reqs_1_bits_regWriteEn   (_lsq_io_lsq_wb_bits_regWriteEn),
+    .io_reqs_1_bits_pc           (_lsq_io_lsq_wb_bits_pc),
     .io_reqs_1_bits_ex_result    (_lsq_io_lsq_wb_bits_ex_result),
     .io_reqs_1_bits_aux_data     (_lsq_io_lsq_wb_bits_aux_data),
     .io_reqs_1_bits_hasException (_lsq_io_lsq_wb_bits_hasException),
     .io_reqs_1_bits_ecode        (_lsq_io_lsq_wb_bits_ecode),
-    .io_reqs_1_bits_isCsr        (_lsq_io_lsq_wb_bits_isCsr),
-    .io_reqs_1_bits_csrWe        (_lsq_io_lsq_wb_bits_csrWe),
-    .io_reqs_1_bits_csrNum       (_lsq_io_lsq_wb_bits_csrNum),
-    .io_reqs_1_bits_inst_ertn    (_lsq_io_lsq_wb_bits_inst_ertn),
-    .io_reqs_1_bits_tlbOp        (_lsq_io_lsq_wb_bits_tlbOp),
-    .io_reqs_1_bits_is_refetch   (_lsq_io_lsq_wb_bits_is_refetch),
-    .io_reqs_1_bits_is_cacop     (_lsq_io_lsq_wb_bits_is_cacop),
     .io_reqs_1_bits_rob_idx      (_lsq_io_lsq_wb_bits_rob_idx),
     .io_reqs_1_bits_pdest        (_lsq_io_lsq_wb_bits_pdest),
     .io_reqs_2_ready             (_arbiter_io_reqs_2_ready),
     .io_reqs_2_valid             (_agu_cdb_q_io_deq_valid),
+    .io_reqs_2_bits_pc           (_agu_cdb_q_io_deq_bits_pc),
     .io_reqs_2_bits_src2_value   (_agu_cdb_q_io_deq_bits_src2_value),
     .io_reqs_2_bits_memWe        (_agu_cdb_q_io_deq_bits_memWe),
     .io_reqs_2_bits_resFromMem   (_agu_cdb_q_io_deq_bits_resFromMem),
@@ -800,6 +801,7 @@ module ExecutionEngine(
     .io_reqs_2_bits_pdest        (_agu_cdb_q_io_deq_bits_pdest),
     .io_reqs_3_ready             (_arbiter_io_reqs_3_ready),
     .io_reqs_3_valid             (_alu0_io_out_valid),
+    .io_reqs_3_bits_pc           (_alu0_io_out_bits_pc),
     .io_reqs_3_bits_src2_value   (_alu0_io_out_bits_src2_value),
     .io_reqs_3_bits_memWe        (_alu0_io_out_bits_memWe),
     .io_reqs_3_bits_resFromMem   (_alu0_io_out_bits_resFromMem),
@@ -819,6 +821,7 @@ module ExecutionEngine(
     .io_reqs_3_bits_pdest        (_alu0_io_out_bits_pdest),
     .io_reqs_4_ready             (_arbiter_io_reqs_4_ready),
     .io_reqs_4_valid             (_alu1_io_out_valid),
+    .io_reqs_4_bits_pc           (_alu1_io_out_bits_pc),
     .io_reqs_4_bits_src2_value   (_alu1_io_out_bits_src2_value),
     .io_reqs_4_bits_memWe        (_alu1_io_out_bits_memWe),
     .io_reqs_4_bits_resFromMem   (_alu1_io_out_bits_resFromMem),
@@ -837,6 +840,7 @@ module ExecutionEngine(
     .io_reqs_4_bits_rob_idx      (_alu1_io_out_bits_rob_idx),
     .io_reqs_4_bits_pdest        (_alu1_io_out_bits_pdest),
     .io_cdb0_valid               (io_cdb0_valid),
+    .io_cdb0_bits_pc             (io_debug_cdb0_pc),
     .io_cdb0_bits_src2_value     (io_cdb0_bits_src2_value),
     .io_cdb0_bits_memWe          (io_cdb0_bits_memWe),
     .io_cdb0_bits_resFromMem     (io_cdb0_bits_resFromMem),
@@ -855,6 +859,7 @@ module ExecutionEngine(
     .io_cdb0_bits_rob_idx        (io_cdb0_bits_rob_idx),
     .io_cdb0_bits_pdest          (io_cdb0_bits_pdest),
     .io_cdb1_valid               (io_cdb1_valid),
+    .io_cdb1_bits_pc             (io_debug_cdb1_pc),
     .io_cdb1_bits_src2_value     (io_cdb1_bits_src2_value),
     .io_cdb1_bits_memWe          (io_cdb1_bits_memWe),
     .io_cdb1_bits_resFromMem     (io_cdb1_bits_resFromMem),
@@ -892,15 +897,15 @@ module ExecutionEngine(
     .io_alloc_ready              (io_lsq_alloc_ready),
     .io_alloc_idx                (io_lsq_alloc_idx),
     .io_alloc_lsOp               (io_lsq_alloc_lsOp),
-    .io_agu_in_valid             (_agu_io_out_valid & agu_io_out_ready),
-    .io_agu_in_lsqIdx            (_agu_io_out_bits_lsq_idx),
-    .io_agu_in_paddr             (_agu_io_data_sram_addr),
-    .io_agu_in_size              (_agu_io_data_sram_size),
-    .io_agu_in_uncached          (_agu_io_data_uncached),
-    .io_agu_in_wdata             (_agu_io_data_sram_wdata),
-    .io_agu_in_wstrb             (_agu_io_data_sram_wstrb),
-    .io_agu_in_exc               (_agu_io_out_bits_hasException),
-    .io_agu_in_ecode             (_agu_io_out_bits_ecode),
+    .io_agu_in_valid             (_agu_io_to_lsq_valid & agu_io_out_ready),
+    .io_agu_in_bits_lsqIdx       (_agu_io_to_lsq_bits_lsqIdx),
+    .io_agu_in_bits_paddr        (_agu_io_to_lsq_bits_paddr),
+    .io_agu_in_bits_size         (_agu_io_to_lsq_bits_size),
+    .io_agu_in_bits_uncached     (_agu_io_to_lsq_bits_uncached),
+    .io_agu_in_bits_wdata        (_agu_io_to_lsq_bits_wdata),
+    .io_agu_in_bits_wstrb        (_agu_io_to_lsq_bits_wstrb),
+    .io_agu_in_bits_has_exc      (_agu_io_to_lsq_bits_has_exc),
+    .io_agu_in_bits_ecode        (_agu_io_to_lsq_bits_ecode),
     .io_dcache_req               (io_data_sram_req),
     .io_dcache_wr                (io_data_sram_wr),
     .io_dcache_wstrb             (io_data_sram_wstrb),
@@ -915,21 +920,11 @@ module ExecutionEngine(
     .io_cacop_is_icache          (io_cacop_is_icache),
     .io_lsq_wb_ready             (_arbiter_io_reqs_1_ready),
     .io_lsq_wb_valid             (_lsq_io_lsq_wb_valid),
-    .io_lsq_wb_bits_src2_value   (_lsq_io_lsq_wb_bits_src2_value),
-    .io_lsq_wb_bits_memWe        (_lsq_io_lsq_wb_bits_memWe),
-    .io_lsq_wb_bits_resFromMem   (_lsq_io_lsq_wb_bits_resFromMem),
-    .io_lsq_wb_bits_regWriteEn   (_lsq_io_lsq_wb_bits_regWriteEn),
+    .io_lsq_wb_bits_pc           (_lsq_io_lsq_wb_bits_pc),
     .io_lsq_wb_bits_ex_result    (_lsq_io_lsq_wb_bits_ex_result),
     .io_lsq_wb_bits_aux_data     (_lsq_io_lsq_wb_bits_aux_data),
     .io_lsq_wb_bits_hasException (_lsq_io_lsq_wb_bits_hasException),
     .io_lsq_wb_bits_ecode        (_lsq_io_lsq_wb_bits_ecode),
-    .io_lsq_wb_bits_isCsr        (_lsq_io_lsq_wb_bits_isCsr),
-    .io_lsq_wb_bits_csrWe        (_lsq_io_lsq_wb_bits_csrWe),
-    .io_lsq_wb_bits_csrNum       (_lsq_io_lsq_wb_bits_csrNum),
-    .io_lsq_wb_bits_inst_ertn    (_lsq_io_lsq_wb_bits_inst_ertn),
-    .io_lsq_wb_bits_tlbOp        (_lsq_io_lsq_wb_bits_tlbOp),
-    .io_lsq_wb_bits_is_refetch   (_lsq_io_lsq_wb_bits_is_refetch),
-    .io_lsq_wb_bits_is_cacop     (_lsq_io_lsq_wb_bits_is_cacop),
     .io_lsq_wb_bits_rob_idx      (_lsq_io_lsq_wb_bits_rob_idx),
     .io_lsq_wb_bits_pdest        (_lsq_io_lsq_wb_bits_pdest),
     .io_lsq_violation_valid      (io_lsq_violation_valid),
@@ -1000,6 +995,7 @@ module ExecutionEngine(
     .io_enq_bits_ras_tos       (_agu_io_out_bits_ras_tos),
     .io_deq_ready              (_arbiter_io_reqs_2_ready),
     .io_deq_valid              (_agu_cdb_q_io_deq_valid),
+    .io_deq_bits_pc            (_agu_cdb_q_io_deq_bits_pc),
     .io_deq_bits_src2_value    (_agu_cdb_q_io_deq_bits_src2_value),
     .io_deq_bits_memWe         (_agu_cdb_q_io_deq_bits_memWe),
     .io_deq_bits_resFromMem    (_agu_cdb_q_io_deq_bits_resFromMem),

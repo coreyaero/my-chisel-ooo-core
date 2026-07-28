@@ -106,16 +106,20 @@ module AguUnit(
   output [1:0]  io_out_bits_bpu_type,
   output [9:0]  io_out_bits_ghr,
   output [3:0]  io_out_bits_ras_tos,
+  output        io_to_lsq_valid,
+  output [3:0]  io_to_lsq_bits_lsqIdx,
+  output [31:0] io_to_lsq_bits_paddr,
+  output [1:0]  io_to_lsq_bits_size,
+  output        io_to_lsq_bits_uncached,
+  output [31:0] io_to_lsq_bits_wdata,
+  output [3:0]  io_to_lsq_bits_wstrb,
+  output        io_to_lsq_bits_has_exc,
+  output [5:0]  io_to_lsq_bits_ecode,
   input         io_flush,
                 io_br_resolve_in_valid,
                 io_br_resolve_in_mispredict,
   input  [1:0]  io_br_resolve_in_tag,
-  output [1:0]  io_data_sram_size,
-  output [3:0]  io_data_sram_wstrb,
-  output [31:0] io_data_sram_addr,
-                io_data_sram_wdata,
-  output        io_data_uncached,
-  input  [1:0]  io_mmu_config_crmd_datm,
+                io_mmu_config_crmd_datm,
   input         io_mmu_config_crmd_pg,
                 io_mmu_config_crmd_da,
   input  [1:0]  io_mmu_config_crmd_plv,
@@ -131,21 +135,23 @@ module AguUnit(
   input         io_mmu_config_dmw1_plv3,
                 io_mmu_config_dmw1_plv0,
   input  [18:0] io_mmu_config_tlbehi_vppn,
-  output [18:0] io_tlb_s1_vppn,
-  output        io_tlb_s1_va_bit12,
-  output [9:0]  io_tlb_s1_asid,
-  input         io_tlb_s1_found,
-  input  [3:0]  io_tlb_s1_index,
-  input  [19:0] io_tlb_s1_ppn,
-  input  [5:0]  io_tlb_s1_ps,
-  input  [1:0]  io_tlb_s1_plv,
-                io_tlb_s1_mat,
-  input         io_tlb_s1_d,
-                io_tlb_s1_v,
+  output [18:0] io_tlb_port_vppn,
+  output        io_tlb_port_va_bit12,
+  output [9:0]  io_tlb_port_asid,
+  input         io_tlb_port_found,
+  input  [3:0]  io_tlb_port_index,
+  input  [19:0] io_tlb_port_ppn,
+  input  [5:0]  io_tlb_port_ps,
+  input  [1:0]  io_tlb_port_plv,
+                io_tlb_port_mat,
+  input         io_tlb_port_d,
+                io_tlb_port_v,
   output        io_invtlb_valid,
   output [4:0]  io_invtlb_op
 );
 
+  wire        br_fail = io_br_resolve_in_valid & io_br_resolve_in_mispredict;
+  wire [6:0]  br_tag_bit = 7'h1 << io_br_resolve_in_tag;
   reg         ex1_valid;
   reg  [31:0] ex1_data_pc;
   reg  [31:0] ex1_data_inst;
@@ -197,112 +203,106 @@ module AguUnit(
   reg  [9:0]  ex1_data_ghr;
   reg  [3:0]  ex1_data_ras_tos;
   reg         ex2_valid;
-  reg  [31:0] ex2_data_pc;
-  reg  [31:0] ex2_data_inst;
-  reg  [12:0] ex2_data_aluOp;
-  reg  [6:0]  ex2_data_mduOp;
-  reg  [8:0]  ex2_data_brType;
-  reg  [31:0] ex2_data_imm;
-  reg         ex2_data_src1IsPC;
-  reg         ex2_data_src2IsImm;
-  reg         ex2_data_src2IsFour;
-  reg  [4:0]  ex2_data_src1_addr;
-  reg  [4:0]  ex2_data_src2_addr;
-  reg  [31:0] ex2_data_src1_value;
-  reg  [31:0] ex2_data_src2_value;
-  reg         ex2_data_resFromMulDiv;
-  reg         ex2_data_memWe;
-  reg  [7:0]  ex2_data_lsOp;
-  reg         ex2_data_resFromMem;
-  reg         ex2_data_regWriteEn;
-  reg  [4:0]  ex2_data_destReg;
-  reg         ex2_data_hasException;
-  reg  [5:0]  ex2_data_ecode;
-  reg  [8:0]  ex2_data_esubcode;
-  reg         ex2_data_isCsr;
-  reg         ex2_data_csrWe;
-  reg  [13:0] ex2_data_csrNum;
-  reg         ex2_data_inst_ertn;
-  reg         ex2_data_rdtimel;
-  reg         ex2_data_rdtimeh;
-  reg  [4:0]  ex2_data_tlbOp;
-  reg  [4:0]  ex2_data_invtlb_op;
-  reg         ex2_data_is_refetch;
-  reg         ex2_data_is_cacop;
-  reg  [4:0]  ex2_data_cacop_op;
-  reg  [4:0]  ex2_data_rob_idx;
-  reg         ex2_data_src1_read;
-  reg         ex2_data_src2_read;
-  reg  [5:0]  ex2_data_pdest;
-  reg  [5:0]  ex2_data_old_pdest;
-  reg  [5:0]  ex2_data_psrc1;
-  reg  [5:0]  ex2_data_psrc2;
-  reg         ex2_data_is_branch;
-  reg  [1:0]  ex2_data_branch_tag;
-  reg  [3:0]  ex2_data_branch_mask;
-  reg  [3:0]  ex2_data_lsq_idx;
-  reg         ex2_data_pred_taken;
-  reg  [31:0] ex2_data_pred_target;
-  reg  [1:0]  ex2_data_bpu_type;
-  reg  [9:0]  ex2_data_ghr;
-  reg  [3:0]  ex2_data_ras_tos;
-  reg  [31:0] ex2_va;
-  reg  [31:0] ex2_src2;
-  reg         ex2_is_tlbsrch;
-  reg         ex2_dmw_hit;
-  reg  [31:0] ex2_dmw_pa;
-  reg  [1:0]  ex2_dmw_mat;
-  reg         ex2_tlb_found;
-  reg  [3:0]  ex2_tlb_index;
-  reg  [19:0] ex2_tlb_ppn;
-  reg  [5:0]  ex2_tlb_ps;
-  reg  [1:0]  ex2_tlb_plv;
-  reg  [1:0]  ex2_tlb_mat;
-  reg         ex2_tlb_d;
-  reg         ex2_tlb_v;
-  reg         ex2_crmd_pg;
-  reg         ex2_crmd_da;
-  reg  [1:0]  ex2_crmd_plv;
-  reg  [1:0]  ex2_crmd_datm;
-  wire [6:0]  _clear_mask_T = 7'h1 << io_br_resolve_in_tag;
-  wire        ex1_killed =
-    ex1_valid & io_br_resolve_in_valid & io_br_resolve_in_mispredict
-    & (|(_clear_mask_T[3:0] & ex1_data_branch_mask));
-  wire        ex1_real_valid = ex1_valid & ~ex1_killed;
-  wire        ex2_killed =
-    ex2_valid & io_br_resolve_in_valid & io_br_resolve_in_mispredict
-    & (|(_clear_mask_T[3:0] & ex2_data_branch_mask));
-  wire        io_out_valid_0 = ex2_valid & ~ex2_killed;
-  wire        ex2_allow_in = ~ex2_valid | ex2_killed | io_out_ready;
-  wire        io_in_ready_0 = ~ex1_valid | ex1_killed | ex2_allow_in;
-  wire [31:0] _va_T =
-    (ex1_data_src1IsPC ? ex1_data_pc : ex1_data_src1_value)
-    + (ex1_data_src2IsImm
-         ? ex1_data_imm
-         : ex1_data_src2IsFour ? 32'h4 : ex1_data_src2_value);
+  reg  [31:0] ex2_data_data_pc;
+  reg  [31:0] ex2_data_data_inst;
+  reg  [12:0] ex2_data_data_aluOp;
+  reg  [6:0]  ex2_data_data_mduOp;
+  reg  [8:0]  ex2_data_data_brType;
+  reg  [31:0] ex2_data_data_imm;
+  reg         ex2_data_data_src1IsPC;
+  reg         ex2_data_data_src2IsImm;
+  reg         ex2_data_data_src2IsFour;
+  reg  [4:0]  ex2_data_data_src1_addr;
+  reg  [4:0]  ex2_data_data_src2_addr;
+  reg  [31:0] ex2_data_data_src1_value;
+  reg  [31:0] ex2_data_data_src2_value;
+  reg         ex2_data_data_resFromMulDiv;
+  reg         ex2_data_data_memWe;
+  reg  [7:0]  ex2_data_data_lsOp;
+  reg         ex2_data_data_resFromMem;
+  reg         ex2_data_data_regWriteEn;
+  reg  [4:0]  ex2_data_data_destReg;
+  reg         ex2_data_data_hasException;
+  reg  [5:0]  ex2_data_data_ecode;
+  reg  [8:0]  ex2_data_data_esubcode;
+  reg         ex2_data_data_isCsr;
+  reg         ex2_data_data_csrWe;
+  reg  [13:0] ex2_data_data_csrNum;
+  reg         ex2_data_data_inst_ertn;
+  reg         ex2_data_data_rdtimel;
+  reg         ex2_data_data_rdtimeh;
+  reg  [4:0]  ex2_data_data_tlbOp;
+  reg  [4:0]  ex2_data_data_invtlb_op;
+  reg         ex2_data_data_is_refetch;
+  reg         ex2_data_data_is_cacop;
+  reg  [4:0]  ex2_data_data_cacop_op;
+  reg  [4:0]  ex2_data_data_rob_idx;
+  reg         ex2_data_data_src1_read;
+  reg         ex2_data_data_src2_read;
+  reg  [5:0]  ex2_data_data_pdest;
+  reg  [5:0]  ex2_data_data_old_pdest;
+  reg  [5:0]  ex2_data_data_psrc1;
+  reg  [5:0]  ex2_data_data_psrc2;
+  reg         ex2_data_data_is_branch;
+  reg  [1:0]  ex2_data_data_branch_tag;
+  reg  [3:0]  ex2_data_data_branch_mask;
+  reg  [3:0]  ex2_data_data_lsq_idx;
+  reg         ex2_data_data_pred_taken;
+  reg  [31:0] ex2_data_data_pred_target;
+  reg  [1:0]  ex2_data_data_bpu_type;
+  reg  [9:0]  ex2_data_data_ghr;
+  reg  [3:0]  ex2_data_data_ras_tos;
+  reg  [31:0] ex2_data_va;
+  reg  [31:0] ex2_data_src2;
+  reg         ex2_data_is_tlbsrch;
+  reg         ex2_data_dmw_hit;
+  reg  [31:0] ex2_data_dmw_pa;
+  reg  [1:0]  ex2_data_dmw_mat;
+  reg         ex2_data_tlb_found;
+  reg  [3:0]  ex2_data_tlb_index;
+  reg  [19:0] ex2_data_tlb_ppn;
+  reg  [5:0]  ex2_data_tlb_ps;
+  reg  [1:0]  ex2_data_tlb_plv;
+  reg  [1:0]  ex2_data_tlb_mat;
+  reg         ex2_data_tlb_d;
+  reg         ex2_data_tlb_v;
+  reg         ex2_data_is_direct_mode;
+  reg         ex2_data_is_paged_mode;
+  reg  [1:0]  ex2_data_crmd_plv;
+  reg  [1:0]  ex2_data_crmd_datm;
+  wire        ex1_active =
+    ex1_valid & ~(br_fail & (|(br_tag_bit[3:0] & ex1_data_branch_mask)));
+  wire        ex2_active =
+    ex2_valid & ~(br_fail & (|(br_tag_bit[3:0] & ex2_data_data_branch_mask)));
+  wire        ex2_ready = ~ex2_active | io_out_ready;
+  wire        ex1_ready = ~ex1_active | ex2_ready;
+  wire [31:0] _ex1_va_T_1 =
+    ex1_data_src1_value + (ex1_data_src2IsImm ? ex1_data_imm : ex1_data_src2_value);
   wire        is_tlbsrch = ex1_data_tlbOp == 5'h1;
   wire        is_invtlb = ex1_data_tlbOp == 5'h10;
-  wire        _raw_tlb_code_T_17 = ex2_tlb_found & ex2_tlb_v;
-  wire        isWord = ex2_data_lsOp == 8'h4 | ex2_data_lsOp == 8'h80;
+  wire        isWord = ex2_data_data_lsOp == 8'h4 | ex2_data_data_lsOp == 8'h80;
   wire        isHalf =
-    ex2_data_lsOp == 8'h2 | ex2_data_lsOp == 8'h10 | ex2_data_lsOp == 8'h40;
-  wire        ale =
-    (ex2_data_resFromMem | ex2_data_memWe) & io_out_valid_0
-    & (isWord & (|(ex2_va[1:0])) | isHalf & ex2_va[0]);
-  wire        early_is_load = ex2_data_resFromMem & io_out_valid_0;
-  wire        early_is_store = ex2_data_memWe & io_out_valid_0;
-  wire        early_hit_inv =
-    ex2_data_is_cacop & ex2_data_cacop_op[4:3] == 2'h2 & io_out_valid_0;
-  wire        early_is_mapped =
-    ex2_crmd_pg & ~ex2_crmd_da & ~ex2_dmw_hit
-    & (early_is_load | early_is_store | early_hit_inv);
-  wire        priv_fault = (&ex2_crmd_plv) & ex2_tlb_plv == 2'h0;
-  wire [5:0]  raw_tlb_code =
-    {6{~ex2_tlb_found}} | (_raw_tlb_code_T_17 & priv_fault ? 6'h7 : 6'h0)
-    | {5'h0, ex2_tlb_found & ~ex2_tlb_v & (early_is_load | early_hit_inv)}
-    | {4'h0, ex2_tlb_found & ~ex2_tlb_v & early_is_store, 1'h0}
-    | {3'h0, _raw_tlb_code_T_17 & ~priv_fault & ~ex2_tlb_d & early_is_store, 2'h0};
-  wire [6:0]  stMaskB = 7'h1 << ex2_va[1:0];
+    ex2_data_data_lsOp == 8'h2 | ex2_data_data_lsOp == 8'h10
+    | ex2_data_data_lsOp == 8'h40;
+  wire        is_hit_inv = ex2_data_data_is_cacop & ex2_data_data_cacop_op[4:3] == 2'h2;
+  wire        _is_lsq_inst_T = ex2_data_data_resFromMem | ex2_data_data_memWe;
+  wire        priv_fault = (&ex2_data_crmd_plv) & ex2_data_tlb_plv == 2'h0;
+  wire        _tlb_ecode_T_17 = ex2_data_tlb_found & ex2_data_tlb_v;
+  wire [5:0]  agu_ecode =
+    _is_lsq_inst_T & (isWord & (|(ex2_data_va[1:0])) | isHalf & ex2_data_va[0])
+      ? 6'h9
+      : ex2_data_is_paged_mode & ~ex2_data_dmw_hit & (_is_lsq_inst_T | is_hit_inv)
+          ? {6{~ex2_data_tlb_found}} | (_tlb_ecode_T_17 & priv_fault ? 6'h7 : 6'h0)
+            | {5'h0,
+               ex2_data_tlb_found & ~ex2_data_tlb_v
+                 & (ex2_data_data_resFromMem | is_hit_inv)}
+            | {4'h0, ex2_data_tlb_found & ~ex2_data_tlb_v & ex2_data_data_memWe, 1'h0}
+            | {3'h0,
+               _tlb_ecode_T_17 & ~priv_fault & ~ex2_data_tlb_d & ex2_data_data_memWe,
+               2'h0}
+          : 6'h0;
+  wire        has_exc = ex2_data_data_hasException | ex2_active & (|agu_ecode);
+  wire [6:0]  stMaskB = 7'h1 << ex2_data_va[1:0];
   always @(posedge clock or posedge reset) begin
     if (reset) begin
       ex1_valid <= 1'h0;
@@ -356,87 +356,84 @@ module AguUnit(
       ex1_data_ghr <= 10'h0;
       ex1_data_ras_tos <= 4'h0;
       ex2_valid <= 1'h0;
-      ex2_data_pc <= 32'h0;
-      ex2_data_inst <= 32'h0;
-      ex2_data_aluOp <= 13'h0;
-      ex2_data_mduOp <= 7'h0;
-      ex2_data_brType <= 9'h0;
-      ex2_data_imm <= 32'h0;
-      ex2_data_src1IsPC <= 1'h0;
-      ex2_data_src2IsImm <= 1'h0;
-      ex2_data_src2IsFour <= 1'h0;
-      ex2_data_src1_addr <= 5'h0;
-      ex2_data_src2_addr <= 5'h0;
-      ex2_data_src1_value <= 32'h0;
-      ex2_data_src2_value <= 32'h0;
-      ex2_data_resFromMulDiv <= 1'h0;
-      ex2_data_memWe <= 1'h0;
-      ex2_data_lsOp <= 8'h0;
-      ex2_data_resFromMem <= 1'h0;
-      ex2_data_regWriteEn <= 1'h0;
-      ex2_data_destReg <= 5'h0;
-      ex2_data_hasException <= 1'h0;
-      ex2_data_ecode <= 6'h0;
-      ex2_data_esubcode <= 9'h0;
-      ex2_data_isCsr <= 1'h0;
-      ex2_data_csrWe <= 1'h0;
-      ex2_data_csrNum <= 14'h0;
-      ex2_data_inst_ertn <= 1'h0;
-      ex2_data_rdtimel <= 1'h0;
-      ex2_data_rdtimeh <= 1'h0;
-      ex2_data_tlbOp <= 5'h0;
-      ex2_data_invtlb_op <= 5'h0;
-      ex2_data_is_refetch <= 1'h0;
-      ex2_data_is_cacop <= 1'h0;
-      ex2_data_cacop_op <= 5'h0;
-      ex2_data_rob_idx <= 5'h0;
-      ex2_data_src1_read <= 1'h0;
-      ex2_data_src2_read <= 1'h0;
-      ex2_data_pdest <= 6'h0;
-      ex2_data_old_pdest <= 6'h0;
-      ex2_data_psrc1 <= 6'h0;
-      ex2_data_psrc2 <= 6'h0;
-      ex2_data_is_branch <= 1'h0;
-      ex2_data_branch_tag <= 2'h0;
-      ex2_data_branch_mask <= 4'h0;
-      ex2_data_lsq_idx <= 4'h0;
-      ex2_data_pred_taken <= 1'h0;
-      ex2_data_pred_target <= 32'h0;
-      ex2_data_bpu_type <= 2'h0;
-      ex2_data_ghr <= 10'h0;
-      ex2_data_ras_tos <= 4'h0;
-      ex2_va <= 32'h0;
-      ex2_src2 <= 32'h0;
-      ex2_is_tlbsrch <= 1'h0;
-      ex2_dmw_hit <= 1'h0;
-      ex2_dmw_pa <= 32'h0;
-      ex2_dmw_mat <= 2'h0;
-      ex2_tlb_found <= 1'h0;
-      ex2_tlb_index <= 4'h0;
-      ex2_tlb_ppn <= 20'h0;
-      ex2_tlb_ps <= 6'h0;
-      ex2_tlb_plv <= 2'h0;
-      ex2_tlb_mat <= 2'h0;
-      ex2_tlb_d <= 1'h0;
-      ex2_tlb_v <= 1'h0;
-      ex2_crmd_pg <= 1'h0;
-      ex2_crmd_da <= 1'h0;
-      ex2_crmd_plv <= 2'h0;
-      ex2_crmd_datm <= 2'h0;
+      ex2_data_data_pc <= 32'h0;
+      ex2_data_data_inst <= 32'h0;
+      ex2_data_data_aluOp <= 13'h0;
+      ex2_data_data_mduOp <= 7'h0;
+      ex2_data_data_brType <= 9'h0;
+      ex2_data_data_imm <= 32'h0;
+      ex2_data_data_src1IsPC <= 1'h0;
+      ex2_data_data_src2IsImm <= 1'h0;
+      ex2_data_data_src2IsFour <= 1'h0;
+      ex2_data_data_src1_addr <= 5'h0;
+      ex2_data_data_src2_addr <= 5'h0;
+      ex2_data_data_src1_value <= 32'h0;
+      ex2_data_data_src2_value <= 32'h0;
+      ex2_data_data_resFromMulDiv <= 1'h0;
+      ex2_data_data_memWe <= 1'h0;
+      ex2_data_data_lsOp <= 8'h0;
+      ex2_data_data_resFromMem <= 1'h0;
+      ex2_data_data_regWriteEn <= 1'h0;
+      ex2_data_data_destReg <= 5'h0;
+      ex2_data_data_hasException <= 1'h0;
+      ex2_data_data_ecode <= 6'h0;
+      ex2_data_data_esubcode <= 9'h0;
+      ex2_data_data_isCsr <= 1'h0;
+      ex2_data_data_csrWe <= 1'h0;
+      ex2_data_data_csrNum <= 14'h0;
+      ex2_data_data_inst_ertn <= 1'h0;
+      ex2_data_data_rdtimel <= 1'h0;
+      ex2_data_data_rdtimeh <= 1'h0;
+      ex2_data_data_tlbOp <= 5'h0;
+      ex2_data_data_invtlb_op <= 5'h0;
+      ex2_data_data_is_refetch <= 1'h0;
+      ex2_data_data_is_cacop <= 1'h0;
+      ex2_data_data_cacop_op <= 5'h0;
+      ex2_data_data_rob_idx <= 5'h0;
+      ex2_data_data_src1_read <= 1'h0;
+      ex2_data_data_src2_read <= 1'h0;
+      ex2_data_data_pdest <= 6'h0;
+      ex2_data_data_old_pdest <= 6'h0;
+      ex2_data_data_psrc1 <= 6'h0;
+      ex2_data_data_psrc2 <= 6'h0;
+      ex2_data_data_is_branch <= 1'h0;
+      ex2_data_data_branch_tag <= 2'h0;
+      ex2_data_data_branch_mask <= 4'h0;
+      ex2_data_data_lsq_idx <= 4'h0;
+      ex2_data_data_pred_taken <= 1'h0;
+      ex2_data_data_pred_target <= 32'h0;
+      ex2_data_data_bpu_type <= 2'h0;
+      ex2_data_data_ghr <= 10'h0;
+      ex2_data_data_ras_tos <= 4'h0;
+      ex2_data_va <= 32'h0;
+      ex2_data_src2 <= 32'h0;
+      ex2_data_is_tlbsrch <= 1'h0;
+      ex2_data_dmw_hit <= 1'h0;
+      ex2_data_dmw_pa <= 32'h0;
+      ex2_data_dmw_mat <= 2'h0;
+      ex2_data_tlb_found <= 1'h0;
+      ex2_data_tlb_index <= 4'h0;
+      ex2_data_tlb_ppn <= 20'h0;
+      ex2_data_tlb_ps <= 6'h0;
+      ex2_data_tlb_plv <= 2'h0;
+      ex2_data_tlb_mat <= 2'h0;
+      ex2_data_tlb_d <= 1'h0;
+      ex2_data_tlb_v <= 1'h0;
+      ex2_data_is_direct_mode <= 1'h0;
+      ex2_data_is_paged_mode <= 1'h0;
+      ex2_data_crmd_plv <= 2'h0;
+      ex2_data_crmd_datm <= 2'h0;
     end
     else begin
-      automatic logic _ex1_data_branch_mask_T;
-      automatic logic _GEN;
-      _ex1_data_branch_mask_T = io_in_valid & io_in_ready_0;
-      _GEN = io_br_resolve_in_valid & ~io_br_resolve_in_mispredict;
+      automatic logic _GEN = io_flush | ~ex1_ready;
       ex1_valid <=
         ~io_flush
-        & (io_in_ready_0
-             ? io_in_valid
-               & ~(io_in_valid & io_br_resolve_in_valid & io_br_resolve_in_mispredict
-                   & (|(_clear_mask_T[3:0] & io_in_bits_branch_mask)))
-             : ~ex1_killed & ex1_valid);
-      if (_ex1_data_branch_mask_T) begin
+        & (ex1_ready
+             ? io_in_valid & ~(br_fail & (|(br_tag_bit[3:0] & io_in_bits_branch_mask)))
+             : ex1_valid);
+      if (_GEN) begin
+      end
+      else begin
         ex1_data_pc <= io_in_bits_pc;
         ex1_data_inst <= io_in_bits_inst;
         ex1_data_aluOp <= io_in_bits_aluOp;
@@ -479,6 +476,22 @@ module AguUnit(
         ex1_data_psrc2 <= io_in_bits_psrc2;
         ex1_data_is_branch <= io_in_bits_is_branch;
         ex1_data_branch_tag <= io_in_bits_branch_tag;
+      end
+      if (io_flush) begin
+      end
+      else begin
+        automatic logic [3:0] _GEN_0 =
+          {4{io_br_resolve_in_valid & ~io_br_resolve_in_mispredict}} & br_tag_bit[3:0];
+        automatic logic [3:0] next_ex2_data_branch_mask;
+        next_ex2_data_branch_mask = ~_GEN_0 & ex1_data_branch_mask;
+        ex1_data_branch_mask <=
+          ex1_ready ? ~_GEN_0 & io_in_bits_branch_mask : next_ex2_data_branch_mask;
+        ex2_data_data_branch_mask <=
+          ex2_ready ? next_ex2_data_branch_mask : ~_GEN_0 & ex2_data_data_branch_mask;
+      end
+      if (_GEN) begin
+      end
+      else begin
         ex1_data_lsq_idx <= io_in_bits_lsq_idx;
         ex1_data_pred_taken <= io_in_bits_pred_taken;
         ex1_data_pred_target <= io_in_bits_pred_target;
@@ -486,97 +499,88 @@ module AguUnit(
         ex1_data_ghr <= io_in_bits_ghr;
         ex1_data_ras_tos <= io_in_bits_ras_tos;
       end
-      if (_GEN)
-        ex1_data_branch_mask <=
-          ~(_clear_mask_T[3:0])
-          & (_ex1_data_branch_mask_T ? io_in_bits_branch_mask : ex1_data_branch_mask);
-      else if (_ex1_data_branch_mask_T)
-        ex1_data_branch_mask <= io_in_bits_branch_mask;
-      ex2_valid <= ~io_flush & (ex2_allow_in ? ex1_real_valid : ~ex2_killed & ex2_valid);
-      if (ex1_real_valid & ex2_allow_in) begin
-        automatic logic _dmw1_hit_T_6 = io_mmu_config_crmd_plv == 2'h0;
-        automatic logic dmw0_hit =
-          io_mmu_config_crmd_pg & ~io_mmu_config_crmd_da
-          & _va_T[31:29] == io_mmu_config_dmw0_vseg
-          & (_dmw1_hit_T_6 & io_mmu_config_dmw0_plv0 | (&io_mmu_config_crmd_plv)
-             & io_mmu_config_dmw0_plv3);
-        ex2_data_pc <= ex1_data_pc;
-        ex2_data_inst <= ex1_data_inst;
-        ex2_data_aluOp <= ex1_data_aluOp;
-        ex2_data_mduOp <= ex1_data_mduOp;
-        ex2_data_brType <= ex1_data_brType;
-        ex2_data_imm <= ex1_data_imm;
-        ex2_data_src1IsPC <= ex1_data_src1IsPC;
-        ex2_data_src2IsImm <= ex1_data_src2IsImm;
-        ex2_data_src2IsFour <= ex1_data_src2IsFour;
-        ex2_data_src1_addr <= ex1_data_src1_addr;
-        ex2_data_src2_addr <= ex1_data_src2_addr;
-        ex2_data_src1_value <= ex1_data_src1_value;
-        ex2_data_src2_value <= ex1_data_src2_value;
-        ex2_data_resFromMulDiv <= ex1_data_resFromMulDiv;
-        ex2_data_memWe <= ex1_data_memWe;
-        ex2_data_lsOp <= ex1_data_lsOp;
-        ex2_data_resFromMem <= ex1_data_resFromMem;
-        ex2_data_regWriteEn <= ex1_data_regWriteEn;
-        ex2_data_destReg <= ex1_data_destReg;
-        ex2_data_hasException <= ex1_data_hasException;
-        ex2_data_ecode <= ex1_data_ecode;
-        ex2_data_esubcode <= ex1_data_esubcode;
-        ex2_data_isCsr <= ex1_data_isCsr;
-        ex2_data_csrWe <= ex1_data_csrWe;
-        ex2_data_csrNum <= ex1_data_csrNum;
-        ex2_data_inst_ertn <= ex1_data_inst_ertn;
-        ex2_data_rdtimel <= ex1_data_rdtimel;
-        ex2_data_rdtimeh <= ex1_data_rdtimeh;
-        ex2_data_tlbOp <= ex1_data_tlbOp;
-        ex2_data_invtlb_op <= ex1_data_invtlb_op;
-        ex2_data_is_refetch <= ex1_data_is_refetch;
-        ex2_data_is_cacop <= ex1_data_is_cacop;
-        ex2_data_cacop_op <= ex1_data_cacop_op;
-        ex2_data_rob_idx <= ex1_data_rob_idx;
-        ex2_data_src1_read <= ex1_data_src1_read;
-        ex2_data_src2_read <= ex1_data_src2_read;
-        ex2_data_pdest <= ex1_data_pdest;
-        ex2_data_old_pdest <= ex1_data_old_pdest;
-        ex2_data_psrc1 <= ex1_data_psrc1;
-        ex2_data_psrc2 <= ex1_data_psrc2;
-        ex2_data_is_branch <= ex1_data_is_branch;
-        ex2_data_branch_tag <= ex1_data_branch_tag;
-        ex2_data_branch_mask <= ex1_data_branch_mask;
-        ex2_data_lsq_idx <= ex1_data_lsq_idx;
-        ex2_data_pred_taken <= ex1_data_pred_taken;
-        ex2_data_pred_target <= ex1_data_pred_target;
-        ex2_data_bpu_type <= ex1_data_bpu_type;
-        ex2_data_ghr <= ex1_data_ghr;
-        ex2_data_ras_tos <= ex1_data_ras_tos;
-        ex2_va <= _va_T;
-        ex2_src2 <= ex1_data_src2_value;
-        ex2_is_tlbsrch <= is_tlbsrch;
-        ex2_dmw_hit <=
-          dmw0_hit | io_mmu_config_crmd_pg & ~io_mmu_config_crmd_da
-          & _va_T[31:29] == io_mmu_config_dmw1_vseg
-          & (_dmw1_hit_T_6 & io_mmu_config_dmw1_plv0 | (&io_mmu_config_crmd_plv)
-             & io_mmu_config_dmw1_plv3);
-        ex2_dmw_pa <=
-          {dmw0_hit ? io_mmu_config_dmw0_pseg : io_mmu_config_dmw1_pseg, _va_T[28:0]};
-        ex2_dmw_mat <= dmw0_hit ? io_mmu_config_dmw0_mat : io_mmu_config_dmw1_mat;
-        ex2_tlb_found <= io_tlb_s1_found;
-        ex2_tlb_index <= io_tlb_s1_index;
-        ex2_tlb_ppn <= io_tlb_s1_ppn;
-        ex2_tlb_ps <= io_tlb_s1_ps;
-        ex2_tlb_plv <= io_tlb_s1_plv;
-        ex2_tlb_mat <= io_tlb_s1_mat;
-        ex2_tlb_d <= io_tlb_s1_d;
-        ex2_tlb_v <= io_tlb_s1_v;
-        ex2_crmd_pg <= io_mmu_config_crmd_pg;
-        ex2_crmd_da <= io_mmu_config_crmd_da;
-        ex2_crmd_plv <= io_mmu_config_crmd_plv;
-        ex2_crmd_datm <= io_mmu_config_crmd_datm;
+      ex2_valid <= ~io_flush & (ex2_ready ? ex1_active : ex2_valid);
+      if (io_flush | ~ex2_ready) begin
       end
-      else if (_GEN)
-        ex2_data_branch_mask <=
-          ~(_clear_mask_T[3:0])
-          & (ex1_real_valid & ex2_allow_in ? ex1_data_branch_mask : ex2_data_branch_mask);
+      else begin
+        automatic logic is_paged_mode = io_mmu_config_crmd_pg & ~io_mmu_config_crmd_da;
+        automatic logic _dmw1_hit_T_3 = io_mmu_config_crmd_plv == 2'h0;
+        automatic logic dmw0_hit =
+          is_paged_mode & _ex1_va_T_1[31:29] == io_mmu_config_dmw0_vseg
+          & (_dmw1_hit_T_3 & io_mmu_config_dmw0_plv0 | (&io_mmu_config_crmd_plv)
+             & io_mmu_config_dmw0_plv3);
+        ex2_data_data_pc <= ex1_data_pc;
+        ex2_data_data_inst <= ex1_data_inst;
+        ex2_data_data_aluOp <= ex1_data_aluOp;
+        ex2_data_data_mduOp <= ex1_data_mduOp;
+        ex2_data_data_brType <= ex1_data_brType;
+        ex2_data_data_imm <= ex1_data_imm;
+        ex2_data_data_src1IsPC <= ex1_data_src1IsPC;
+        ex2_data_data_src2IsImm <= ex1_data_src2IsImm;
+        ex2_data_data_src2IsFour <= ex1_data_src2IsFour;
+        ex2_data_data_src1_addr <= ex1_data_src1_addr;
+        ex2_data_data_src2_addr <= ex1_data_src2_addr;
+        ex2_data_data_src1_value <= ex1_data_src1_value;
+        ex2_data_data_src2_value <= ex1_data_src2_value;
+        ex2_data_data_resFromMulDiv <= ex1_data_resFromMulDiv;
+        ex2_data_data_memWe <= ex1_data_memWe;
+        ex2_data_data_lsOp <= ex1_data_lsOp;
+        ex2_data_data_resFromMem <= ex1_data_resFromMem;
+        ex2_data_data_regWriteEn <= ex1_data_regWriteEn;
+        ex2_data_data_destReg <= ex1_data_destReg;
+        ex2_data_data_hasException <= ex1_data_hasException;
+        ex2_data_data_ecode <= ex1_data_ecode;
+        ex2_data_data_esubcode <= ex1_data_esubcode;
+        ex2_data_data_isCsr <= ex1_data_isCsr;
+        ex2_data_data_csrWe <= ex1_data_csrWe;
+        ex2_data_data_csrNum <= ex1_data_csrNum;
+        ex2_data_data_inst_ertn <= ex1_data_inst_ertn;
+        ex2_data_data_rdtimel <= ex1_data_rdtimel;
+        ex2_data_data_rdtimeh <= ex1_data_rdtimeh;
+        ex2_data_data_tlbOp <= ex1_data_tlbOp;
+        ex2_data_data_invtlb_op <= ex1_data_invtlb_op;
+        ex2_data_data_is_refetch <= ex1_data_is_refetch;
+        ex2_data_data_is_cacop <= ex1_data_is_cacop;
+        ex2_data_data_cacop_op <= ex1_data_cacop_op;
+        ex2_data_data_rob_idx <= ex1_data_rob_idx;
+        ex2_data_data_src1_read <= ex1_data_src1_read;
+        ex2_data_data_src2_read <= ex1_data_src2_read;
+        ex2_data_data_pdest <= ex1_data_pdest;
+        ex2_data_data_old_pdest <= ex1_data_old_pdest;
+        ex2_data_data_psrc1 <= ex1_data_psrc1;
+        ex2_data_data_psrc2 <= ex1_data_psrc2;
+        ex2_data_data_is_branch <= ex1_data_is_branch;
+        ex2_data_data_branch_tag <= ex1_data_branch_tag;
+        ex2_data_data_lsq_idx <= ex1_data_lsq_idx;
+        ex2_data_data_pred_taken <= ex1_data_pred_taken;
+        ex2_data_data_pred_target <= ex1_data_pred_target;
+        ex2_data_data_bpu_type <= ex1_data_bpu_type;
+        ex2_data_data_ghr <= ex1_data_ghr;
+        ex2_data_data_ras_tos <= ex1_data_ras_tos;
+        ex2_data_va <= _ex1_va_T_1;
+        ex2_data_src2 <= ex1_data_src2_value;
+        ex2_data_is_tlbsrch <= is_tlbsrch;
+        ex2_data_dmw_hit <=
+          dmw0_hit | is_paged_mode & _ex1_va_T_1[31:29] == io_mmu_config_dmw1_vseg
+          & (_dmw1_hit_T_3 & io_mmu_config_dmw1_plv0 | (&io_mmu_config_crmd_plv)
+             & io_mmu_config_dmw1_plv3);
+        ex2_data_dmw_pa <=
+          {dmw0_hit ? io_mmu_config_dmw0_pseg : io_mmu_config_dmw1_pseg,
+           _ex1_va_T_1[28:0]};
+        ex2_data_dmw_mat <= dmw0_hit ? io_mmu_config_dmw0_mat : io_mmu_config_dmw1_mat;
+        ex2_data_tlb_found <= io_tlb_port_found;
+        ex2_data_tlb_index <= io_tlb_port_index;
+        ex2_data_tlb_ppn <= io_tlb_port_ppn;
+        ex2_data_tlb_ps <= io_tlb_port_ps;
+        ex2_data_tlb_plv <= io_tlb_port_plv;
+        ex2_data_tlb_mat <= io_tlb_port_mat;
+        ex2_data_tlb_d <= io_tlb_port_d;
+        ex2_data_tlb_v <= io_tlb_port_v;
+        ex2_data_is_direct_mode <= ~io_mmu_config_crmd_pg & io_mmu_config_crmd_da;
+        ex2_data_is_paged_mode <= is_paged_mode;
+        ex2_data_crmd_plv <= io_mmu_config_crmd_plv;
+        ex2_data_crmd_datm <= io_mmu_config_crmd_datm;
+      end
     end
   end // always @(posedge, posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -636,169 +640,169 @@ module AguUnit(
         ex1_data_ghr = 10'h0;
         ex1_data_ras_tos = 4'h0;
         ex2_valid = 1'h0;
-        ex2_data_pc = 32'h0;
-        ex2_data_inst = 32'h0;
-        ex2_data_aluOp = 13'h0;
-        ex2_data_mduOp = 7'h0;
-        ex2_data_brType = 9'h0;
-        ex2_data_imm = 32'h0;
-        ex2_data_src1IsPC = 1'h0;
-        ex2_data_src2IsImm = 1'h0;
-        ex2_data_src2IsFour = 1'h0;
-        ex2_data_src1_addr = 5'h0;
-        ex2_data_src2_addr = 5'h0;
-        ex2_data_src1_value = 32'h0;
-        ex2_data_src2_value = 32'h0;
-        ex2_data_resFromMulDiv = 1'h0;
-        ex2_data_memWe = 1'h0;
-        ex2_data_lsOp = 8'h0;
-        ex2_data_resFromMem = 1'h0;
-        ex2_data_regWriteEn = 1'h0;
-        ex2_data_destReg = 5'h0;
-        ex2_data_hasException = 1'h0;
-        ex2_data_ecode = 6'h0;
-        ex2_data_esubcode = 9'h0;
-        ex2_data_isCsr = 1'h0;
-        ex2_data_csrWe = 1'h0;
-        ex2_data_csrNum = 14'h0;
-        ex2_data_inst_ertn = 1'h0;
-        ex2_data_rdtimel = 1'h0;
-        ex2_data_rdtimeh = 1'h0;
-        ex2_data_tlbOp = 5'h0;
-        ex2_data_invtlb_op = 5'h0;
-        ex2_data_is_refetch = 1'h0;
-        ex2_data_is_cacop = 1'h0;
-        ex2_data_cacop_op = 5'h0;
-        ex2_data_rob_idx = 5'h0;
-        ex2_data_src1_read = 1'h0;
-        ex2_data_src2_read = 1'h0;
-        ex2_data_pdest = 6'h0;
-        ex2_data_old_pdest = 6'h0;
-        ex2_data_psrc1 = 6'h0;
-        ex2_data_psrc2 = 6'h0;
-        ex2_data_is_branch = 1'h0;
-        ex2_data_branch_tag = 2'h0;
-        ex2_data_branch_mask = 4'h0;
-        ex2_data_lsq_idx = 4'h0;
-        ex2_data_pred_taken = 1'h0;
-        ex2_data_pred_target = 32'h0;
-        ex2_data_bpu_type = 2'h0;
-        ex2_data_ghr = 10'h0;
-        ex2_data_ras_tos = 4'h0;
-        ex2_va = 32'h0;
-        ex2_src2 = 32'h0;
-        ex2_is_tlbsrch = 1'h0;
-        ex2_dmw_hit = 1'h0;
-        ex2_dmw_pa = 32'h0;
-        ex2_dmw_mat = 2'h0;
-        ex2_tlb_found = 1'h0;
-        ex2_tlb_index = 4'h0;
-        ex2_tlb_ppn = 20'h0;
-        ex2_tlb_ps = 6'h0;
-        ex2_tlb_plv = 2'h0;
-        ex2_tlb_mat = 2'h0;
-        ex2_tlb_d = 1'h0;
-        ex2_tlb_v = 1'h0;
-        ex2_crmd_pg = 1'h0;
-        ex2_crmd_da = 1'h0;
-        ex2_crmd_plv = 2'h0;
-        ex2_crmd_datm = 2'h0;
+        ex2_data_data_pc = 32'h0;
+        ex2_data_data_inst = 32'h0;
+        ex2_data_data_aluOp = 13'h0;
+        ex2_data_data_mduOp = 7'h0;
+        ex2_data_data_brType = 9'h0;
+        ex2_data_data_imm = 32'h0;
+        ex2_data_data_src1IsPC = 1'h0;
+        ex2_data_data_src2IsImm = 1'h0;
+        ex2_data_data_src2IsFour = 1'h0;
+        ex2_data_data_src1_addr = 5'h0;
+        ex2_data_data_src2_addr = 5'h0;
+        ex2_data_data_src1_value = 32'h0;
+        ex2_data_data_src2_value = 32'h0;
+        ex2_data_data_resFromMulDiv = 1'h0;
+        ex2_data_data_memWe = 1'h0;
+        ex2_data_data_lsOp = 8'h0;
+        ex2_data_data_resFromMem = 1'h0;
+        ex2_data_data_regWriteEn = 1'h0;
+        ex2_data_data_destReg = 5'h0;
+        ex2_data_data_hasException = 1'h0;
+        ex2_data_data_ecode = 6'h0;
+        ex2_data_data_esubcode = 9'h0;
+        ex2_data_data_isCsr = 1'h0;
+        ex2_data_data_csrWe = 1'h0;
+        ex2_data_data_csrNum = 14'h0;
+        ex2_data_data_inst_ertn = 1'h0;
+        ex2_data_data_rdtimel = 1'h0;
+        ex2_data_data_rdtimeh = 1'h0;
+        ex2_data_data_tlbOp = 5'h0;
+        ex2_data_data_invtlb_op = 5'h0;
+        ex2_data_data_is_refetch = 1'h0;
+        ex2_data_data_is_cacop = 1'h0;
+        ex2_data_data_cacop_op = 5'h0;
+        ex2_data_data_rob_idx = 5'h0;
+        ex2_data_data_src1_read = 1'h0;
+        ex2_data_data_src2_read = 1'h0;
+        ex2_data_data_pdest = 6'h0;
+        ex2_data_data_old_pdest = 6'h0;
+        ex2_data_data_psrc1 = 6'h0;
+        ex2_data_data_psrc2 = 6'h0;
+        ex2_data_data_is_branch = 1'h0;
+        ex2_data_data_branch_tag = 2'h0;
+        ex2_data_data_branch_mask = 4'h0;
+        ex2_data_data_lsq_idx = 4'h0;
+        ex2_data_data_pred_taken = 1'h0;
+        ex2_data_data_pred_target = 32'h0;
+        ex2_data_data_bpu_type = 2'h0;
+        ex2_data_data_ghr = 10'h0;
+        ex2_data_data_ras_tos = 4'h0;
+        ex2_data_va = 32'h0;
+        ex2_data_src2 = 32'h0;
+        ex2_data_is_tlbsrch = 1'h0;
+        ex2_data_dmw_hit = 1'h0;
+        ex2_data_dmw_pa = 32'h0;
+        ex2_data_dmw_mat = 2'h0;
+        ex2_data_tlb_found = 1'h0;
+        ex2_data_tlb_index = 4'h0;
+        ex2_data_tlb_ppn = 20'h0;
+        ex2_data_tlb_ps = 6'h0;
+        ex2_data_tlb_plv = 2'h0;
+        ex2_data_tlb_mat = 2'h0;
+        ex2_data_tlb_d = 1'h0;
+        ex2_data_tlb_v = 1'h0;
+        ex2_data_is_direct_mode = 1'h0;
+        ex2_data_is_paged_mode = 1'h0;
+        ex2_data_crmd_plv = 2'h0;
+        ex2_data_crmd_datm = 2'h0;
       end
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_in_ready = io_in_ready_0;
-  assign io_out_valid = io_out_valid_0;
-  assign io_out_bits_pc = ex2_data_pc;
-  assign io_out_bits_inst = ex2_data_inst;
-  assign io_out_bits_aluOp = ex2_data_aluOp;
-  assign io_out_bits_mduOp = ex2_data_mduOp;
-  assign io_out_bits_brType = ex2_data_brType;
-  assign io_out_bits_imm = ex2_data_imm;
-  assign io_out_bits_src1IsPC = ex2_data_src1IsPC;
-  assign io_out_bits_src2IsImm = ex2_data_src2IsImm;
-  assign io_out_bits_src2IsFour = ex2_data_src2IsFour;
-  assign io_out_bits_src1_addr = ex2_data_src1_addr;
-  assign io_out_bits_src2_addr = ex2_data_src2_addr;
-  assign io_out_bits_src1_value = ex2_data_src1_value;
-  assign io_out_bits_src2_value = ex2_data_src2_value;
-  assign io_out_bits_resFromMulDiv = ex2_data_resFromMulDiv;
-  assign io_out_bits_memWe = ex2_data_memWe;
-  assign io_out_bits_lsOp = ex2_data_lsOp;
-  assign io_out_bits_resFromMem = ex2_data_resFromMem;
-  assign io_out_bits_regWriteEn = ex2_data_regWriteEn;
-  assign io_out_bits_destReg = ex2_data_destReg;
+  assign io_in_ready = ex1_ready;
+  assign io_out_valid = ex2_active;
+  assign io_out_bits_pc = ex2_data_data_pc;
+  assign io_out_bits_inst = ex2_data_data_inst;
+  assign io_out_bits_aluOp = ex2_data_data_aluOp;
+  assign io_out_bits_mduOp = ex2_data_data_mduOp;
+  assign io_out_bits_brType = ex2_data_data_brType;
+  assign io_out_bits_imm = ex2_data_data_imm;
+  assign io_out_bits_src1IsPC = ex2_data_data_src1IsPC;
+  assign io_out_bits_src2IsImm = ex2_data_data_src2IsImm;
+  assign io_out_bits_src2IsFour = ex2_data_data_src2IsFour;
+  assign io_out_bits_src1_addr = ex2_data_data_src1_addr;
+  assign io_out_bits_src2_addr = ex2_data_data_src2_addr;
+  assign io_out_bits_src1_value = ex2_data_data_src1_value;
+  assign io_out_bits_src2_value = ex2_data_data_src2_value;
+  assign io_out_bits_resFromMulDiv = ex2_data_data_resFromMulDiv;
+  assign io_out_bits_memWe = ex2_data_data_memWe;
+  assign io_out_bits_lsOp = ex2_data_data_lsOp;
+  assign io_out_bits_resFromMem = ex2_data_data_resFromMem;
+  assign io_out_bits_regWriteEn = ex2_data_data_regWriteEn;
+  assign io_out_bits_destReg = ex2_data_data_destReg;
   assign io_out_bits_ex_result =
-    ex2_is_tlbsrch ? {~ex2_tlb_found, 27'h0, ex2_tlb_index} : ex2_va;
+    ex2_data_is_tlbsrch ? {~ex2_data_tlb_found, 27'h0, ex2_data_tlb_index} : ex2_data_va;
   assign io_out_bits_aux_data =
-    ex2_is_tlbsrch ? (ex2_tlb_found ? 32'h8000000F : 32'h80000000) : 32'h0;
-  assign io_out_bits_hasException =
-    ex2_data_hasException | ale | early_is_mapped & (|raw_tlb_code);
-  assign io_out_bits_ecode =
-    ex2_data_hasException
-      ? ex2_data_ecode
-      : ale ? 6'h9 : early_is_mapped ? raw_tlb_code : 6'h0;
-  assign io_out_bits_esubcode = ex2_data_esubcode;
-  assign io_out_bits_isCsr = ex2_data_isCsr;
-  assign io_out_bits_csrWe = ex2_data_csrWe;
-  assign io_out_bits_csrNum = ex2_data_csrNum;
-  assign io_out_bits_inst_ertn = ex2_data_inst_ertn;
-  assign io_out_bits_rdtimel = ex2_data_rdtimel;
-  assign io_out_bits_rdtimeh = ex2_data_rdtimeh;
-  assign io_out_bits_tlbOp = ex2_data_tlbOp;
-  assign io_out_bits_invtlb_op = ex2_data_invtlb_op;
-  assign io_out_bits_is_refetch = ex2_data_is_refetch;
-  assign io_out_bits_is_cacop = io_out_valid_0 & ex2_data_is_cacop;
-  assign io_out_bits_cacop_op = io_out_valid_0 ? ex2_data_cacop_op : 5'h0;
-  assign io_out_bits_rob_idx = ex2_data_rob_idx;
-  assign io_out_bits_src1_read = ex2_data_src1_read;
-  assign io_out_bits_src2_read = ex2_data_src2_read;
-  assign io_out_bits_pdest = ex2_data_pdest;
-  assign io_out_bits_old_pdest = ex2_data_old_pdest;
-  assign io_out_bits_psrc1 = ex2_data_psrc1;
-  assign io_out_bits_psrc2 = ex2_data_psrc2;
-  assign io_out_bits_is_branch = ex2_data_is_branch;
-  assign io_out_bits_branch_tag = ex2_data_branch_tag;
-  assign io_out_bits_branch_mask = ex2_data_branch_mask;
-  assign io_out_bits_lsq_idx = ex2_data_lsq_idx;
-  assign io_out_bits_pred_taken = ex2_data_pred_taken;
-  assign io_out_bits_pred_target = ex2_data_pred_target;
-  assign io_out_bits_bpu_type = ex2_data_bpu_type;
-  assign io_out_bits_ghr = ex2_data_ghr;
-  assign io_out_bits_ras_tos = ex2_data_ras_tos;
-  assign io_data_sram_size = isWord ? 2'h2 : {1'h0, isHalf};
-  assign io_data_sram_wstrb =
-    early_is_store & ~io_flush
-      ? (isWord ? 4'hF : isHalf ? (ex2_va[1] ? 4'hC : 4'h3) : stMaskB[3:0])
+    ex2_data_is_tlbsrch ? (ex2_data_tlb_found ? 32'h8000000F : 32'h80000000) : 32'h0;
+  assign io_out_bits_hasException = has_exc;
+  assign io_out_bits_ecode = ex2_data_data_hasException ? ex2_data_data_ecode : agu_ecode;
+  assign io_out_bits_esubcode = ex2_data_data_esubcode;
+  assign io_out_bits_isCsr = ex2_data_data_isCsr;
+  assign io_out_bits_csrWe = ex2_data_data_csrWe;
+  assign io_out_bits_csrNum = ex2_data_data_csrNum;
+  assign io_out_bits_inst_ertn = ex2_data_data_inst_ertn;
+  assign io_out_bits_rdtimel = ex2_data_data_rdtimel;
+  assign io_out_bits_rdtimeh = ex2_data_data_rdtimeh;
+  assign io_out_bits_tlbOp = ex2_data_data_tlbOp;
+  assign io_out_bits_invtlb_op = ex2_data_data_invtlb_op;
+  assign io_out_bits_is_refetch = ex2_data_data_is_refetch;
+  assign io_out_bits_is_cacop = ex2_data_data_is_cacop;
+  assign io_out_bits_cacop_op = ex2_data_data_cacop_op;
+  assign io_out_bits_rob_idx = ex2_data_data_rob_idx;
+  assign io_out_bits_src1_read = ex2_data_data_src1_read;
+  assign io_out_bits_src2_read = ex2_data_data_src2_read;
+  assign io_out_bits_pdest = ex2_data_data_pdest;
+  assign io_out_bits_old_pdest = ex2_data_data_old_pdest;
+  assign io_out_bits_psrc1 = ex2_data_data_psrc1;
+  assign io_out_bits_psrc2 = ex2_data_data_psrc2;
+  assign io_out_bits_is_branch = ex2_data_data_is_branch;
+  assign io_out_bits_branch_tag = ex2_data_data_branch_tag;
+  assign io_out_bits_branch_mask = ex2_data_data_branch_mask;
+  assign io_out_bits_lsq_idx = ex2_data_data_lsq_idx;
+  assign io_out_bits_pred_taken = ex2_data_data_pred_taken;
+  assign io_out_bits_pred_target = ex2_data_data_pred_target;
+  assign io_out_bits_bpu_type = ex2_data_data_bpu_type;
+  assign io_out_bits_ghr = ex2_data_data_ghr;
+  assign io_out_bits_ras_tos = ex2_data_data_ras_tos;
+  assign io_to_lsq_valid =
+    (_is_lsq_inst_T | ex2_data_data_is_cacop) & ex2_active & ~io_flush;
+  assign io_to_lsq_bits_lsqIdx = ex2_data_data_lsq_idx;
+  assign io_to_lsq_bits_paddr =
+    {ex2_data_data_is_cacop & ex2_data_data_cacop_op[4:3] != 2'h2
+       ? ex2_data_va[31:12]
+       : ex2_data_is_direct_mode
+           ? ex2_data_va[31:12]
+           : ex2_data_dmw_hit
+               ? ex2_data_dmw_pa[31:12]
+               : ex2_data_tlb_ps == 6'hC
+                   ? ex2_data_tlb_ppn
+                   : {ex2_data_tlb_ppn[19:9], ex2_data_va[20:12]},
+     ex2_data_va[11:0]};
+  assign io_to_lsq_bits_size = isWord ? 2'h2 : {1'h0, isHalf};
+  assign io_to_lsq_bits_uncached =
+    (ex2_data_is_direct_mode
+       ? ex2_data_crmd_datm
+       : ex2_data_dmw_hit ? ex2_data_dmw_mat : ex2_data_tlb_mat) == 2'h0;
+  assign io_to_lsq_bits_wdata =
+    isWord ? ex2_data_src2 : isHalf ? {2{ex2_data_src2[15:0]}} : {4{ex2_data_src2[7:0]}};
+  assign io_to_lsq_bits_wstrb =
+    ex2_data_data_memWe & ~has_exc
+      ? (isWord ? 4'hF : isHalf ? (ex2_data_va[1] ? 4'hC : 4'h3) : stMaskB[3:0])
       : 4'h0;
-  assign io_data_sram_addr =
-    {ex2_data_is_cacop & ex2_data_cacop_op[4:3] != 2'h2
-       ? ex2_va[31:12]
-       : ex2_crmd_da & ~ex2_crmd_pg
-           ? ex2_va[31:12]
-           : ex2_dmw_hit
-               ? ex2_dmw_pa[31:12]
-               : _raw_tlb_code_T_17
-                   ? (ex2_tlb_ps == 6'hC
-                        ? ex2_tlb_ppn
-                        : {ex2_tlb_ppn[19:9], ex2_va[20:12]})
-                   : ex2_va[31:12],
-     ex2_va[11:0]};
-  assign io_data_sram_wdata =
-    isWord ? ex2_src2 : isHalf ? {2{ex2_src2[15:0]}} : {4{ex2_src2[7:0]}};
-  assign io_data_uncached =
-    (ex2_crmd_da & ~ex2_crmd_pg
-       ? ex2_crmd_datm
-       : ex2_dmw_hit ? ex2_dmw_mat : ex2_tlb_mat) == 2'h0;
-  assign io_tlb_s1_vppn =
+  assign io_to_lsq_bits_has_exc = has_exc;
+  assign io_to_lsq_bits_ecode = agu_ecode;
+  assign io_tlb_port_vppn =
     is_invtlb
       ? ex1_data_src2_value[31:13]
-      : is_tlbsrch ? io_mmu_config_tlbehi_vppn : _va_T[31:13];
-  assign io_tlb_s1_va_bit12 = _va_T[12];
-  assign io_tlb_s1_asid = is_invtlb ? ex1_data_src1_value[9:0] : io_mmu_config_asid_asid;
-  assign io_invtlb_valid = is_invtlb & ex1_real_valid & ~ex1_data_hasException;
+      : is_tlbsrch ? io_mmu_config_tlbehi_vppn : _ex1_va_T_1[31:13];
+  assign io_tlb_port_va_bit12 = _ex1_va_T_1[12];
+  assign io_tlb_port_asid =
+    is_invtlb ? ex1_data_src1_value[9:0] : io_mmu_config_asid_asid;
+  assign io_invtlb_valid = is_invtlb & ex1_active & ~ex1_data_hasException;
   assign io_invtlb_op = ex1_data_invtlb_op;
 endmodule
 

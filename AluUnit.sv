@@ -40,7 +40,8 @@ module AluUnit(
   input  [3:0]  io_in_bits_ras_tos,
   input         io_out_ready,
   output        io_out_valid,
-  output [31:0] io_out_bits_src2_value,
+  output [31:0] io_out_bits_pc,
+                io_out_bits_src2_value,
   output        io_out_bits_memWe,
                 io_out_bits_resFromMem,
                 io_out_bits_regWriteEn,
@@ -114,10 +115,11 @@ module AluUnit(
   reg  [31:0] data_reg_pred_target;
   reg  [9:0]  data_reg_ghr;
   reg  [3:0]  data_reg_ras_tos;
-  wire        allow_in = ~valid_reg | io_out_ready;
-  wire        _br_base_T = data_reg_brType == 9'h40;
-  wire        actual_taken =
-    data_reg_brType == 9'h100 | data_reg_brType == 9'h80 | _br_base_T
+  reg         br_broadcasted;
+  wire        in_ready = ~valid_reg | io_out_ready;
+  wire        _branch_base_pc_T = data_reg_brType == 9'h40;
+  wire        branch_actual_taken =
+    data_reg_brType == 9'h100 | data_reg_brType == 9'h80 | _branch_base_pc_T
     | (data_reg_brType == 9'h20
          ? data_reg_src1_value >= data_reg_src2_value
          : data_reg_brType == 9'h10
@@ -130,12 +132,11 @@ module AluUnit(
                          ? data_reg_src1_value != data_reg_src2_value
                          : data_reg_brType == 9'h1
                            & data_reg_src1_value == data_reg_src2_value);
-  wire [31:0] _actual_target_T =
-    (_br_base_T ? data_reg_src1_value : data_reg_pc) + data_reg_imm;
+  wire [31:0] _calc_target_pc_T =
+    (_branch_base_pc_T ? data_reg_src1_value : data_reg_pc) + data_reg_imm;
   wire        mispredict =
-    actual_taken != data_reg_pred_taken | actual_taken
-    & _actual_target_T != data_reg_pred_target;
-  reg         br_broadcasted;
+    branch_actual_taken != data_reg_pred_taken | branch_actual_taken
+    & _calc_target_pc_T != data_reg_pred_target;
   wire        do_br_resolve =
     valid_reg & data_reg_is_branch & ~data_reg_hasException & ~br_broadcasted;
   wire        _is_uncond_T_3 = data_reg_inst[31:26] == 6'h13;
@@ -182,15 +183,17 @@ module AluUnit(
       br_broadcasted <= 1'h0;
     end
     else begin
-      automatic logic [6:0] _clear_mask_T = 7'h1 << io_br_resolve_in_tag;
+      automatic logic [6:0] br_tag_bit = 7'h1 << io_br_resolve_in_tag;
       valid_reg <=
         ~io_flush
-        & (allow_in
+        & (in_ready
              ? io_in_valid
-               & ~(io_in_valid & io_br_resolve_in_valid & io_br_resolve_in_mispredict
-                   & (|(_clear_mask_T[3:0] & io_in_bits_branch_mask)))
+               & ~(io_br_resolve_in_valid & io_br_resolve_in_mispredict
+                   & (|(br_tag_bit[3:0] & io_in_bits_branch_mask)))
              : valid_reg);
-      if (io_in_valid & allow_in) begin
+      if (io_flush | ~in_ready) begin
+      end
+      else begin
         data_reg_pc <= io_in_bits_pc;
         data_reg_inst <= io_in_bits_inst;
         data_reg_aluOp <= io_in_bits_aluOp;
@@ -225,7 +228,7 @@ module AluUnit(
         data_reg_ghr <= io_in_bits_ghr;
         data_reg_ras_tos <= io_in_bits_ras_tos;
       end
-      br_broadcasted <= ~(io_flush | allow_in) & (do_br_resolve | br_broadcasted);
+      br_broadcasted <= ~(io_flush | in_ready) & (do_br_resolve | br_broadcasted);
     end
   end // always @(posedge, posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -284,8 +287,9 @@ module AluUnit(
          : data_reg_src2IsFour ? 32'h4 : data_reg_src2_value),
     .io_res   (_alu_io_res)
   );
-  assign io_in_ready = allow_in;
+  assign io_in_ready = in_ready;
   assign io_out_valid = valid_reg;
+  assign io_out_bits_pc = data_reg_pc;
   assign io_out_bits_src2_value = data_reg_src2_value;
   assign io_out_bits_memWe = data_reg_memWe;
   assign io_out_bits_resFromMem = data_reg_resFromMem;
@@ -314,15 +318,15 @@ module AluUnit(
   assign io_out_bits_rob_idx = data_reg_rob_idx;
   assign io_out_bits_pdest = data_reg_pdest;
   assign io_branch_req = do_br_resolve & mispredict;
-  assign io_branch_pc = actual_taken ? _actual_target_T : data_reg_pc + 32'h4;
+  assign io_branch_pc = branch_actual_taken ? _calc_target_pc_T : data_reg_pc + 32'h4;
   assign io_br_resolve_valid = do_br_resolve;
   assign io_br_resolve_mispredict = mispredict;
   assign io_br_resolve_tag = data_reg_branch_tag;
   assign io_csr_raddr = data_reg_csrNum;
   assign io_bpu_update_valid = do_br_resolve;
   assign io_bpu_update_bits_pc = data_reg_pc;
-  assign io_bpu_update_bits_target = _actual_target_T;
-  assign io_bpu_update_bits_taken = actual_taken;
+  assign io_bpu_update_bits_target = _calc_target_pc_T;
+  assign io_bpu_update_bits_taken = branch_actual_taken;
   assign io_bpu_update_bits_bpu_type =
     is_ret
       ? 2'h3

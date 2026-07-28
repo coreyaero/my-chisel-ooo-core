@@ -2,6 +2,7 @@
 module Divider(
   input         clock,
                 io_enable,
+                io_aresetn,
   input  [31:0] io_a,
                 io_b,
   output [31:0] io_q,
@@ -12,6 +13,7 @@ module Divider(
   wire [63:0] _div_ip_m_axis_dout_tdata;
   div_gen_0 div_ip (
     .aclk                   (clock),
+    .aresetn                (io_aresetn),
     .s_axis_divisor_tvalid  (io_enable),
     .s_axis_divisor_tdata   (io_b),
     .s_axis_dividend_tvalid (io_enable),

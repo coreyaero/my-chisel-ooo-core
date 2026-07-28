@@ -15,41 +15,24 @@ class TlbEntry extends Bundle {
     val lo1     = new TlbeloReg()
 }
 
+class TlbSearchPort extends Bundle {
+    val vppn     = Output(UInt(19.W))
+    val va_bit12 = Output(Bool())
+    val asid     = Output(UInt(10.W))
+    val found    = Input(Bool())
+    val index    = Input(UInt(4.W))
+    val ppn      = Input(UInt(20.W))
+    val ps       = Input(UInt(6.W))
+    val plv      = Input(UInt(2.W))
+    val mat      = Input(UInt(2.W))
+    val d        = Input(Bool())
+    val v        = Input(Bool())
+}
+
 class tlb extends Module {
     val io = IO(new Bundle {
-        //For IF
-        //Input
-        val s0_vppn     = Input(UInt(19.W))
-        //Distinguish left/right page
-        val s0_va_bit12 = Input(Bool())
-        val s0_asid     = Input(UInt(10.W))
-        //Output
-        //Is it founded?
-        val s0_found    = Output(Bool())
-        //0-15
-        val s0_index    = Output(UInt(4.W))
-        val s0_ppn      = Output(UInt(20.W))
-        //Pagetable Size
-        //If 4kb, we use 2^12 (001100)
-        //If 2mb, we use 2^21 (010101)
-        val s0_ps       = Output(UInt(6.W))
-        val s0_plv      = Output(UInt(2.W))
-        val s0_mat      = Output(UInt(2.W))
-        val s0_d        = Output(Bool())
-        val s0_v        = Output(Bool())
-
-        //For EX/MEM
-        val s1_vppn     = Input(UInt(19.W))
-        val s1_va_bit12 = Input(Bool())
-        val s1_asid     = Input(UInt(10.W))
-        val s1_found    = Output(Bool())
-        val s1_index    = Output(UInt(4.W))
-        val s1_ppn      = Output(UInt(20.W))
-        val s1_ps       = Output(UInt(6.W))
-        val s1_plv      = Output(UInt(2.W))
-        val s1_mat      = Output(UInt(2.W))
-        val s1_d        = Output(Bool())
-        val s1_v        = Output(Bool())
+        val s0 = Flipped(new TlbSearchPort()) // 0号查询端口 (给 IF)
+        val s1 = Flipped(new TlbSearchPort()) // 1号查询端口 (给 AGU)
     
         //For INVTLB to delete some of the PTE
         val invtlb_valid = Input(Bool())
@@ -78,47 +61,45 @@ class tlb extends Module {
     val match0 = Wire(Vec(16, Bool()))
     for (i <- 0 until 16) {
         val entry = tlb_table(i)
-        val vppn_match = (io.s0_vppn(18, 9) === entry.vppn(18, 9)) && (entry.ps4MB || (io.s0_vppn(8, 0) === entry.vppn(8, 0)))
-        match0(i) := entry.e && vppn_match && (entry.asid === io.s0_asid || entry.g)
+        val vppn_match = (io.s0.vppn(18, 9) === entry.vppn(18, 9)) && (entry.ps4MB || (io.s0.vppn(8, 0) === entry.vppn(8, 0)))
+        match0(i) := entry.e && vppn_match && (entry.asid === io.s0.asid || entry.g)
     }
 
-    io.s0_found := match0.asUInt =/= 0.U
-    io.s0_index := PriorityEncoder(match0) // 保留这个给 TLBSRCH 用
+    io.s0.found := match0.asUInt =/= 0.U
+    io.s0.index := PriorityEncoder(match0) // 保留这个给 TLBSRCH 用
     
-    // ★ 时序杀招：跨过编码器，直接独热码捞数据！
     val hit0 = Mux1H(match0, tlb_table)
-    val sel0 = Mux(hit0.ps4MB, io.s0_vppn(8), io.s0_va_bit12)
+    val sel0 = Mux(hit0.ps4MB, io.s0.vppn(8), io.s0.va_bit12)
     val selected_lo0 = Mux(sel0, hit0.lo1, hit0.lo0)
 
-    io.s0_ppn := selected_lo0.ppn
-    io.s0_plv := selected_lo0.plv
-    io.s0_mat := selected_lo0.mat
-    io.s0_d   := selected_lo0.d
-    io.s0_v   := selected_lo0.v
-    io.s0_ps  := Mux(hit0.ps4MB, 21.U(6.W), 12.U(6.W))
+    io.s0.ppn := selected_lo0.ppn
+    io.s0.plv := selected_lo0.plv
+    io.s0.mat := selected_lo0.mat
+    io.s0.d   := selected_lo0.d
+    io.s0.v   := selected_lo0.v
+    io.s0.ps  := Mux(hit0.ps4MB, 21.U(6.W), 12.U(6.W))
 
     //Search Port 1
     val match1 = Wire(Vec(16, Bool()))
     for (i <- 0 until 16) {
         val entry = tlb_table(i)
-        val vppn_match = (io.s1_vppn(18, 9) === entry.vppn(18, 9)) &&  (entry.ps4MB || (io.s1_vppn(8, 0) === entry.vppn(8, 0)))
-        match1(i) := entry.e && vppn_match && (entry.asid === io.s1_asid || entry.g)
+        val vppn_match = (io.s1.vppn(18, 9) === entry.vppn(18, 9)) &&  (entry.ps4MB || (io.s1.vppn(8, 0) === entry.vppn(8, 0)))
+        match1(i) := entry.e && vppn_match && (entry.asid === io.s1.asid || entry.g)
     }
 
-    io.s1_found := match1.asUInt =/= 0.U
-    io.s1_index := PriorityEncoder(match1)
+    io.s1.found := match1.asUInt =/= 0.U
+    io.s1.index := PriorityEncoder(match1)
     
-    // ★ 时序杀招：跨过编码器，直接独热码捞数据！
     val hit1 = Mux1H(match1, tlb_table)
-    val sel1 = Mux(hit1.ps4MB, io.s1_vppn(8), io.s1_va_bit12)
+    val sel1 = Mux(hit1.ps4MB, io.s1.vppn(8), io.s1.va_bit12)
     val selected_lo1 = Mux(sel1, hit1.lo1, hit1.lo0)
     
-    io.s1_ppn := selected_lo1.ppn
-    io.s1_plv := selected_lo1.plv
-    io.s1_mat := selected_lo1.mat
-    io.s1_d   := selected_lo1.d
-    io.s1_v   := selected_lo1.v
-    io.s1_ps  := Mux(hit1.ps4MB, 21.U(6.W), 12.U(6.W))
+    io.s1.ppn := selected_lo1.ppn
+    io.s1.plv := selected_lo1.plv
+    io.s1.mat := selected_lo1.mat
+    io.s1.d   := selected_lo1.d
+    io.s1.v   := selected_lo1.v
+    io.s1.ps  := Mux(hit1.ps4MB, 21.U(6.W), 12.U(6.W))
 
     // INVTLB
     when(io.invtlb_valid) {
@@ -126,8 +107,8 @@ class tlb extends Module {
             val entry = tlb_table(i)
             val cond1 = !entry.g
             val cond2 = entry.g
-            val cond3 = (io.s1_asid === entry.asid)
-            val cond4 = (io.s1_vppn(18, 9) === entry.vppn(18, 9)) && (entry.ps4MB || (io.s1_vppn(8, 0) === entry.vppn(8, 0)))
+            val cond3 = (io.s1.asid === entry.asid)
+            val cond4 = (io.s1.vppn(18, 9) === entry.vppn(18, 9)) && (entry.ps4MB || (io.s1.vppn(8, 0) === entry.vppn(8, 0)))
 
             val should_inv = MuxLookup(io.invtlb_op, false.B)(Seq(
                 0.U -> (cond1 || cond2),

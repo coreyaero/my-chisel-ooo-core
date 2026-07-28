@@ -3,6 +3,68 @@ package mycpu
 import chisel3._
 import chisel3.util._
 
+
+
+class FetchBuffer(depth: Int = 8) extends Module {
+    val io = IO(new Bundle {
+        val flush = Input(Bool())
+        val in0   = Flipped(Decoupled(new PipelineData()))
+        val in1   = Flipped(Decoupled(new PipelineData()))
+        val out   = new FetchQueueOut()
+    })
+    
+    val buffer = Reg(Vec(depth, new PipelineData()))
+    val head   = RegInit(0.U(log2Ceil(depth).W))
+    val tail   = RegInit(0.U(log2Ceil(depth).W))
+    val count  = RegInit(0.U((log2Ceil(depth) + 1).W))
+
+    val in_ready = count <= (depth - 2).U
+    io.in0.ready := in_ready
+    io.in1.ready := in_ready
+
+    val enq0 = io.in0.valid && io.in0.ready
+    val enq1 = io.in1.valid && io.in1.ready
+    
+    def wrapAdd(ptr: UInt, add: UInt) = {
+        val sum = ptr + add
+        Mux(sum >= depth.U, sum - depth.U, sum)(log2Ceil(depth)-1, 0)
+    }
+
+    io.out.valid0 := count > 0.U
+    io.out.inst0  := buffer(head)
+    io.out.valid1 := count > 1.U
+    io.out.inst1  := buffer(wrapAdd(head, 1.U))
+
+    when(io.flush) {
+        head := 0.U; tail := 0.U; count := 0.U
+    } .otherwise {
+        head := wrapAdd(head, io.out.pop)
+        
+        val t0 = tail
+        val t1 = wrapAdd(tail, 1.U)
+        
+        val t0_oh = UIntToOH(t0, depth)
+        val t1_oh = UIntToOH(t1, depth)
+        
+        // ★ 核心手术点：解耦 Valid 与 CE 
+        // 只要队列未满，强制打开 CE 大门。Valid 信号仅用于控制指针的自增。
+        for (i <- 0 until depth) {
+            val we0 = in_ready && t0_oh(i)
+            val we1 = in_ready && t1_oh(i)
+            
+            when(we0) {
+                buffer(i) := io.in0.bits
+            } .elsewhen(we1) {
+                buffer(i) := io.in1.bits
+            }
+        }
+        
+        val do_enq_cnt = Mux(enq1, 2.U, Mux(enq0, 1.U, 0.U))
+        tail := wrapAdd(tail, do_enq_cnt)
+        count := count + do_enq_cnt - io.out.pop
+    }
+}
+
 class StageID extends Module {
     val io = IO(new Bundle {
         val in    = Flipped(new FetchQueueOut()) // 接 Fetch Buffer

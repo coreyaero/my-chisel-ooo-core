@@ -23,96 +23,26 @@ class FetchMeta extends Bundle {
     val ticket       = UInt(8.W) // ★ 新增：记住自己的取餐码
 }
 
-// ====================================================================
-// ★ 新增：支持双进单出的自适应指令队列 (Dual-Fetch Buffer)
-// ====================================================================
-class DualFetchBuffer(depth: Int = 8) extends Module {
-    val io = IO(new Bundle {
-        val flush = Input(Bool())
-        val in0   = Flipped(Decoupled(new PipelineData()))
-        val in1   = Flipped(Decoupled(new PipelineData()))
-        val out   = new FetchQueueOut()
-    })
-    
-    val buffer = Reg(Vec(depth, new PipelineData()))
-    val head   = RegInit(0.U(log2Ceil(depth).W))
-    val tail   = RegInit(0.U(log2Ceil(depth).W))
-    val count  = RegInit(0.U((log2Ceil(depth) + 1).W))
-
-    val in_ready = count <= (depth - 2).U
-    io.in0.ready := in_ready
-    io.in1.ready := in_ready
-
-    val enq0 = io.in0.valid && io.in0.ready
-    val enq1 = io.in1.valid && io.in1.ready
-    
-    def wrapAdd(ptr: UInt, add: UInt) = {
-        val sum = ptr + add
-        Mux(sum >= depth.U, sum - depth.U, sum)(log2Ceil(depth)-1, 0)
-    }
-
-    io.out.valid0 := count > 0.U
-    io.out.inst0  := buffer(head)
-    io.out.valid1 := count > 1.U
-    io.out.inst1  := buffer(wrapAdd(head, 1.U))
-
-    when(io.flush) {
-        head := 0.U; tail := 0.U; count := 0.U
-    } .otherwise {
-        head := wrapAdd(head, io.out.pop)
-        
-        val t0 = tail
-        val t1 = wrapAdd(tail, 1.U)
-        
-        val t0_oh = UIntToOH(t0, depth)
-        val t1_oh = UIntToOH(t1, depth)
-        
-        // ★ 核心手术点：解耦 Valid 与 CE 
-        // 只要队列未满，强制打开 CE 大门。Valid 信号仅用于控制指针的自增。
-        for (i <- 0 until depth) {
-            val we0 = in_ready && t0_oh(i)
-            val we1 = in_ready && t1_oh(i)
-            
-            when(we0) {
-                buffer(i) := io.in0.bits
-            } .elsewhen(we1) {
-                buffer(i) := io.in1.bits
-            }
-        }
-        
-        val do_enq_cnt = Mux(enq1, 2.U, Mux(enq0, 1.U, 0.U))
-        tail := wrapAdd(tail, do_enq_cnt)
-        count := count + do_enq_cnt - io.out.pop
-    }
-}
 
 // ====================================================================
 // 改造后的超标量双发取指前端
 // ====================================================================
 class StageIF extends Module {
     val io = IO(new Bundle {
-        // ★ 核心修改：改为双通道输出
         val out0            = Decoupled(new PipelineData())
         val out1            = Decoupled(new PipelineData())
 
         val flush           = Input(Bool())
         val flush_target_pc = Input(UInt(32.W))
-        val inst_sram       = new SramIo()
+
+        val cache_io        = new SramIo()
         val inst_uncached   = Output(Bool())
         // ★ 新增：与顶层对接的 8 位车票通道
         val inst_req_id     = Output(UInt(8.W))
         val inst_ret_id     = Input(UInt(8.W))
 
         val mmu_config      = Input(new MmuConfig())
-        val tlb_s0_vppn     = Output(UInt(19.W))
-        val tlb_s0_va_bit12 = Output(Bool())
-        val tlb_s0_asid     = Output(UInt(10.W))
-        val tlb_s0_found    = Input(Bool())
-        val tlb_s0_ppn      = Input(UInt(20.W))
-        val tlb_s0_ps       = Input(UInt(6.W))
-        val tlb_s0_plv      = Input(UInt(2.W)) 
-        val tlb_s0_mat      = Input(UInt(2.W)) 
-        val tlb_s0_v        = Input(Bool())    
+        val tlb_port        = new TlbSearchPort()
         // ★ 新增：来自后端的 BTB 训练线
         val bpu_update      = Flipped(Valid(new BpuUpdate()))
     })
@@ -123,9 +53,9 @@ class StageIF extends Module {
     // ==========================================
     // MMU 翻译逻辑 (保持不变)
     // ==========================================
-    io.tlb_s0_vppn     := va(31, 13)
-    io.tlb_s0_va_bit12 := va(12)
-    io.tlb_s0_asid     := io.mmu_config.asid.asid
+    io.tlb_port.vppn     := va(31, 13)
+    io.tlb_port.va_bit12 := va(12)
+    io.tlb_port.asid     := io.mmu_config.asid.asid
     
     val dmw0_hit = (io.mmu_config.crmd.pg === 1.U) && (io.mmu_config.crmd.da === 0.U) && (va(31, 29) === io.mmu_config.dmw0.vseg) &&
                ((io.mmu_config.crmd.plv === 0.U && io.mmu_config.dmw0.plv0 === 1.U) || (io.mmu_config.crmd.plv === 3.U && io.mmu_config.dmw0.plv3 === 1.U))
@@ -134,21 +64,20 @@ class StageIF extends Module {
                 
     val dmw_hit = dmw0_hit || dmw1_hit
     val dmw_pa  = Mux(dmw0_hit, Cat(io.mmu_config.dmw0.pseg, va(28, 0)), Cat(io.mmu_config.dmw1.pseg, va(28, 0)))
-    val tlb_pa = Mux(io.tlb_s0_ps === 12.U, Cat(io.tlb_s0_ppn, va(11, 0)), Cat(io.tlb_s0_ppn(19, 9), va(20, 0)))
+    val tlb_pa = Mux(io.tlb_port.ps === 12.U, Cat(io.tlb_port.ppn, va(11, 0)), Cat(io.tlb_port.ppn(19, 9), va(20, 0)))
     
-    val pa = Mux((io.mmu_config.crmd.da === 1.U) && (io.mmu_config.crmd.pg === 0.U), va, Mux(dmw_hit, dmw_pa, Mux(io.tlb_s0_found && io.tlb_s0_v, tlb_pa, va)))
+    val pa = Mux((io.mmu_config.crmd.da === 1.U) && (io.mmu_config.crmd.pg === 0.U), va, Mux(dmw_hit, dmw_pa, Mux(io.tlb_port.found && io.tlb_port.v, tlb_pa, va)))
 
     val dmw_mat = Mux(dmw0_hit, io.mmu_config.dmw0.mat, io.mmu_config.dmw1.mat)
-    val current_mat = Mux((io.mmu_config.crmd.da === 1.U) && (io.mmu_config.crmd.pg === 0.U), io.mmu_config.crmd.datf, Mux(dmw_hit, dmw_mat, io.tlb_s0_mat))                       
+    val current_mat = Mux((io.mmu_config.crmd.da === 1.U) && (io.mmu_config.crmd.pg === 0.U), io.mmu_config.crmd.datf, Mux(dmw_hit, dmw_mat, io.tlb_port.mat))                       
     io.inst_uncached := (current_mat === 0.U)
 
     val is_mapped = (io.mmu_config.crmd.pg === 1.U) && (io.mmu_config.crmd.da === 0.U) && !dmw_hit
-    val exc_tlb_refill_if = is_mapped && !io.tlb_s0_found
-    val exc_pif = is_mapped && io.tlb_s0_found && !io.tlb_s0_v
-    val exc_ppi_if = is_mapped && io.tlb_s0_found && io.tlb_s0_v && (io.mmu_config.crmd.plv === 3.U) && (io.tlb_s0_plv === 0.U)
+    val exc_tlb_refill_if = is_mapped && !io.tlb_port.found
+    val exc_pif = is_mapped && io.tlb_port.found && !io.tlb_port.v
+    val exc_ppi_if = is_mapped && io.tlb_port.found && io.tlb_port.v && (io.mmu_config.crmd.plv === 3.U) && (io.tlb_port.plv === 0.U)
     val mmu_exc_now = exc_tlb_refill_if || exc_pif || exc_ppi_if
     val ecode_now = Mux(exc_tlb_refill_if, "h3F".U(6.W), Mux(exc_pif, "h03".U(6.W), Mux(exc_ppi_if, "h07".U(6.W), 0.U(6.W))))
-
     // ==========================================
     // ★ 智能双发核心逻辑
     // ==========================================
@@ -290,7 +219,7 @@ class StageIF extends Module {
     // 发起请求的终极条件：队列有空，且当前轮到的 ticket 号在总线上没有幽灵残留！
     val can_req = !io.flush && meta_queue.io.enq.ready && !flying_table(ticket_cnt)
     
-    val if1_fire = can_req && io.inst_sram.addr_ok
+    val if1_fire = can_req && io.cache_io.addr_ok
 
     // ------------------------------------------
     // ★ 核心：状态的双端推测与死亡回档 (完美抗污染版)
@@ -349,7 +278,7 @@ class StageIF extends Module {
     // ★ 核心重构：8 位 Ticket ID 生死簿
     // ====================================================================
     val req_fire  = if1_fire
-    val resp_fire = io.inst_sram.data_ok
+    val resp_fire = io.cache_io.data_ok
 
     // 1. 发请求：颁发 Ticket
     io.inst_req_id := ticket_cnt
@@ -374,9 +303,9 @@ class StageIF extends Module {
     }
 
     // 4. 纯净过滤器：只有数据回来了，且逻辑生死簿上确认需要它，才存入外卖柜
-    val real_data_ok = io.inst_sram.data_ok && valid_table(io.inst_ret_id)
+    val real_data_ok = io.cache_io.data_ok && valid_table(io.inst_ret_id)
     when(real_data_ok) {
-        rdata_table(io.inst_ret_id)      := io.inst_sram.rdata
+        rdata_table(io.inst_ret_id)      := io.cache_io.rdata
         data_ready_table(io.inst_ret_id) := true.B
     }
     
@@ -409,13 +338,13 @@ class StageIF extends Module {
     val pc_alignment_error = (pc_reg(1, 0) =/= 0.U)
     val safe_pa = Mux(pc_alignment_error || mmu_exc_now, "h1c000000".U(32.W), pa)
 
-    io.inst_sram.req   := can_req
-    io.inst_sram.wr    := false.B
+    io.cache_io.req   := can_req
+    io.cache_io.wr    := false.B
     // ★ 终极修复：双发架构必须一次性拉回 64 位 (8 字节)！
-    io.inst_sram.size  := 3.U  // 从 2.U 改为 3.U
-    io.inst_sram.wstrb := 0.U
-    io.inst_sram.addr  := safe_pa   
-    io.inst_sram.wdata := 0.U
+    io.cache_io.size  := 3.U  // 从 2.U 改为 3.U
+    io.cache_io.wstrb := 0.U
+    io.cache_io.addr  := safe_pa   
+    io.cache_io.wdata := 0.U
 
     // 压入元数据小队列
     meta_queue.io.enq.valid := if1_fire

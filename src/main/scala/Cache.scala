@@ -11,7 +11,8 @@ import firrtl.annotations.MemoryLoadFileType
 case class CacheConfig(
     ways: Int = 4,         // 4 路组相联
     lineWords: Int = 8,    // 行大小：8个字 (32 Bytes)
-    sets: Int = 256        // 256 组 (4 * 32 * 256 = 32KB)
+    sets: Int = 256,        // 256 组 (4 * 32 * 256 = 32KB)
+    enablePrefetch: Boolean = false // ★ 新增：硬件预取基因开关
 ) {
     val lineBytes  = lineWords * 4
     val offsetBits = log2Ceil(lineBytes)   // 32B -> 5 bits (4:0)
@@ -254,6 +255,49 @@ class Cache(implicit p: CacheConfig) extends Module {
     val wbIdle :: wbWrite :: Nil = Enum(2)
     val wb_state = RegInit(wbIdle)
 
+    // =========================================================================
+    // ★ 新增：幽灵预取引擎 (Prefetch Injector)
+    // =========================================================================
+    val pf_valid = RegInit(false.B)
+    val pf_tag   = RegInit(0.U(p.tagBits.W))
+    val pf_index = RegInit(0.U(p.indexBits.W))
+
+    // 提前算好“下一行”的物理地址
+    val current_line = Cat(io.cpu.tag, io.cpu.index)
+    val next_line    = current_line + 1.U
+    val next_tag     = next_line(p.tagBits + p.indexBits - 1, p.indexBits)
+    val next_index   = next_line(p.indexBits - 1, 0)
+
+    if (p.enablePrefetch) {
+        // 判断当前是不是 4KB 物理页的最后一行 (bits [11:5] == 0x7F)
+        // 在你的配置中 indexBits 是 8 (12:5)，所以恰好就是 index 的低 7 位！
+        val is_last_line_in_page = io.cpu.index(6, 0) === "h7F".U 
+
+        // 只有当真实的取指请求被接纳，且绝不跨越物理页边界时，才悄悄记下预取任务
+        when(io.cpu.valid && io.cpu.addr_ok && !io.cpu.op && !io.cpu.uncached && !is_last_line_in_page) {
+            pf_valid := true.B
+            pf_tag   := next_tag
+            pf_index := next_index
+        }
+    }
+
+    // --- 仲裁机制：真实 CPU 绝对优先，预取在闲时见缝插针 ---
+    val real_valid = io.cpu.valid
+    val use_pf     = !real_valid && pf_valid && p.enablePrefetch.B
+
+    // ★ 内部劫持网：彻底切断原本直连 io.cpu 的信号，换成内部网
+    val int_valid    = real_valid || use_pf
+    val int_op       = Mux(use_pf, false.B, io.cpu.op)
+    val int_req_id   = Mux(use_pf, 0.U, io.cpu.req_id)
+    val int_index    = Mux(use_pf, pf_index, io.cpu.index)
+    val int_tag      = Mux(use_pf, pf_tag, io.cpu.tag)
+    val int_offset   = Mux(use_pf, 0.U, io.cpu.offset)
+    val int_wstrb    = Mux(use_pf, 0.U, io.cpu.wstrb)
+    val int_wdata    = Mux(use_pf, 0.U, io.cpu.wdata)
+    val int_uncached = Mux(use_pf, false.B, io.cpu.uncached)
+    val int_cacop_en = Mux(use_pf, false.B, io.cpu.cacop_en)
+    val int_cacop_op = Mux(use_pf, 0.U, io.cpu.cacop_op)
+
     // 1. 物理层：例化刚刚写好的防弹版 1R1W 阵列
     val array = Module(new CacheArray1R1W())
     
@@ -261,6 +305,7 @@ class Cache(implicit p: CacheConfig) extends Module {
     val dirty_array = RegInit(VecInit(Seq.fill(p.ways)(VecInit(Seq.fill(p.sets)(false.B)))))
 
     // --- 请求缓冲 ---
+    val req_is_pf    = RegInit(false.B) // ★ 新增：记录当前在流水线里的是否是预取幽灵
     val req_op       = RegInit(false.B)
     val req_req_id   = RegInit(0.U(9.W))
     val req_index    = RegInit(0.U(p.indexBits.W)) // ★
@@ -281,11 +326,9 @@ class Cache(implicit p: CacheConfig) extends Module {
     // =========================================================================
     // 2. 查表与命中判定 (完全向量化)
     // =========================================================================
-    val can_accept = !io.cpu.cacop_en 
-    val is_accepting = io.cpu.valid && io.cpu.addr_ok
+    val can_accept = !int_cacop_en 
     
-    array.io.r_en    := is_accepting || (main_state === sLookup)
-    array.io.r_index := Mux(is_accepting, io.cpu.index, req_index)
+    
 
     // ★ 动态向量化：收集各路 Hit 和 Dirty 状态
     val way_v   = Wire(Vec(p.ways, Bool()))
@@ -368,39 +411,47 @@ class Cache(implicit p: CacheConfig) extends Module {
     // 当 sLookup 里是一个 Hit Store 时，它的数据还挂在寄存器里，下一拍才写 SRAM。
     // 此时绝对不能放同地址的 Load 进来读 SRAM，否则会读到旧数据（读比写早了一拍）！
     // 必须让 Load 阻塞 1 拍。下一拍 Store 进入 wbWrite，Load 进入 SRAM 读取，完美触发 1R1W 旁路前递！
-    val hazard_with_lookup = is_lookup_write && (io.cpu.index === req_index)
-    // 修复前：只拦截 CACOP，导致普通访存长驱直入
-    // val hazard_with_wb = (wb_state === wbWrite) && io.cpu.cacop_en
-
-    // ★ 修复后：只要组号 (Index) 撞车，或者是 CACOP，统统给我阻塞一拍！
-    val hazard_with_wb = (wb_state === wbWrite) && ((io.cpu.index === wb_index) || io.cpu.cacop_en)
+    val hazard_with_lookup = is_lookup_write && (int_index === req_index) // ★
+    val hazard_with_wb = (wb_state === wbWrite) && ((int_index === wb_index) || int_cacop_en) // ★
     val hit_write_hazard   = hazard_with_lookup || hazard_with_wb
 
     // 2. 前台阻塞逻辑
     val mshr_full_block = !has_match && !has_free_mshr
-    val sub_full_block  = has_match && !has_free_sub
+    val sub_full_block  = has_match && !has_free_sub && !req_is_pf // ★ 预取不需要分配子项，无视子项满的阻塞！
     val cacop_block     = req_cacop_en && (mshr_table.map(_.state =/= MshrState.invalid).reduce(_ || _) || wb_state === wbWrite)
     val block_frontend  = mshr_full_block || sub_full_block || cacop_block || has_conflict
 
-    // 3. 修复 addr_ok：
-    val can_accept_new = !hit_write_hazard && !block_frontend
-    val lookup_accept_normal = !req_cacop_en 
-    io.cpu.addr_ok := can_accept_new && ((main_state === sIdle) || (main_state === sLookup && lookup_accept_normal))
+    // ★ 内部 addr_ok，屏蔽外部干扰
+    val int_addr_ok = !hit_write_hazard && !block_frontend && ((main_state === sIdle) || (main_state === sLookup && !int_cacop_en))
+    io.cpu.addr_ok := int_addr_ok
+    
+    val is_accepting = int_valid && int_addr_ok
+
+    // 如果幽灵请求成功混进流水线，消除预取标记，等待下一次触发
+    when(is_accepting && use_pf) {
+        pf_valid := false.B
+    }
+
+    array.io.r_en    := is_accepting || (main_state === sLookup)
+    array.io.r_index := Mux(is_accepting, int_index, req_index) // ★ 改为 int_index
+
+    // (原 io.cpu.addr_ok 已经被我们移到上面去了，这里直接删掉原来的 addr_ok 逻辑)
 
     // =========================================================================
-    // 4. 前端状态机 (主控)
+    // 4. 前端状态机 (主控) - 录入内部信号
     // =========================================================================
     when(is_accepting) {
-        req_op       := io.cpu.op
-        req_req_id   := io.cpu.req_id
-        req_index    := io.cpu.index
-        req_tag      := io.cpu.tag
-        req_offset   := io.cpu.offset
-        req_wstrb    := io.cpu.wstrb
-        req_wdata    := io.cpu.wdata
-        req_uncached := io.cpu.uncached
-        req_cacop_en := io.cpu.cacop_en
-        req_cacop_op := io.cpu.cacop_op
+        req_is_pf    := use_pf // ★ 登记幽灵身份
+        req_op       := int_op
+        req_req_id   := int_req_id
+        req_index    := int_index
+        req_tag      := int_tag
+        req_offset   := int_offset
+        req_wstrb    := int_wstrb
+        req_wdata    := int_wdata
+        req_uncached := int_uncached
+        req_cacop_en := int_cacop_en
+        req_cacop_op := int_cacop_op
     }
 
     // =========================================================================
@@ -492,13 +543,16 @@ class Cache(implicit p: CacheConfig) extends Module {
                 main_state := Mux(is_accepting, sLookup, sIdle)
             } .elsewhen(!block_frontend) {
                 when(has_match) {
-                    val sub = matched_mshr.sub_entries(alloc_sub_idx)
-                    sub.valid  := true.B
-                    sub.req_id := req_req_id
-                    sub.op     := req_op
-                    sub.offset := req_offset
-                    sub.wstrb  := req_wstrb
-                    sub.wdata  := req_wdata
+                    // ★ 如果是预取请求，且地址已经在 MSHR 里在途了，直接消散，不分配任何东西！
+                    when(!req_is_pf) {
+                        val sub = matched_mshr.sub_entries(alloc_sub_idx)
+                        sub.valid  := true.B
+                        sub.req_id := req_req_id
+                        sub.op     := req_op
+                        sub.offset := req_offset
+                        sub.wstrb  := req_wstrb
+                        sub.wdata  := req_wdata
+                    }
                     main_state := Mux(is_accepting, sLookup, sIdle)
                 } .otherwise {
                     val m = mshr_table(alloc_mshr_idx)
@@ -513,16 +567,19 @@ class Cache(implicit p: CacheConfig) extends Module {
                     m.victim_d    := victim_drt
                     m.recv_cnt    := 0.U
 
-                    m.sub_entries(0).valid  := true.B
-                    m.sub_entries(0).req_id := req_req_id
-                    m.sub_entries(0).op     := req_op
-                    m.sub_entries(0).offset := req_offset
-                    m.sub_entries(0).wstrb  := req_wstrb
-                    m.sub_entries(0).wdata  := req_wdata
+                    // ★ 真实的请求分配有效子项；预取请求去搬货，但子项全空！
+                    when(!req_is_pf) {
+                        m.sub_entries(0).valid  := true.B
+                        m.sub_entries(0).req_id := req_req_id
+                        m.sub_entries(0).op     := req_op
+                        m.sub_entries(0).offset := req_offset
+                        m.sub_entries(0).wstrb  := req_wstrb
+                        m.sub_entries(0).wdata  := req_wdata
+                    } .otherwise {
+                        m.sub_entries(0).valid  := false.B
+                    }
                     for (j <- 1 until SUB_ENTRY_NUM) { m.sub_entries(j).valid := false.B }
 
-                    // ★ 核心修复：提取牺牲路的旧数据用于写回
-                    // ★ 核心修复 2：普通 Miss 驱逐时的 Store 旁路拯救
                     val old_line_miss = array.io.r_data(target_fill_way)
                     for(b <- 0 until p.lineWords) { 
                         val is_wb_overlap = (wb_state === wbWrite) && (wb_index === req_index) && (wb_way === target_fill_way)
@@ -717,7 +774,8 @@ class Cache(implicit p: CacheConfig) extends Module {
     val safe_mshr_next_idx = Mux(is_mshr_last_word, 0.U, mshr_word_idx + 1.U)
     val mshr_bypass_word1 = Mux(is_mshr_last_word, 0.U, m_wake.line_buffer(safe_mshr_next_idx))
 
-    val hit_response = main_state === sLookup && cache_hit && !req_cacop_en
+    // ★ 修复：严禁预取请求在命中时向 CPU 发送 data_ok！
+    val hit_response = main_state === sLookup && cache_hit && !req_cacop_en && !req_is_pf
     val cacop_index_done = (main_state === sLookup) && req_cacop_en && !block_frontend && ((req_cacop_op === 0.U) || (req_cacop_op === 1.U && !index_needs_wb))
     val cacop_hit_inval_done = (main_state === sLookup) && req_cacop_en && !block_frontend && (req_cacop_op === 2.U) && !hit_dirty
     
@@ -731,9 +789,15 @@ class Cache(implicit p: CacheConfig) extends Module {
 
     io.cpu.rdata := Cat(final_word1, final_word0) 
 
-    when(has_wakeup && has_valid_sub && !any_front_response) {
-        active_sub.valid := false.B
-        when(PopCount(sub_wakeup_vec.asUInt) === 1.U) { m_wake.state := MshrState.invalid }
+    when(has_wakeup) {
+        when(has_valid_sub && !any_front_response) {
+            // 真实 CPU 请求：正常出货，然后清空
+            active_sub.valid := false.B
+            when(PopCount(sub_wakeup_vec.asUInt) === 1.U) { m_wake.state := MshrState.invalid }
+        } .elsewhen(!has_valid_sub) {
+            // ★ 幽灵功成身退：数据已经成功填入阵列，没有子项需要唤醒，直接自我销毁释放 MSHR！
+            m_wake.state := MshrState.invalid
+        }
     }
 
     // =========================================================================

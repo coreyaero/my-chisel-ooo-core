@@ -2,7 +2,8 @@
 module CdbArbiter(
   output        io_reqs_0_ready,
   input         io_reqs_0_valid,
-  input  [31:0] io_reqs_0_bits_src2_value,
+  input  [31:0] io_reqs_0_bits_pc,
+                io_reqs_0_bits_src2_value,
   input         io_reqs_0_bits_memWe,
                 io_reqs_0_bits_resFromMem,
                 io_reqs_0_bits_regWriteEn,
@@ -21,26 +22,17 @@ module CdbArbiter(
   input  [5:0]  io_reqs_0_bits_pdest,
   output        io_reqs_1_ready,
   input         io_reqs_1_valid,
-  input  [31:0] io_reqs_1_bits_src2_value,
-  input         io_reqs_1_bits_memWe,
-                io_reqs_1_bits_resFromMem,
-                io_reqs_1_bits_regWriteEn,
-  input  [31:0] io_reqs_1_bits_ex_result,
+  input  [31:0] io_reqs_1_bits_pc,
+                io_reqs_1_bits_ex_result,
                 io_reqs_1_bits_aux_data,
   input         io_reqs_1_bits_hasException,
   input  [5:0]  io_reqs_1_bits_ecode,
-  input         io_reqs_1_bits_isCsr,
-                io_reqs_1_bits_csrWe,
-  input  [13:0] io_reqs_1_bits_csrNum,
-  input         io_reqs_1_bits_inst_ertn,
-  input  [4:0]  io_reqs_1_bits_tlbOp,
-  input         io_reqs_1_bits_is_refetch,
-                io_reqs_1_bits_is_cacop,
   input  [4:0]  io_reqs_1_bits_rob_idx,
   input  [5:0]  io_reqs_1_bits_pdest,
   output        io_reqs_2_ready,
   input         io_reqs_2_valid,
-  input  [31:0] io_reqs_2_bits_src2_value,
+  input  [31:0] io_reqs_2_bits_pc,
+                io_reqs_2_bits_src2_value,
   input         io_reqs_2_bits_memWe,
                 io_reqs_2_bits_resFromMem,
                 io_reqs_2_bits_regWriteEn,
@@ -59,7 +51,8 @@ module CdbArbiter(
   input  [5:0]  io_reqs_2_bits_pdest,
   output        io_reqs_3_ready,
   input         io_reqs_3_valid,
-  input  [31:0] io_reqs_3_bits_src2_value,
+  input  [31:0] io_reqs_3_bits_pc,
+                io_reqs_3_bits_src2_value,
   input         io_reqs_3_bits_memWe,
                 io_reqs_3_bits_resFromMem,
                 io_reqs_3_bits_regWriteEn,
@@ -78,7 +71,8 @@ module CdbArbiter(
   input  [5:0]  io_reqs_3_bits_pdest,
   output        io_reqs_4_ready,
   input         io_reqs_4_valid,
-  input  [31:0] io_reqs_4_bits_src2_value,
+  input  [31:0] io_reqs_4_bits_pc,
+                io_reqs_4_bits_src2_value,
   input         io_reqs_4_bits_memWe,
                 io_reqs_4_bits_resFromMem,
                 io_reqs_4_bits_regWriteEn,
@@ -96,7 +90,8 @@ module CdbArbiter(
   input  [4:0]  io_reqs_4_bits_rob_idx,
   input  [5:0]  io_reqs_4_bits_pdest,
   output        io_cdb0_valid,
-  output [31:0] io_cdb0_bits_src2_value,
+  output [31:0] io_cdb0_bits_pc,
+                io_cdb0_bits_src2_value,
   output        io_cdb0_bits_memWe,
                 io_cdb0_bits_resFromMem,
                 io_cdb0_bits_regWriteEn,
@@ -114,7 +109,8 @@ module CdbArbiter(
   output [4:0]  io_cdb0_bits_rob_idx,
   output [5:0]  io_cdb0_bits_pdest,
   output        io_cdb1_valid,
-  output [31:0] io_cdb1_bits_src2_value,
+  output [31:0] io_cdb1_bits_pc,
+                io_cdb1_bits_src2_value,
   output        io_cdb1_bits_memWe,
                 io_cdb1_bits_resFromMem,
                 io_cdb1_bits_regWriteEn,
@@ -156,24 +152,26 @@ module CdbArbiter(
   assign io_reqs_3_ready = grant0[3] | grant1[3];
   assign io_reqs_4_ready = grant0[4] | grant1[4];
   assign io_cdb0_valid = |req_valids;
+  assign io_cdb0_bits_pc =
+    (grant0[0] ? io_reqs_0_bits_pc : 32'h0) | (grant0[1] ? io_reqs_1_bits_pc : 32'h0)
+    | (grant0[2] ? io_reqs_2_bits_pc : 32'h0) | (grant0[3] ? io_reqs_3_bits_pc : 32'h0)
+    | (grant0[4] ? io_reqs_4_bits_pc : 32'h0);
   assign io_cdb0_bits_src2_value =
     (grant0[0] ? io_reqs_0_bits_src2_value : 32'h0)
-    | (grant0[1] ? io_reqs_1_bits_src2_value : 32'h0)
     | (grant0[2] ? io_reqs_2_bits_src2_value : 32'h0)
     | (grant0[3] ? io_reqs_3_bits_src2_value : 32'h0)
     | (grant0[4] ? io_reqs_4_bits_src2_value : 32'h0);
   assign io_cdb0_bits_memWe =
-    grant0[0] & io_reqs_0_bits_memWe | grant0[1] & io_reqs_1_bits_memWe | grant0[2]
-    & io_reqs_2_bits_memWe | grant0[3] & io_reqs_3_bits_memWe | grant0[4]
-    & io_reqs_4_bits_memWe;
+    grant0[0] & io_reqs_0_bits_memWe | grant0[2] & io_reqs_2_bits_memWe | grant0[3]
+    & io_reqs_3_bits_memWe | grant0[4] & io_reqs_4_bits_memWe;
   assign io_cdb0_bits_resFromMem =
-    grant0[0] & io_reqs_0_bits_resFromMem | grant0[1] & io_reqs_1_bits_resFromMem
-    | grant0[2] & io_reqs_2_bits_resFromMem | grant0[3] & io_reqs_3_bits_resFromMem
-    | grant0[4] & io_reqs_4_bits_resFromMem;
+    grant0[0] & io_reqs_0_bits_resFromMem | grant0[1] | grant0[2]
+    & io_reqs_2_bits_resFromMem | grant0[3] & io_reqs_3_bits_resFromMem | grant0[4]
+    & io_reqs_4_bits_resFromMem;
   assign io_cdb0_bits_regWriteEn =
-    grant0[0] & io_reqs_0_bits_regWriteEn | grant0[1] & io_reqs_1_bits_regWriteEn
-    | grant0[2] & io_reqs_2_bits_regWriteEn | grant0[3] & io_reqs_3_bits_regWriteEn
-    | grant0[4] & io_reqs_4_bits_regWriteEn;
+    grant0[0] & io_reqs_0_bits_regWriteEn | grant0[1] | grant0[2]
+    & io_reqs_2_bits_regWriteEn | grant0[3] & io_reqs_3_bits_regWriteEn | grant0[4]
+    & io_reqs_4_bits_regWriteEn;
   assign io_cdb0_bits_ex_result =
     (grant0[0] ? io_reqs_0_bits_ex_result : 32'h0)
     | (grant0[1] ? io_reqs_1_bits_ex_result : 32'h0)
@@ -196,36 +194,29 @@ module CdbArbiter(
     | (grant0[3] ? io_reqs_3_bits_ecode : 6'h0)
     | (grant0[4] ? io_reqs_4_bits_ecode : 6'h0);
   assign io_cdb0_bits_isCsr =
-    grant0[0] & io_reqs_0_bits_isCsr | grant0[1] & io_reqs_1_bits_isCsr | grant0[2]
-    & io_reqs_2_bits_isCsr | grant0[3] & io_reqs_3_bits_isCsr | grant0[4]
-    & io_reqs_4_bits_isCsr;
+    grant0[0] & io_reqs_0_bits_isCsr | grant0[2] & io_reqs_2_bits_isCsr | grant0[3]
+    & io_reqs_3_bits_isCsr | grant0[4] & io_reqs_4_bits_isCsr;
   assign io_cdb0_bits_csrWe =
-    grant0[0] & io_reqs_0_bits_csrWe | grant0[1] & io_reqs_1_bits_csrWe | grant0[2]
-    & io_reqs_2_bits_csrWe | grant0[3] & io_reqs_3_bits_csrWe | grant0[4]
-    & io_reqs_4_bits_csrWe;
+    grant0[0] & io_reqs_0_bits_csrWe | grant0[2] & io_reqs_2_bits_csrWe | grant0[3]
+    & io_reqs_3_bits_csrWe | grant0[4] & io_reqs_4_bits_csrWe;
   assign io_cdb0_bits_csrNum =
     (grant0[0] ? io_reqs_0_bits_csrNum : 14'h0)
-    | (grant0[1] ? io_reqs_1_bits_csrNum : 14'h0)
     | (grant0[2] ? io_reqs_2_bits_csrNum : 14'h0)
     | (grant0[3] ? io_reqs_3_bits_csrNum : 14'h0)
     | (grant0[4] ? io_reqs_4_bits_csrNum : 14'h0);
   assign io_cdb0_bits_inst_ertn =
-    grant0[0] & io_reqs_0_bits_inst_ertn | grant0[1] & io_reqs_1_bits_inst_ertn
-    | grant0[2] & io_reqs_2_bits_inst_ertn | grant0[3] & io_reqs_3_bits_inst_ertn
-    | grant0[4] & io_reqs_4_bits_inst_ertn;
+    grant0[0] & io_reqs_0_bits_inst_ertn | grant0[2] & io_reqs_2_bits_inst_ertn
+    | grant0[3] & io_reqs_3_bits_inst_ertn | grant0[4] & io_reqs_4_bits_inst_ertn;
   assign io_cdb0_bits_tlbOp =
-    (grant0[0] ? io_reqs_0_bits_tlbOp : 5'h0) | (grant0[1] ? io_reqs_1_bits_tlbOp : 5'h0)
-    | (grant0[2] ? io_reqs_2_bits_tlbOp : 5'h0)
+    (grant0[0] ? io_reqs_0_bits_tlbOp : 5'h0) | (grant0[2] ? io_reqs_2_bits_tlbOp : 5'h0)
     | (grant0[3] ? io_reqs_3_bits_tlbOp : 5'h0)
     | (grant0[4] ? io_reqs_4_bits_tlbOp : 5'h0);
   assign io_cdb0_bits_is_refetch =
-    grant0[0] & io_reqs_0_bits_is_refetch | grant0[1] & io_reqs_1_bits_is_refetch
-    | grant0[2] & io_reqs_2_bits_is_refetch | grant0[3] & io_reqs_3_bits_is_refetch
-    | grant0[4] & io_reqs_4_bits_is_refetch;
+    grant0[0] & io_reqs_0_bits_is_refetch | grant0[2] & io_reqs_2_bits_is_refetch
+    | grant0[3] & io_reqs_3_bits_is_refetch | grant0[4] & io_reqs_4_bits_is_refetch;
   assign io_cdb0_bits_is_cacop =
-    grant0[0] & io_reqs_0_bits_is_cacop | grant0[1] & io_reqs_1_bits_is_cacop | grant0[2]
-    & io_reqs_2_bits_is_cacop | grant0[3] & io_reqs_3_bits_is_cacop | grant0[4]
-    & io_reqs_4_bits_is_cacop;
+    grant0[0] & io_reqs_0_bits_is_cacop | grant0[2] & io_reqs_2_bits_is_cacop | grant0[3]
+    & io_reqs_3_bits_is_cacop | grant0[4] & io_reqs_4_bits_is_cacop;
   assign io_cdb0_bits_rob_idx =
     (grant0[0] ? io_reqs_0_bits_rob_idx : 5'h0)
     | (grant0[1] ? io_reqs_1_bits_rob_idx : 5'h0)
@@ -238,24 +229,26 @@ module CdbArbiter(
     | (grant0[3] ? io_reqs_3_bits_pdest : 6'h0)
     | (grant0[4] ? io_reqs_4_bits_pdest : 6'h0);
   assign io_cdb1_valid = |_GEN;
+  assign io_cdb1_bits_pc =
+    (grant1[0] ? io_reqs_0_bits_pc : 32'h0) | (grant1[1] ? io_reqs_1_bits_pc : 32'h0)
+    | (grant1[2] ? io_reqs_2_bits_pc : 32'h0) | (grant1[3] ? io_reqs_3_bits_pc : 32'h0)
+    | (grant1[4] ? io_reqs_4_bits_pc : 32'h0);
   assign io_cdb1_bits_src2_value =
     (grant1[0] ? io_reqs_0_bits_src2_value : 32'h0)
-    | (grant1[1] ? io_reqs_1_bits_src2_value : 32'h0)
     | (grant1[2] ? io_reqs_2_bits_src2_value : 32'h0)
     | (grant1[3] ? io_reqs_3_bits_src2_value : 32'h0)
     | (grant1[4] ? io_reqs_4_bits_src2_value : 32'h0);
   assign io_cdb1_bits_memWe =
-    grant1[0] & io_reqs_0_bits_memWe | grant1[1] & io_reqs_1_bits_memWe | grant1[2]
-    & io_reqs_2_bits_memWe | grant1[3] & io_reqs_3_bits_memWe | grant1[4]
-    & io_reqs_4_bits_memWe;
+    grant1[0] & io_reqs_0_bits_memWe | grant1[2] & io_reqs_2_bits_memWe | grant1[3]
+    & io_reqs_3_bits_memWe | grant1[4] & io_reqs_4_bits_memWe;
   assign io_cdb1_bits_resFromMem =
-    grant1[0] & io_reqs_0_bits_resFromMem | grant1[1] & io_reqs_1_bits_resFromMem
-    | grant1[2] & io_reqs_2_bits_resFromMem | grant1[3] & io_reqs_3_bits_resFromMem
-    | grant1[4] & io_reqs_4_bits_resFromMem;
+    grant1[0] & io_reqs_0_bits_resFromMem | grant1[1] | grant1[2]
+    & io_reqs_2_bits_resFromMem | grant1[3] & io_reqs_3_bits_resFromMem | grant1[4]
+    & io_reqs_4_bits_resFromMem;
   assign io_cdb1_bits_regWriteEn =
-    grant1[0] & io_reqs_0_bits_regWriteEn | grant1[1] & io_reqs_1_bits_regWriteEn
-    | grant1[2] & io_reqs_2_bits_regWriteEn | grant1[3] & io_reqs_3_bits_regWriteEn
-    | grant1[4] & io_reqs_4_bits_regWriteEn;
+    grant1[0] & io_reqs_0_bits_regWriteEn | grant1[1] | grant1[2]
+    & io_reqs_2_bits_regWriteEn | grant1[3] & io_reqs_3_bits_regWriteEn | grant1[4]
+    & io_reqs_4_bits_regWriteEn;
   assign io_cdb1_bits_ex_result =
     (grant1[0] ? io_reqs_0_bits_ex_result : 32'h0)
     | (grant1[1] ? io_reqs_1_bits_ex_result : 32'h0)
@@ -278,36 +271,29 @@ module CdbArbiter(
     | (grant1[3] ? io_reqs_3_bits_ecode : 6'h0)
     | (grant1[4] ? io_reqs_4_bits_ecode : 6'h0);
   assign io_cdb1_bits_isCsr =
-    grant1[0] & io_reqs_0_bits_isCsr | grant1[1] & io_reqs_1_bits_isCsr | grant1[2]
-    & io_reqs_2_bits_isCsr | grant1[3] & io_reqs_3_bits_isCsr | grant1[4]
-    & io_reqs_4_bits_isCsr;
+    grant1[0] & io_reqs_0_bits_isCsr | grant1[2] & io_reqs_2_bits_isCsr | grant1[3]
+    & io_reqs_3_bits_isCsr | grant1[4] & io_reqs_4_bits_isCsr;
   assign io_cdb1_bits_csrWe =
-    grant1[0] & io_reqs_0_bits_csrWe | grant1[1] & io_reqs_1_bits_csrWe | grant1[2]
-    & io_reqs_2_bits_csrWe | grant1[3] & io_reqs_3_bits_csrWe | grant1[4]
-    & io_reqs_4_bits_csrWe;
+    grant1[0] & io_reqs_0_bits_csrWe | grant1[2] & io_reqs_2_bits_csrWe | grant1[3]
+    & io_reqs_3_bits_csrWe | grant1[4] & io_reqs_4_bits_csrWe;
   assign io_cdb1_bits_csrNum =
     (grant1[0] ? io_reqs_0_bits_csrNum : 14'h0)
-    | (grant1[1] ? io_reqs_1_bits_csrNum : 14'h0)
     | (grant1[2] ? io_reqs_2_bits_csrNum : 14'h0)
     | (grant1[3] ? io_reqs_3_bits_csrNum : 14'h0)
     | (grant1[4] ? io_reqs_4_bits_csrNum : 14'h0);
   assign io_cdb1_bits_inst_ertn =
-    grant1[0] & io_reqs_0_bits_inst_ertn | grant1[1] & io_reqs_1_bits_inst_ertn
-    | grant1[2] & io_reqs_2_bits_inst_ertn | grant1[3] & io_reqs_3_bits_inst_ertn
-    | grant1[4] & io_reqs_4_bits_inst_ertn;
+    grant1[0] & io_reqs_0_bits_inst_ertn | grant1[2] & io_reqs_2_bits_inst_ertn
+    | grant1[3] & io_reqs_3_bits_inst_ertn | grant1[4] & io_reqs_4_bits_inst_ertn;
   assign io_cdb1_bits_tlbOp =
-    (grant1[0] ? io_reqs_0_bits_tlbOp : 5'h0) | (grant1[1] ? io_reqs_1_bits_tlbOp : 5'h0)
-    | (grant1[2] ? io_reqs_2_bits_tlbOp : 5'h0)
+    (grant1[0] ? io_reqs_0_bits_tlbOp : 5'h0) | (grant1[2] ? io_reqs_2_bits_tlbOp : 5'h0)
     | (grant1[3] ? io_reqs_3_bits_tlbOp : 5'h0)
     | (grant1[4] ? io_reqs_4_bits_tlbOp : 5'h0);
   assign io_cdb1_bits_is_refetch =
-    grant1[0] & io_reqs_0_bits_is_refetch | grant1[1] & io_reqs_1_bits_is_refetch
-    | grant1[2] & io_reqs_2_bits_is_refetch | grant1[3] & io_reqs_3_bits_is_refetch
-    | grant1[4] & io_reqs_4_bits_is_refetch;
+    grant1[0] & io_reqs_0_bits_is_refetch | grant1[2] & io_reqs_2_bits_is_refetch
+    | grant1[3] & io_reqs_3_bits_is_refetch | grant1[4] & io_reqs_4_bits_is_refetch;
   assign io_cdb1_bits_is_cacop =
-    grant1[0] & io_reqs_0_bits_is_cacop | grant1[1] & io_reqs_1_bits_is_cacop | grant1[2]
-    & io_reqs_2_bits_is_cacop | grant1[3] & io_reqs_3_bits_is_cacop | grant1[4]
-    & io_reqs_4_bits_is_cacop;
+    grant1[0] & io_reqs_0_bits_is_cacop | grant1[2] & io_reqs_2_bits_is_cacop | grant1[3]
+    & io_reqs_3_bits_is_cacop | grant1[4] & io_reqs_4_bits_is_cacop;
   assign io_cdb1_bits_rob_idx =
     (grant1[0] ? io_reqs_0_bits_rob_idx : 5'h0)
     | (grant1[1] ? io_reqs_1_bits_rob_idx : 5'h0)

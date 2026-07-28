@@ -62,15 +62,7 @@ class LSQ extends Module {
         // ----------------------------------------------------
         // 接口 B：与 AGU 的交互 (算址完成)
         // ----------------------------------------------------
-        val agu_in_valid  = Input(Bool())
-        val agu_in_lsqIdx = Input(UInt(4.W)) 
-        val agu_in_paddr  = Input(UInt(32.W))
-        val agu_in_size   = Input(UInt(2.W))
-        val agu_in_uncached= Input(Bool())
-        val agu_in_wdata  = Input(UInt(32.W)) 
-        val agu_in_wstrb  = Input(UInt(4.W))
-        val agu_in_exc    = Input(Bool())
-        val agu_in_ecode  = Input(UInt(6.W))
+        val agu_in = Flipped(Valid(new Agu2Lsq()))
 
         // ----------------------------------------------------
         // 接口 D：与 Data Cache 的交互
@@ -178,29 +170,29 @@ class LSQ extends Module {
     val violation_lsq = RegInit(0.U(4.W))
 
     // 1. 仅当拍写入信息 (剥离了庞大的 CAM 逻辑，让它极速完成)
-    when(io.agu_in_valid && entries(io.agu_in_lsqIdx).valid) {
-        val idx = io.agu_in_lsqIdx
+    when(io.agu_in.valid && entries(io.agu_in.bits.lsqIdx).valid) {
+        val idx = io.agu_in.bits.lsqIdx
         entries(idx).addr_valid := true.B
-        entries(idx).paddr      := io.agu_in_paddr
-        entries(idx).size       := io.agu_in_size
-        entries(idx).uncached   := io.agu_in_uncached
-        entries(idx).wdata      := io.agu_in_wdata
-        entries(idx).wstrb      := io.agu_in_wstrb
-        entries(idx).has_exc    := io.agu_in_exc
-        entries(idx).ecode      := io.agu_in_ecode
+        entries(idx).paddr      := io.agu_in.bits.paddr
+        entries(idx).size       := io.agu_in.bits.size
+        entries(idx).uncached   := io.agu_in.bits.uncached
+        entries(idx).wdata      := io.agu_in.bits.wdata
+        entries(idx).wstrb      := io.agu_in.bits.wstrb
+        entries(idx).has_exc    := io.agu_in.bits.has_exc  // 注意：Bundle里叫has_exc
+        entries(idx).ecode      := io.agu_in.bits.ecode
     }
 
     // 2. ★ 核心时序修复：将触发 CAM 查表的条件提取出来，打一拍 (Retiming)
-    val agu_is_store_or_cacop = entries(io.agu_in_lsqIdx).is_store || entries(io.agu_in_lsqIdx).is_cacop
+    val agu_is_store_or_cacop = entries(io.agu_in.bits.lsqIdx).is_store || entries(io.agu_in.bits.lsqIdx).is_cacop
     val check_valid = RegInit(false.B)
-    val check_idx   = RegNext(io.agu_in_lsqIdx)
-    val check_paddr = RegNext(io.agu_in_paddr)
+    val check_idx   = RegNext(io.agu_in.bits.lsqIdx)
+    val check_paddr = RegNext(io.agu_in.bits.paddr)
 
     // ★ 幽灵防御：遇到流水线冲刷时，必须清空 check_valid，防止下一拍报出“前朝的幽灵违例”
     when(io.flush) {
         check_valid := false.B
     } .otherwise {
-        check_valid := io.agu_in_valid && entries(io.agu_in_lsqIdx).valid && agu_is_store_or_cacop
+        check_valid := io.agu_in.valid && entries(io.agu_in.bits.lsqIdx).valid && agu_is_store_or_cacop
     }
 
     // 3. 在下一拍 (T+1) 从容地进行 16 项大并发 CAM 查表
@@ -467,15 +459,18 @@ class LSQ extends Module {
     wb_data.hasException := wb_e.has_exc
     wb_data.ecode        := wb_e.ecode
     wb_data.resFromMem   := true.B
+    wb_data.lsq_idx      := wb_idx
+    wb_data.aux_data     := wb_e.ticket
+    wb_data.pc           := wb_e.pc
 
-    val wb_queue = withReset(reset.asBool || io.flush) { Module(new Queue(new PipelineData(), 16)) }
-    wb_queue.io.enq.valid := do_wb
-    wb_queue.io.enq.bits  := wb_data
-
-    // 成功挤进写回队列，就打上标记，防止重复写回
-    when(wb_queue.io.enq.fire) { entries(wb_idx).wb_sent := true.B }
+    // ★ 直接用仲裁结果驱动 CDB！没有握手成功就憋在 LSQ 表项里，随时接受分支冲刷！
+    io.lsq_wb.valid := do_wb
+    io.lsq_wb.bits  := wb_data
     
-    io.lsq_wb <> wb_queue.io.deq
+    // 当真实写回成功时，才打上 wb_sent 标记
+    when(io.lsq_wb.fire) { 
+        entries(wb_idx).wb_sent := true.B 
+    }
 
     // ---------------- 队头出队 ----------------
     val head_entry = entries(head)

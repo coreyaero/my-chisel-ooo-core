@@ -26,11 +26,11 @@ module StageIF(
   output [3:0]  io_out1_bits_ras_tos,
   input         io_flush,
   input  [31:0] io_flush_target_pc,
-  output        io_inst_sram_req,
-  output [31:0] io_inst_sram_addr,
-  input         io_inst_sram_addr_ok,
-                io_inst_sram_data_ok,
-  input  [63:0] io_inst_sram_rdata,
+  output        io_cache_io_req,
+  output [31:0] io_cache_io_addr,
+  input         io_cache_io_addr_ok,
+                io_cache_io_data_ok,
+  input  [63:0] io_cache_io_rdata,
   output        io_inst_uncached,
   output [7:0]  io_inst_req_id,
   input  [7:0]  io_inst_ret_id,
@@ -49,15 +49,15 @@ module StageIF(
   input  [1:0]  io_mmu_config_dmw1_mat,
   input         io_mmu_config_dmw1_plv3,
                 io_mmu_config_dmw1_plv0,
-  output [18:0] io_tlb_s0_vppn,
-  output        io_tlb_s0_va_bit12,
-  output [9:0]  io_tlb_s0_asid,
-  input         io_tlb_s0_found,
-  input  [19:0] io_tlb_s0_ppn,
-  input  [5:0]  io_tlb_s0_ps,
-  input  [1:0]  io_tlb_s0_plv,
-                io_tlb_s0_mat,
-  input         io_tlb_s0_v,
+  output [18:0] io_tlb_port_vppn,
+  output        io_tlb_port_va_bit12,
+  output [9:0]  io_tlb_port_asid,
+  input         io_tlb_port_found,
+  input  [19:0] io_tlb_port_ppn,
+  input  [5:0]  io_tlb_port_ps,
+  input  [1:0]  io_tlb_port_plv,
+                io_tlb_port_mat,
+  input         io_tlb_port_v,
                 io_bpu_update_valid,
   input  [31:0] io_bpu_update_bits_pc,
                 io_bpu_update_bits_target,
@@ -101,14 +101,14 @@ module StageIF(
        ? io_mmu_config_crmd_datf
        : dmw_hit
            ? (dmw0_hit ? io_mmu_config_dmw0_mat : io_mmu_config_dmw1_mat)
-           : io_tlb_s0_mat) == 2'h0;
+           : io_tlb_port_mat) == 2'h0;
   wire               is_mapped =
     io_mmu_config_crmd_pg & ~io_mmu_config_crmd_da & ~dmw_hit;
-  wire               exc_tlb_refill_if = is_mapped & ~io_tlb_s0_found;
-  wire               _exc_ppi_if_T = is_mapped & io_tlb_s0_found;
-  wire               exc_pif = _exc_ppi_if_T & ~io_tlb_s0_v;
+  wire               exc_tlb_refill_if = is_mapped & ~io_tlb_port_found;
+  wire               _exc_ppi_if_T = is_mapped & io_tlb_port_found;
+  wire               exc_pif = _exc_ppi_if_T & ~io_tlb_port_v;
   wire               exc_ppi_if =
-    _exc_ppi_if_T & io_tlb_s0_v & (&io_mmu_config_crmd_plv) & io_tlb_s0_plv == 2'h0;
+    _exc_ppi_if_T & io_tlb_port_v & (&io_mmu_config_crmd_plv) & io_tlb_port_plv == 2'h0;
   wire               mmu_exc_now = exc_tlb_refill_if | exc_pif | exc_ppi_if;
   wire               is_cross_line = (&(pc_reg[4:2])) | io_inst_uncached_0;
   reg                btb_valid_0;
@@ -4540,7 +4540,7 @@ module StageIF(
      {flying_table_1},
      {flying_table_0}};
   wire               can_req = ~io_flush & _meta_queue_io_enq_ready & ~_GEN_4[ticket_cnt];
-  wire               if1_fire = can_req & io_inst_sram_addr_ok;
+  wire               if1_fire = can_req & io_cache_io_addr_ok;
   wire               _GEN_5 = io_inst_ret_id == 8'h0;
   wire               _GEN_6 = io_inst_ret_id == 8'h1;
   wire               _GEN_7 = io_inst_ret_id == 8'h2;
@@ -5053,7 +5053,7 @@ module StageIF(
      {valid_table_2},
      {valid_table_1},
      {valid_table_0}};
-  wire               real_data_ok = io_inst_sram_data_ok & _GEN_260[io_inst_ret_id];
+  wire               real_data_ok = io_cache_io_data_ok & _GEN_260[io_inst_ret_id];
   wire               _GEN_261 = real_data_ok & _GEN_5;
   wire               _GEN_262 = real_data_ok & _GEN_6;
   wire               _GEN_263 = real_data_ok & _GEN_7;
@@ -8414,262 +8414,262 @@ module StageIF(
       automatic logic _GEN_773;
       automatic logic _GEN_774;
       automatic logic _GEN_775;
-      automatic logic _GEN_776 = io_inst_sram_data_ok & _GEN_5;
-      automatic logic _GEN_777 = io_inst_sram_data_ok & _GEN_6;
-      automatic logic _GEN_778 = io_inst_sram_data_ok & _GEN_7;
-      automatic logic _GEN_779 = io_inst_sram_data_ok & _GEN_8;
-      automatic logic _GEN_780 = io_inst_sram_data_ok & _GEN_9;
-      automatic logic _GEN_781 = io_inst_sram_data_ok & _GEN_10;
-      automatic logic _GEN_782 = io_inst_sram_data_ok & _GEN_11;
-      automatic logic _GEN_783 = io_inst_sram_data_ok & _GEN_12;
-      automatic logic _GEN_784 = io_inst_sram_data_ok & _GEN_13;
-      automatic logic _GEN_785 = io_inst_sram_data_ok & _GEN_14;
-      automatic logic _GEN_786 = io_inst_sram_data_ok & _GEN_15;
-      automatic logic _GEN_787 = io_inst_sram_data_ok & _GEN_16;
-      automatic logic _GEN_788 = io_inst_sram_data_ok & _GEN_17;
-      automatic logic _GEN_789 = io_inst_sram_data_ok & _GEN_18;
-      automatic logic _GEN_790 = io_inst_sram_data_ok & _GEN_19;
-      automatic logic _GEN_791 = io_inst_sram_data_ok & _GEN_20;
-      automatic logic _GEN_792 = io_inst_sram_data_ok & _GEN_21;
-      automatic logic _GEN_793 = io_inst_sram_data_ok & _GEN_22;
-      automatic logic _GEN_794 = io_inst_sram_data_ok & _GEN_23;
-      automatic logic _GEN_795 = io_inst_sram_data_ok & _GEN_24;
-      automatic logic _GEN_796 = io_inst_sram_data_ok & _GEN_25;
-      automatic logic _GEN_797 = io_inst_sram_data_ok & _GEN_26;
-      automatic logic _GEN_798 = io_inst_sram_data_ok & _GEN_27;
-      automatic logic _GEN_799 = io_inst_sram_data_ok & _GEN_28;
-      automatic logic _GEN_800 = io_inst_sram_data_ok & _GEN_29;
-      automatic logic _GEN_801 = io_inst_sram_data_ok & _GEN_30;
-      automatic logic _GEN_802 = io_inst_sram_data_ok & _GEN_31;
-      automatic logic _GEN_803 = io_inst_sram_data_ok & _GEN_32;
-      automatic logic _GEN_804 = io_inst_sram_data_ok & _GEN_33;
-      automatic logic _GEN_805 = io_inst_sram_data_ok & _GEN_34;
-      automatic logic _GEN_806 = io_inst_sram_data_ok & _GEN_35;
-      automatic logic _GEN_807 = io_inst_sram_data_ok & _GEN_36;
-      automatic logic _GEN_808 = io_inst_sram_data_ok & _GEN_37;
-      automatic logic _GEN_809 = io_inst_sram_data_ok & _GEN_38;
-      automatic logic _GEN_810 = io_inst_sram_data_ok & _GEN_39;
-      automatic logic _GEN_811 = io_inst_sram_data_ok & _GEN_40;
-      automatic logic _GEN_812 = io_inst_sram_data_ok & _GEN_41;
-      automatic logic _GEN_813 = io_inst_sram_data_ok & _GEN_42;
-      automatic logic _GEN_814 = io_inst_sram_data_ok & _GEN_43;
-      automatic logic _GEN_815 = io_inst_sram_data_ok & _GEN_44;
-      automatic logic _GEN_816 = io_inst_sram_data_ok & _GEN_45;
-      automatic logic _GEN_817 = io_inst_sram_data_ok & _GEN_46;
-      automatic logic _GEN_818 = io_inst_sram_data_ok & _GEN_47;
-      automatic logic _GEN_819 = io_inst_sram_data_ok & _GEN_48;
-      automatic logic _GEN_820 = io_inst_sram_data_ok & _GEN_49;
-      automatic logic _GEN_821 = io_inst_sram_data_ok & _GEN_50;
-      automatic logic _GEN_822 = io_inst_sram_data_ok & _GEN_51;
-      automatic logic _GEN_823 = io_inst_sram_data_ok & _GEN_52;
-      automatic logic _GEN_824 = io_inst_sram_data_ok & _GEN_53;
-      automatic logic _GEN_825 = io_inst_sram_data_ok & _GEN_54;
-      automatic logic _GEN_826 = io_inst_sram_data_ok & _GEN_55;
-      automatic logic _GEN_827 = io_inst_sram_data_ok & _GEN_56;
-      automatic logic _GEN_828 = io_inst_sram_data_ok & _GEN_57;
-      automatic logic _GEN_829 = io_inst_sram_data_ok & _GEN_58;
-      automatic logic _GEN_830 = io_inst_sram_data_ok & _GEN_59;
-      automatic logic _GEN_831 = io_inst_sram_data_ok & _GEN_60;
-      automatic logic _GEN_832 = io_inst_sram_data_ok & _GEN_61;
-      automatic logic _GEN_833 = io_inst_sram_data_ok & _GEN_62;
-      automatic logic _GEN_834 = io_inst_sram_data_ok & _GEN_63;
-      automatic logic _GEN_835 = io_inst_sram_data_ok & _GEN_64;
-      automatic logic _GEN_836 = io_inst_sram_data_ok & _GEN_65;
-      automatic logic _GEN_837 = io_inst_sram_data_ok & _GEN_66;
-      automatic logic _GEN_838 = io_inst_sram_data_ok & _GEN_67;
-      automatic logic _GEN_839 = io_inst_sram_data_ok & _GEN_68;
-      automatic logic _GEN_840 = io_inst_sram_data_ok & _GEN_69;
-      automatic logic _GEN_841 = io_inst_sram_data_ok & _GEN_70;
-      automatic logic _GEN_842 = io_inst_sram_data_ok & _GEN_71;
-      automatic logic _GEN_843 = io_inst_sram_data_ok & _GEN_72;
-      automatic logic _GEN_844 = io_inst_sram_data_ok & _GEN_73;
-      automatic logic _GEN_845 = io_inst_sram_data_ok & _GEN_74;
-      automatic logic _GEN_846 = io_inst_sram_data_ok & _GEN_75;
-      automatic logic _GEN_847 = io_inst_sram_data_ok & _GEN_76;
-      automatic logic _GEN_848 = io_inst_sram_data_ok & _GEN_77;
-      automatic logic _GEN_849 = io_inst_sram_data_ok & _GEN_78;
-      automatic logic _GEN_850 = io_inst_sram_data_ok & _GEN_79;
-      automatic logic _GEN_851 = io_inst_sram_data_ok & _GEN_80;
-      automatic logic _GEN_852 = io_inst_sram_data_ok & _GEN_81;
-      automatic logic _GEN_853 = io_inst_sram_data_ok & _GEN_82;
-      automatic logic _GEN_854 = io_inst_sram_data_ok & _GEN_83;
-      automatic logic _GEN_855 = io_inst_sram_data_ok & _GEN_84;
-      automatic logic _GEN_856 = io_inst_sram_data_ok & _GEN_85;
-      automatic logic _GEN_857 = io_inst_sram_data_ok & _GEN_86;
-      automatic logic _GEN_858 = io_inst_sram_data_ok & _GEN_87;
-      automatic logic _GEN_859 = io_inst_sram_data_ok & _GEN_88;
-      automatic logic _GEN_860 = io_inst_sram_data_ok & _GEN_89;
-      automatic logic _GEN_861 = io_inst_sram_data_ok & _GEN_90;
-      automatic logic _GEN_862 = io_inst_sram_data_ok & _GEN_91;
-      automatic logic _GEN_863 = io_inst_sram_data_ok & _GEN_92;
-      automatic logic _GEN_864 = io_inst_sram_data_ok & _GEN_93;
-      automatic logic _GEN_865 = io_inst_sram_data_ok & _GEN_94;
-      automatic logic _GEN_866 = io_inst_sram_data_ok & _GEN_95;
-      automatic logic _GEN_867 = io_inst_sram_data_ok & _GEN_96;
-      automatic logic _GEN_868 = io_inst_sram_data_ok & _GEN_97;
-      automatic logic _GEN_869 = io_inst_sram_data_ok & _GEN_98;
-      automatic logic _GEN_870 = io_inst_sram_data_ok & _GEN_99;
-      automatic logic _GEN_871 = io_inst_sram_data_ok & _GEN_100;
-      automatic logic _GEN_872 = io_inst_sram_data_ok & _GEN_101;
-      automatic logic _GEN_873 = io_inst_sram_data_ok & _GEN_102;
-      automatic logic _GEN_874 = io_inst_sram_data_ok & _GEN_103;
-      automatic logic _GEN_875 = io_inst_sram_data_ok & _GEN_104;
-      automatic logic _GEN_876 = io_inst_sram_data_ok & _GEN_105;
-      automatic logic _GEN_877 = io_inst_sram_data_ok & _GEN_106;
-      automatic logic _GEN_878 = io_inst_sram_data_ok & _GEN_107;
-      automatic logic _GEN_879 = io_inst_sram_data_ok & _GEN_108;
-      automatic logic _GEN_880 = io_inst_sram_data_ok & _GEN_109;
-      automatic logic _GEN_881 = io_inst_sram_data_ok & _GEN_110;
-      automatic logic _GEN_882 = io_inst_sram_data_ok & _GEN_111;
-      automatic logic _GEN_883 = io_inst_sram_data_ok & _GEN_112;
-      automatic logic _GEN_884 = io_inst_sram_data_ok & _GEN_113;
-      automatic logic _GEN_885 = io_inst_sram_data_ok & _GEN_114;
-      automatic logic _GEN_886 = io_inst_sram_data_ok & _GEN_115;
-      automatic logic _GEN_887 = io_inst_sram_data_ok & _GEN_116;
-      automatic logic _GEN_888 = io_inst_sram_data_ok & _GEN_117;
-      automatic logic _GEN_889 = io_inst_sram_data_ok & _GEN_118;
-      automatic logic _GEN_890 = io_inst_sram_data_ok & _GEN_119;
-      automatic logic _GEN_891 = io_inst_sram_data_ok & _GEN_120;
-      automatic logic _GEN_892 = io_inst_sram_data_ok & _GEN_121;
-      automatic logic _GEN_893 = io_inst_sram_data_ok & _GEN_122;
-      automatic logic _GEN_894 = io_inst_sram_data_ok & _GEN_123;
-      automatic logic _GEN_895 = io_inst_sram_data_ok & _GEN_124;
-      automatic logic _GEN_896 = io_inst_sram_data_ok & _GEN_125;
-      automatic logic _GEN_897 = io_inst_sram_data_ok & _GEN_126;
-      automatic logic _GEN_898 = io_inst_sram_data_ok & _GEN_127;
-      automatic logic _GEN_899 = io_inst_sram_data_ok & _GEN_128;
-      automatic logic _GEN_900 = io_inst_sram_data_ok & _GEN_129;
-      automatic logic _GEN_901 = io_inst_sram_data_ok & _GEN_130;
-      automatic logic _GEN_902 = io_inst_sram_data_ok & _GEN_131;
-      automatic logic _GEN_903 = io_inst_sram_data_ok & _GEN_132;
-      automatic logic _GEN_904 = io_inst_sram_data_ok & _GEN_133;
-      automatic logic _GEN_905 = io_inst_sram_data_ok & _GEN_134;
-      automatic logic _GEN_906 = io_inst_sram_data_ok & _GEN_135;
-      automatic logic _GEN_907 = io_inst_sram_data_ok & _GEN_136;
-      automatic logic _GEN_908 = io_inst_sram_data_ok & _GEN_137;
-      automatic logic _GEN_909 = io_inst_sram_data_ok & _GEN_138;
-      automatic logic _GEN_910 = io_inst_sram_data_ok & _GEN_139;
-      automatic logic _GEN_911 = io_inst_sram_data_ok & _GEN_140;
-      automatic logic _GEN_912 = io_inst_sram_data_ok & _GEN_141;
-      automatic logic _GEN_913 = io_inst_sram_data_ok & _GEN_142;
-      automatic logic _GEN_914 = io_inst_sram_data_ok & _GEN_143;
-      automatic logic _GEN_915 = io_inst_sram_data_ok & _GEN_144;
-      automatic logic _GEN_916 = io_inst_sram_data_ok & _GEN_145;
-      automatic logic _GEN_917 = io_inst_sram_data_ok & _GEN_146;
-      automatic logic _GEN_918 = io_inst_sram_data_ok & _GEN_147;
-      automatic logic _GEN_919 = io_inst_sram_data_ok & _GEN_148;
-      automatic logic _GEN_920 = io_inst_sram_data_ok & _GEN_149;
-      automatic logic _GEN_921 = io_inst_sram_data_ok & _GEN_150;
-      automatic logic _GEN_922 = io_inst_sram_data_ok & _GEN_151;
-      automatic logic _GEN_923 = io_inst_sram_data_ok & _GEN_152;
-      automatic logic _GEN_924 = io_inst_sram_data_ok & _GEN_153;
-      automatic logic _GEN_925 = io_inst_sram_data_ok & _GEN_154;
-      automatic logic _GEN_926 = io_inst_sram_data_ok & _GEN_155;
-      automatic logic _GEN_927 = io_inst_sram_data_ok & _GEN_156;
-      automatic logic _GEN_928 = io_inst_sram_data_ok & _GEN_157;
-      automatic logic _GEN_929 = io_inst_sram_data_ok & _GEN_158;
-      automatic logic _GEN_930 = io_inst_sram_data_ok & _GEN_159;
-      automatic logic _GEN_931 = io_inst_sram_data_ok & _GEN_160;
-      automatic logic _GEN_932 = io_inst_sram_data_ok & _GEN_161;
-      automatic logic _GEN_933 = io_inst_sram_data_ok & _GEN_162;
-      automatic logic _GEN_934 = io_inst_sram_data_ok & _GEN_163;
-      automatic logic _GEN_935 = io_inst_sram_data_ok & _GEN_164;
-      automatic logic _GEN_936 = io_inst_sram_data_ok & _GEN_165;
-      automatic logic _GEN_937 = io_inst_sram_data_ok & _GEN_166;
-      automatic logic _GEN_938 = io_inst_sram_data_ok & _GEN_167;
-      automatic logic _GEN_939 = io_inst_sram_data_ok & _GEN_168;
-      automatic logic _GEN_940 = io_inst_sram_data_ok & _GEN_169;
-      automatic logic _GEN_941 = io_inst_sram_data_ok & _GEN_170;
-      automatic logic _GEN_942 = io_inst_sram_data_ok & _GEN_171;
-      automatic logic _GEN_943 = io_inst_sram_data_ok & _GEN_172;
-      automatic logic _GEN_944 = io_inst_sram_data_ok & _GEN_173;
-      automatic logic _GEN_945 = io_inst_sram_data_ok & _GEN_174;
-      automatic logic _GEN_946 = io_inst_sram_data_ok & _GEN_175;
-      automatic logic _GEN_947 = io_inst_sram_data_ok & _GEN_176;
-      automatic logic _GEN_948 = io_inst_sram_data_ok & _GEN_177;
-      automatic logic _GEN_949 = io_inst_sram_data_ok & _GEN_178;
-      automatic logic _GEN_950 = io_inst_sram_data_ok & _GEN_179;
-      automatic logic _GEN_951 = io_inst_sram_data_ok & _GEN_180;
-      automatic logic _GEN_952 = io_inst_sram_data_ok & _GEN_181;
-      automatic logic _GEN_953 = io_inst_sram_data_ok & _GEN_182;
-      automatic logic _GEN_954 = io_inst_sram_data_ok & _GEN_183;
-      automatic logic _GEN_955 = io_inst_sram_data_ok & _GEN_184;
-      automatic logic _GEN_956 = io_inst_sram_data_ok & _GEN_185;
-      automatic logic _GEN_957 = io_inst_sram_data_ok & _GEN_186;
-      automatic logic _GEN_958 = io_inst_sram_data_ok & _GEN_187;
-      automatic logic _GEN_959 = io_inst_sram_data_ok & _GEN_188;
-      automatic logic _GEN_960 = io_inst_sram_data_ok & _GEN_189;
-      automatic logic _GEN_961 = io_inst_sram_data_ok & _GEN_190;
-      automatic logic _GEN_962 = io_inst_sram_data_ok & _GEN_191;
-      automatic logic _GEN_963 = io_inst_sram_data_ok & _GEN_192;
-      automatic logic _GEN_964 = io_inst_sram_data_ok & _GEN_193;
-      automatic logic _GEN_965 = io_inst_sram_data_ok & _GEN_194;
-      automatic logic _GEN_966 = io_inst_sram_data_ok & _GEN_195;
-      automatic logic _GEN_967 = io_inst_sram_data_ok & _GEN_196;
-      automatic logic _GEN_968 = io_inst_sram_data_ok & _GEN_197;
-      automatic logic _GEN_969 = io_inst_sram_data_ok & _GEN_198;
-      automatic logic _GEN_970 = io_inst_sram_data_ok & _GEN_199;
-      automatic logic _GEN_971 = io_inst_sram_data_ok & _GEN_200;
-      automatic logic _GEN_972 = io_inst_sram_data_ok & _GEN_201;
-      automatic logic _GEN_973 = io_inst_sram_data_ok & _GEN_202;
-      automatic logic _GEN_974 = io_inst_sram_data_ok & _GEN_203;
-      automatic logic _GEN_975 = io_inst_sram_data_ok & _GEN_204;
-      automatic logic _GEN_976 = io_inst_sram_data_ok & _GEN_205;
-      automatic logic _GEN_977 = io_inst_sram_data_ok & _GEN_206;
-      automatic logic _GEN_978 = io_inst_sram_data_ok & _GEN_207;
-      automatic logic _GEN_979 = io_inst_sram_data_ok & _GEN_208;
-      automatic logic _GEN_980 = io_inst_sram_data_ok & _GEN_209;
-      automatic logic _GEN_981 = io_inst_sram_data_ok & _GEN_210;
-      automatic logic _GEN_982 = io_inst_sram_data_ok & _GEN_211;
-      automatic logic _GEN_983 = io_inst_sram_data_ok & _GEN_212;
-      automatic logic _GEN_984 = io_inst_sram_data_ok & _GEN_213;
-      automatic logic _GEN_985 = io_inst_sram_data_ok & _GEN_214;
-      automatic logic _GEN_986 = io_inst_sram_data_ok & _GEN_215;
-      automatic logic _GEN_987 = io_inst_sram_data_ok & _GEN_216;
-      automatic logic _GEN_988 = io_inst_sram_data_ok & _GEN_217;
-      automatic logic _GEN_989 = io_inst_sram_data_ok & _GEN_218;
-      automatic logic _GEN_990 = io_inst_sram_data_ok & _GEN_219;
-      automatic logic _GEN_991 = io_inst_sram_data_ok & _GEN_220;
-      automatic logic _GEN_992 = io_inst_sram_data_ok & _GEN_221;
-      automatic logic _GEN_993 = io_inst_sram_data_ok & _GEN_222;
-      automatic logic _GEN_994 = io_inst_sram_data_ok & _GEN_223;
-      automatic logic _GEN_995 = io_inst_sram_data_ok & _GEN_224;
-      automatic logic _GEN_996 = io_inst_sram_data_ok & _GEN_225;
-      automatic logic _GEN_997 = io_inst_sram_data_ok & _GEN_226;
-      automatic logic _GEN_998 = io_inst_sram_data_ok & _GEN_227;
-      automatic logic _GEN_999 = io_inst_sram_data_ok & _GEN_228;
-      automatic logic _GEN_1000 = io_inst_sram_data_ok & _GEN_229;
-      automatic logic _GEN_1001 = io_inst_sram_data_ok & _GEN_230;
-      automatic logic _GEN_1002 = io_inst_sram_data_ok & _GEN_231;
-      automatic logic _GEN_1003 = io_inst_sram_data_ok & _GEN_232;
-      automatic logic _GEN_1004 = io_inst_sram_data_ok & _GEN_233;
-      automatic logic _GEN_1005 = io_inst_sram_data_ok & _GEN_234;
-      automatic logic _GEN_1006 = io_inst_sram_data_ok & _GEN_235;
-      automatic logic _GEN_1007 = io_inst_sram_data_ok & _GEN_236;
-      automatic logic _GEN_1008 = io_inst_sram_data_ok & _GEN_237;
-      automatic logic _GEN_1009 = io_inst_sram_data_ok & _GEN_238;
-      automatic logic _GEN_1010 = io_inst_sram_data_ok & _GEN_239;
-      automatic logic _GEN_1011 = io_inst_sram_data_ok & _GEN_240;
-      automatic logic _GEN_1012 = io_inst_sram_data_ok & _GEN_241;
-      automatic logic _GEN_1013 = io_inst_sram_data_ok & _GEN_242;
-      automatic logic _GEN_1014 = io_inst_sram_data_ok & _GEN_243;
-      automatic logic _GEN_1015 = io_inst_sram_data_ok & _GEN_244;
-      automatic logic _GEN_1016 = io_inst_sram_data_ok & _GEN_245;
-      automatic logic _GEN_1017 = io_inst_sram_data_ok & _GEN_246;
-      automatic logic _GEN_1018 = io_inst_sram_data_ok & _GEN_247;
-      automatic logic _GEN_1019 = io_inst_sram_data_ok & _GEN_248;
-      automatic logic _GEN_1020 = io_inst_sram_data_ok & _GEN_249;
-      automatic logic _GEN_1021 = io_inst_sram_data_ok & _GEN_250;
-      automatic logic _GEN_1022 = io_inst_sram_data_ok & _GEN_251;
-      automatic logic _GEN_1023 = io_inst_sram_data_ok & _GEN_252;
-      automatic logic _GEN_1024 = io_inst_sram_data_ok & _GEN_253;
-      automatic logic _GEN_1025 = io_inst_sram_data_ok & _GEN_254;
-      automatic logic _GEN_1026 = io_inst_sram_data_ok & _GEN_255;
-      automatic logic _GEN_1027 = io_inst_sram_data_ok & _GEN_256;
-      automatic logic _GEN_1028 = io_inst_sram_data_ok & _GEN_257;
-      automatic logic _GEN_1029 = io_inst_sram_data_ok & _GEN_258;
-      automatic logic _GEN_1030 = io_inst_sram_data_ok & _GEN_259;
-      automatic logic _GEN_1031 = io_inst_sram_data_ok & (&io_inst_ret_id);
+      automatic logic _GEN_776 = io_cache_io_data_ok & _GEN_5;
+      automatic logic _GEN_777 = io_cache_io_data_ok & _GEN_6;
+      automatic logic _GEN_778 = io_cache_io_data_ok & _GEN_7;
+      automatic logic _GEN_779 = io_cache_io_data_ok & _GEN_8;
+      automatic logic _GEN_780 = io_cache_io_data_ok & _GEN_9;
+      automatic logic _GEN_781 = io_cache_io_data_ok & _GEN_10;
+      automatic logic _GEN_782 = io_cache_io_data_ok & _GEN_11;
+      automatic logic _GEN_783 = io_cache_io_data_ok & _GEN_12;
+      automatic logic _GEN_784 = io_cache_io_data_ok & _GEN_13;
+      automatic logic _GEN_785 = io_cache_io_data_ok & _GEN_14;
+      automatic logic _GEN_786 = io_cache_io_data_ok & _GEN_15;
+      automatic logic _GEN_787 = io_cache_io_data_ok & _GEN_16;
+      automatic logic _GEN_788 = io_cache_io_data_ok & _GEN_17;
+      automatic logic _GEN_789 = io_cache_io_data_ok & _GEN_18;
+      automatic logic _GEN_790 = io_cache_io_data_ok & _GEN_19;
+      automatic logic _GEN_791 = io_cache_io_data_ok & _GEN_20;
+      automatic logic _GEN_792 = io_cache_io_data_ok & _GEN_21;
+      automatic logic _GEN_793 = io_cache_io_data_ok & _GEN_22;
+      automatic logic _GEN_794 = io_cache_io_data_ok & _GEN_23;
+      automatic logic _GEN_795 = io_cache_io_data_ok & _GEN_24;
+      automatic logic _GEN_796 = io_cache_io_data_ok & _GEN_25;
+      automatic logic _GEN_797 = io_cache_io_data_ok & _GEN_26;
+      automatic logic _GEN_798 = io_cache_io_data_ok & _GEN_27;
+      automatic logic _GEN_799 = io_cache_io_data_ok & _GEN_28;
+      automatic logic _GEN_800 = io_cache_io_data_ok & _GEN_29;
+      automatic logic _GEN_801 = io_cache_io_data_ok & _GEN_30;
+      automatic logic _GEN_802 = io_cache_io_data_ok & _GEN_31;
+      automatic logic _GEN_803 = io_cache_io_data_ok & _GEN_32;
+      automatic logic _GEN_804 = io_cache_io_data_ok & _GEN_33;
+      automatic logic _GEN_805 = io_cache_io_data_ok & _GEN_34;
+      automatic logic _GEN_806 = io_cache_io_data_ok & _GEN_35;
+      automatic logic _GEN_807 = io_cache_io_data_ok & _GEN_36;
+      automatic logic _GEN_808 = io_cache_io_data_ok & _GEN_37;
+      automatic logic _GEN_809 = io_cache_io_data_ok & _GEN_38;
+      automatic logic _GEN_810 = io_cache_io_data_ok & _GEN_39;
+      automatic logic _GEN_811 = io_cache_io_data_ok & _GEN_40;
+      automatic logic _GEN_812 = io_cache_io_data_ok & _GEN_41;
+      automatic logic _GEN_813 = io_cache_io_data_ok & _GEN_42;
+      automatic logic _GEN_814 = io_cache_io_data_ok & _GEN_43;
+      automatic logic _GEN_815 = io_cache_io_data_ok & _GEN_44;
+      automatic logic _GEN_816 = io_cache_io_data_ok & _GEN_45;
+      automatic logic _GEN_817 = io_cache_io_data_ok & _GEN_46;
+      automatic logic _GEN_818 = io_cache_io_data_ok & _GEN_47;
+      automatic logic _GEN_819 = io_cache_io_data_ok & _GEN_48;
+      automatic logic _GEN_820 = io_cache_io_data_ok & _GEN_49;
+      automatic logic _GEN_821 = io_cache_io_data_ok & _GEN_50;
+      automatic logic _GEN_822 = io_cache_io_data_ok & _GEN_51;
+      automatic logic _GEN_823 = io_cache_io_data_ok & _GEN_52;
+      automatic logic _GEN_824 = io_cache_io_data_ok & _GEN_53;
+      automatic logic _GEN_825 = io_cache_io_data_ok & _GEN_54;
+      automatic logic _GEN_826 = io_cache_io_data_ok & _GEN_55;
+      automatic logic _GEN_827 = io_cache_io_data_ok & _GEN_56;
+      automatic logic _GEN_828 = io_cache_io_data_ok & _GEN_57;
+      automatic logic _GEN_829 = io_cache_io_data_ok & _GEN_58;
+      automatic logic _GEN_830 = io_cache_io_data_ok & _GEN_59;
+      automatic logic _GEN_831 = io_cache_io_data_ok & _GEN_60;
+      automatic logic _GEN_832 = io_cache_io_data_ok & _GEN_61;
+      automatic logic _GEN_833 = io_cache_io_data_ok & _GEN_62;
+      automatic logic _GEN_834 = io_cache_io_data_ok & _GEN_63;
+      automatic logic _GEN_835 = io_cache_io_data_ok & _GEN_64;
+      automatic logic _GEN_836 = io_cache_io_data_ok & _GEN_65;
+      automatic logic _GEN_837 = io_cache_io_data_ok & _GEN_66;
+      automatic logic _GEN_838 = io_cache_io_data_ok & _GEN_67;
+      automatic logic _GEN_839 = io_cache_io_data_ok & _GEN_68;
+      automatic logic _GEN_840 = io_cache_io_data_ok & _GEN_69;
+      automatic logic _GEN_841 = io_cache_io_data_ok & _GEN_70;
+      automatic logic _GEN_842 = io_cache_io_data_ok & _GEN_71;
+      automatic logic _GEN_843 = io_cache_io_data_ok & _GEN_72;
+      automatic logic _GEN_844 = io_cache_io_data_ok & _GEN_73;
+      automatic logic _GEN_845 = io_cache_io_data_ok & _GEN_74;
+      automatic logic _GEN_846 = io_cache_io_data_ok & _GEN_75;
+      automatic logic _GEN_847 = io_cache_io_data_ok & _GEN_76;
+      automatic logic _GEN_848 = io_cache_io_data_ok & _GEN_77;
+      automatic logic _GEN_849 = io_cache_io_data_ok & _GEN_78;
+      automatic logic _GEN_850 = io_cache_io_data_ok & _GEN_79;
+      automatic logic _GEN_851 = io_cache_io_data_ok & _GEN_80;
+      automatic logic _GEN_852 = io_cache_io_data_ok & _GEN_81;
+      automatic logic _GEN_853 = io_cache_io_data_ok & _GEN_82;
+      automatic logic _GEN_854 = io_cache_io_data_ok & _GEN_83;
+      automatic logic _GEN_855 = io_cache_io_data_ok & _GEN_84;
+      automatic logic _GEN_856 = io_cache_io_data_ok & _GEN_85;
+      automatic logic _GEN_857 = io_cache_io_data_ok & _GEN_86;
+      automatic logic _GEN_858 = io_cache_io_data_ok & _GEN_87;
+      automatic logic _GEN_859 = io_cache_io_data_ok & _GEN_88;
+      automatic logic _GEN_860 = io_cache_io_data_ok & _GEN_89;
+      automatic logic _GEN_861 = io_cache_io_data_ok & _GEN_90;
+      automatic logic _GEN_862 = io_cache_io_data_ok & _GEN_91;
+      automatic logic _GEN_863 = io_cache_io_data_ok & _GEN_92;
+      automatic logic _GEN_864 = io_cache_io_data_ok & _GEN_93;
+      automatic logic _GEN_865 = io_cache_io_data_ok & _GEN_94;
+      automatic logic _GEN_866 = io_cache_io_data_ok & _GEN_95;
+      automatic logic _GEN_867 = io_cache_io_data_ok & _GEN_96;
+      automatic logic _GEN_868 = io_cache_io_data_ok & _GEN_97;
+      automatic logic _GEN_869 = io_cache_io_data_ok & _GEN_98;
+      automatic logic _GEN_870 = io_cache_io_data_ok & _GEN_99;
+      automatic logic _GEN_871 = io_cache_io_data_ok & _GEN_100;
+      automatic logic _GEN_872 = io_cache_io_data_ok & _GEN_101;
+      automatic logic _GEN_873 = io_cache_io_data_ok & _GEN_102;
+      automatic logic _GEN_874 = io_cache_io_data_ok & _GEN_103;
+      automatic logic _GEN_875 = io_cache_io_data_ok & _GEN_104;
+      automatic logic _GEN_876 = io_cache_io_data_ok & _GEN_105;
+      automatic logic _GEN_877 = io_cache_io_data_ok & _GEN_106;
+      automatic logic _GEN_878 = io_cache_io_data_ok & _GEN_107;
+      automatic logic _GEN_879 = io_cache_io_data_ok & _GEN_108;
+      automatic logic _GEN_880 = io_cache_io_data_ok & _GEN_109;
+      automatic logic _GEN_881 = io_cache_io_data_ok & _GEN_110;
+      automatic logic _GEN_882 = io_cache_io_data_ok & _GEN_111;
+      automatic logic _GEN_883 = io_cache_io_data_ok & _GEN_112;
+      automatic logic _GEN_884 = io_cache_io_data_ok & _GEN_113;
+      automatic logic _GEN_885 = io_cache_io_data_ok & _GEN_114;
+      automatic logic _GEN_886 = io_cache_io_data_ok & _GEN_115;
+      automatic logic _GEN_887 = io_cache_io_data_ok & _GEN_116;
+      automatic logic _GEN_888 = io_cache_io_data_ok & _GEN_117;
+      automatic logic _GEN_889 = io_cache_io_data_ok & _GEN_118;
+      automatic logic _GEN_890 = io_cache_io_data_ok & _GEN_119;
+      automatic logic _GEN_891 = io_cache_io_data_ok & _GEN_120;
+      automatic logic _GEN_892 = io_cache_io_data_ok & _GEN_121;
+      automatic logic _GEN_893 = io_cache_io_data_ok & _GEN_122;
+      automatic logic _GEN_894 = io_cache_io_data_ok & _GEN_123;
+      automatic logic _GEN_895 = io_cache_io_data_ok & _GEN_124;
+      automatic logic _GEN_896 = io_cache_io_data_ok & _GEN_125;
+      automatic logic _GEN_897 = io_cache_io_data_ok & _GEN_126;
+      automatic logic _GEN_898 = io_cache_io_data_ok & _GEN_127;
+      automatic logic _GEN_899 = io_cache_io_data_ok & _GEN_128;
+      automatic logic _GEN_900 = io_cache_io_data_ok & _GEN_129;
+      automatic logic _GEN_901 = io_cache_io_data_ok & _GEN_130;
+      automatic logic _GEN_902 = io_cache_io_data_ok & _GEN_131;
+      automatic logic _GEN_903 = io_cache_io_data_ok & _GEN_132;
+      automatic logic _GEN_904 = io_cache_io_data_ok & _GEN_133;
+      automatic logic _GEN_905 = io_cache_io_data_ok & _GEN_134;
+      automatic logic _GEN_906 = io_cache_io_data_ok & _GEN_135;
+      automatic logic _GEN_907 = io_cache_io_data_ok & _GEN_136;
+      automatic logic _GEN_908 = io_cache_io_data_ok & _GEN_137;
+      automatic logic _GEN_909 = io_cache_io_data_ok & _GEN_138;
+      automatic logic _GEN_910 = io_cache_io_data_ok & _GEN_139;
+      automatic logic _GEN_911 = io_cache_io_data_ok & _GEN_140;
+      automatic logic _GEN_912 = io_cache_io_data_ok & _GEN_141;
+      automatic logic _GEN_913 = io_cache_io_data_ok & _GEN_142;
+      automatic logic _GEN_914 = io_cache_io_data_ok & _GEN_143;
+      automatic logic _GEN_915 = io_cache_io_data_ok & _GEN_144;
+      automatic logic _GEN_916 = io_cache_io_data_ok & _GEN_145;
+      automatic logic _GEN_917 = io_cache_io_data_ok & _GEN_146;
+      automatic logic _GEN_918 = io_cache_io_data_ok & _GEN_147;
+      automatic logic _GEN_919 = io_cache_io_data_ok & _GEN_148;
+      automatic logic _GEN_920 = io_cache_io_data_ok & _GEN_149;
+      automatic logic _GEN_921 = io_cache_io_data_ok & _GEN_150;
+      automatic logic _GEN_922 = io_cache_io_data_ok & _GEN_151;
+      automatic logic _GEN_923 = io_cache_io_data_ok & _GEN_152;
+      automatic logic _GEN_924 = io_cache_io_data_ok & _GEN_153;
+      automatic logic _GEN_925 = io_cache_io_data_ok & _GEN_154;
+      automatic logic _GEN_926 = io_cache_io_data_ok & _GEN_155;
+      automatic logic _GEN_927 = io_cache_io_data_ok & _GEN_156;
+      automatic logic _GEN_928 = io_cache_io_data_ok & _GEN_157;
+      automatic logic _GEN_929 = io_cache_io_data_ok & _GEN_158;
+      automatic logic _GEN_930 = io_cache_io_data_ok & _GEN_159;
+      automatic logic _GEN_931 = io_cache_io_data_ok & _GEN_160;
+      automatic logic _GEN_932 = io_cache_io_data_ok & _GEN_161;
+      automatic logic _GEN_933 = io_cache_io_data_ok & _GEN_162;
+      automatic logic _GEN_934 = io_cache_io_data_ok & _GEN_163;
+      automatic logic _GEN_935 = io_cache_io_data_ok & _GEN_164;
+      automatic logic _GEN_936 = io_cache_io_data_ok & _GEN_165;
+      automatic logic _GEN_937 = io_cache_io_data_ok & _GEN_166;
+      automatic logic _GEN_938 = io_cache_io_data_ok & _GEN_167;
+      automatic logic _GEN_939 = io_cache_io_data_ok & _GEN_168;
+      automatic logic _GEN_940 = io_cache_io_data_ok & _GEN_169;
+      automatic logic _GEN_941 = io_cache_io_data_ok & _GEN_170;
+      automatic logic _GEN_942 = io_cache_io_data_ok & _GEN_171;
+      automatic logic _GEN_943 = io_cache_io_data_ok & _GEN_172;
+      automatic logic _GEN_944 = io_cache_io_data_ok & _GEN_173;
+      automatic logic _GEN_945 = io_cache_io_data_ok & _GEN_174;
+      automatic logic _GEN_946 = io_cache_io_data_ok & _GEN_175;
+      automatic logic _GEN_947 = io_cache_io_data_ok & _GEN_176;
+      automatic logic _GEN_948 = io_cache_io_data_ok & _GEN_177;
+      automatic logic _GEN_949 = io_cache_io_data_ok & _GEN_178;
+      automatic logic _GEN_950 = io_cache_io_data_ok & _GEN_179;
+      automatic logic _GEN_951 = io_cache_io_data_ok & _GEN_180;
+      automatic logic _GEN_952 = io_cache_io_data_ok & _GEN_181;
+      automatic logic _GEN_953 = io_cache_io_data_ok & _GEN_182;
+      automatic logic _GEN_954 = io_cache_io_data_ok & _GEN_183;
+      automatic logic _GEN_955 = io_cache_io_data_ok & _GEN_184;
+      automatic logic _GEN_956 = io_cache_io_data_ok & _GEN_185;
+      automatic logic _GEN_957 = io_cache_io_data_ok & _GEN_186;
+      automatic logic _GEN_958 = io_cache_io_data_ok & _GEN_187;
+      automatic logic _GEN_959 = io_cache_io_data_ok & _GEN_188;
+      automatic logic _GEN_960 = io_cache_io_data_ok & _GEN_189;
+      automatic logic _GEN_961 = io_cache_io_data_ok & _GEN_190;
+      automatic logic _GEN_962 = io_cache_io_data_ok & _GEN_191;
+      automatic logic _GEN_963 = io_cache_io_data_ok & _GEN_192;
+      automatic logic _GEN_964 = io_cache_io_data_ok & _GEN_193;
+      automatic logic _GEN_965 = io_cache_io_data_ok & _GEN_194;
+      automatic logic _GEN_966 = io_cache_io_data_ok & _GEN_195;
+      automatic logic _GEN_967 = io_cache_io_data_ok & _GEN_196;
+      automatic logic _GEN_968 = io_cache_io_data_ok & _GEN_197;
+      automatic logic _GEN_969 = io_cache_io_data_ok & _GEN_198;
+      automatic logic _GEN_970 = io_cache_io_data_ok & _GEN_199;
+      automatic logic _GEN_971 = io_cache_io_data_ok & _GEN_200;
+      automatic logic _GEN_972 = io_cache_io_data_ok & _GEN_201;
+      automatic logic _GEN_973 = io_cache_io_data_ok & _GEN_202;
+      automatic logic _GEN_974 = io_cache_io_data_ok & _GEN_203;
+      automatic logic _GEN_975 = io_cache_io_data_ok & _GEN_204;
+      automatic logic _GEN_976 = io_cache_io_data_ok & _GEN_205;
+      automatic logic _GEN_977 = io_cache_io_data_ok & _GEN_206;
+      automatic logic _GEN_978 = io_cache_io_data_ok & _GEN_207;
+      automatic logic _GEN_979 = io_cache_io_data_ok & _GEN_208;
+      automatic logic _GEN_980 = io_cache_io_data_ok & _GEN_209;
+      automatic logic _GEN_981 = io_cache_io_data_ok & _GEN_210;
+      automatic logic _GEN_982 = io_cache_io_data_ok & _GEN_211;
+      automatic logic _GEN_983 = io_cache_io_data_ok & _GEN_212;
+      automatic logic _GEN_984 = io_cache_io_data_ok & _GEN_213;
+      automatic logic _GEN_985 = io_cache_io_data_ok & _GEN_214;
+      automatic logic _GEN_986 = io_cache_io_data_ok & _GEN_215;
+      automatic logic _GEN_987 = io_cache_io_data_ok & _GEN_216;
+      automatic logic _GEN_988 = io_cache_io_data_ok & _GEN_217;
+      automatic logic _GEN_989 = io_cache_io_data_ok & _GEN_218;
+      automatic logic _GEN_990 = io_cache_io_data_ok & _GEN_219;
+      automatic logic _GEN_991 = io_cache_io_data_ok & _GEN_220;
+      automatic logic _GEN_992 = io_cache_io_data_ok & _GEN_221;
+      automatic logic _GEN_993 = io_cache_io_data_ok & _GEN_222;
+      automatic logic _GEN_994 = io_cache_io_data_ok & _GEN_223;
+      automatic logic _GEN_995 = io_cache_io_data_ok & _GEN_224;
+      automatic logic _GEN_996 = io_cache_io_data_ok & _GEN_225;
+      automatic logic _GEN_997 = io_cache_io_data_ok & _GEN_226;
+      automatic logic _GEN_998 = io_cache_io_data_ok & _GEN_227;
+      automatic logic _GEN_999 = io_cache_io_data_ok & _GEN_228;
+      automatic logic _GEN_1000 = io_cache_io_data_ok & _GEN_229;
+      automatic logic _GEN_1001 = io_cache_io_data_ok & _GEN_230;
+      automatic logic _GEN_1002 = io_cache_io_data_ok & _GEN_231;
+      automatic logic _GEN_1003 = io_cache_io_data_ok & _GEN_232;
+      automatic logic _GEN_1004 = io_cache_io_data_ok & _GEN_233;
+      automatic logic _GEN_1005 = io_cache_io_data_ok & _GEN_234;
+      automatic logic _GEN_1006 = io_cache_io_data_ok & _GEN_235;
+      automatic logic _GEN_1007 = io_cache_io_data_ok & _GEN_236;
+      automatic logic _GEN_1008 = io_cache_io_data_ok & _GEN_237;
+      automatic logic _GEN_1009 = io_cache_io_data_ok & _GEN_238;
+      automatic logic _GEN_1010 = io_cache_io_data_ok & _GEN_239;
+      automatic logic _GEN_1011 = io_cache_io_data_ok & _GEN_240;
+      automatic logic _GEN_1012 = io_cache_io_data_ok & _GEN_241;
+      automatic logic _GEN_1013 = io_cache_io_data_ok & _GEN_242;
+      automatic logic _GEN_1014 = io_cache_io_data_ok & _GEN_243;
+      automatic logic _GEN_1015 = io_cache_io_data_ok & _GEN_244;
+      automatic logic _GEN_1016 = io_cache_io_data_ok & _GEN_245;
+      automatic logic _GEN_1017 = io_cache_io_data_ok & _GEN_246;
+      automatic logic _GEN_1018 = io_cache_io_data_ok & _GEN_247;
+      automatic logic _GEN_1019 = io_cache_io_data_ok & _GEN_248;
+      automatic logic _GEN_1020 = io_cache_io_data_ok & _GEN_249;
+      automatic logic _GEN_1021 = io_cache_io_data_ok & _GEN_250;
+      automatic logic _GEN_1022 = io_cache_io_data_ok & _GEN_251;
+      automatic logic _GEN_1023 = io_cache_io_data_ok & _GEN_252;
+      automatic logic _GEN_1024 = io_cache_io_data_ok & _GEN_253;
+      automatic logic _GEN_1025 = io_cache_io_data_ok & _GEN_254;
+      automatic logic _GEN_1026 = io_cache_io_data_ok & _GEN_255;
+      automatic logic _GEN_1027 = io_cache_io_data_ok & _GEN_256;
+      automatic logic _GEN_1028 = io_cache_io_data_ok & _GEN_257;
+      automatic logic _GEN_1029 = io_cache_io_data_ok & _GEN_258;
+      automatic logic _GEN_1030 = io_cache_io_data_ok & _GEN_259;
+      automatic logic _GEN_1031 = io_cache_io_data_ok & (&io_inst_ret_id);
       _GEN_520 = if1_fire & ticket_cnt == 8'h0;
       _GEN_521 = if1_fire & ticket_cnt == 8'h1;
       _GEN_522 = if1_fire & ticket_cnt == 8'h2;
@@ -13012,517 +13012,517 @@ module StageIF(
   end // always @(posedge, posedge)
   always @(posedge clock) begin
     if (_GEN_261)
-      rdata_table_0 <= io_inst_sram_rdata;
+      rdata_table_0 <= io_cache_io_rdata;
     if (_GEN_262)
-      rdata_table_1 <= io_inst_sram_rdata;
+      rdata_table_1 <= io_cache_io_rdata;
     if (_GEN_263)
-      rdata_table_2 <= io_inst_sram_rdata;
+      rdata_table_2 <= io_cache_io_rdata;
     if (_GEN_264)
-      rdata_table_3 <= io_inst_sram_rdata;
+      rdata_table_3 <= io_cache_io_rdata;
     if (_GEN_265)
-      rdata_table_4 <= io_inst_sram_rdata;
+      rdata_table_4 <= io_cache_io_rdata;
     if (_GEN_266)
-      rdata_table_5 <= io_inst_sram_rdata;
+      rdata_table_5 <= io_cache_io_rdata;
     if (_GEN_267)
-      rdata_table_6 <= io_inst_sram_rdata;
+      rdata_table_6 <= io_cache_io_rdata;
     if (_GEN_268)
-      rdata_table_7 <= io_inst_sram_rdata;
+      rdata_table_7 <= io_cache_io_rdata;
     if (_GEN_269)
-      rdata_table_8 <= io_inst_sram_rdata;
+      rdata_table_8 <= io_cache_io_rdata;
     if (_GEN_270)
-      rdata_table_9 <= io_inst_sram_rdata;
+      rdata_table_9 <= io_cache_io_rdata;
     if (_GEN_271)
-      rdata_table_10 <= io_inst_sram_rdata;
+      rdata_table_10 <= io_cache_io_rdata;
     if (_GEN_272)
-      rdata_table_11 <= io_inst_sram_rdata;
+      rdata_table_11 <= io_cache_io_rdata;
     if (_GEN_273)
-      rdata_table_12 <= io_inst_sram_rdata;
+      rdata_table_12 <= io_cache_io_rdata;
     if (_GEN_274)
-      rdata_table_13 <= io_inst_sram_rdata;
+      rdata_table_13 <= io_cache_io_rdata;
     if (_GEN_275)
-      rdata_table_14 <= io_inst_sram_rdata;
+      rdata_table_14 <= io_cache_io_rdata;
     if (_GEN_276)
-      rdata_table_15 <= io_inst_sram_rdata;
+      rdata_table_15 <= io_cache_io_rdata;
     if (_GEN_277)
-      rdata_table_16 <= io_inst_sram_rdata;
+      rdata_table_16 <= io_cache_io_rdata;
     if (_GEN_278)
-      rdata_table_17 <= io_inst_sram_rdata;
+      rdata_table_17 <= io_cache_io_rdata;
     if (_GEN_279)
-      rdata_table_18 <= io_inst_sram_rdata;
+      rdata_table_18 <= io_cache_io_rdata;
     if (_GEN_280)
-      rdata_table_19 <= io_inst_sram_rdata;
+      rdata_table_19 <= io_cache_io_rdata;
     if (_GEN_281)
-      rdata_table_20 <= io_inst_sram_rdata;
+      rdata_table_20 <= io_cache_io_rdata;
     if (_GEN_282)
-      rdata_table_21 <= io_inst_sram_rdata;
+      rdata_table_21 <= io_cache_io_rdata;
     if (_GEN_283)
-      rdata_table_22 <= io_inst_sram_rdata;
+      rdata_table_22 <= io_cache_io_rdata;
     if (_GEN_284)
-      rdata_table_23 <= io_inst_sram_rdata;
+      rdata_table_23 <= io_cache_io_rdata;
     if (_GEN_285)
-      rdata_table_24 <= io_inst_sram_rdata;
+      rdata_table_24 <= io_cache_io_rdata;
     if (_GEN_286)
-      rdata_table_25 <= io_inst_sram_rdata;
+      rdata_table_25 <= io_cache_io_rdata;
     if (_GEN_287)
-      rdata_table_26 <= io_inst_sram_rdata;
+      rdata_table_26 <= io_cache_io_rdata;
     if (_GEN_288)
-      rdata_table_27 <= io_inst_sram_rdata;
+      rdata_table_27 <= io_cache_io_rdata;
     if (_GEN_289)
-      rdata_table_28 <= io_inst_sram_rdata;
+      rdata_table_28 <= io_cache_io_rdata;
     if (_GEN_290)
-      rdata_table_29 <= io_inst_sram_rdata;
+      rdata_table_29 <= io_cache_io_rdata;
     if (_GEN_291)
-      rdata_table_30 <= io_inst_sram_rdata;
+      rdata_table_30 <= io_cache_io_rdata;
     if (_GEN_292)
-      rdata_table_31 <= io_inst_sram_rdata;
+      rdata_table_31 <= io_cache_io_rdata;
     if (_GEN_293)
-      rdata_table_32 <= io_inst_sram_rdata;
+      rdata_table_32 <= io_cache_io_rdata;
     if (_GEN_294)
-      rdata_table_33 <= io_inst_sram_rdata;
+      rdata_table_33 <= io_cache_io_rdata;
     if (_GEN_295)
-      rdata_table_34 <= io_inst_sram_rdata;
+      rdata_table_34 <= io_cache_io_rdata;
     if (_GEN_296)
-      rdata_table_35 <= io_inst_sram_rdata;
+      rdata_table_35 <= io_cache_io_rdata;
     if (_GEN_297)
-      rdata_table_36 <= io_inst_sram_rdata;
+      rdata_table_36 <= io_cache_io_rdata;
     if (_GEN_298)
-      rdata_table_37 <= io_inst_sram_rdata;
+      rdata_table_37 <= io_cache_io_rdata;
     if (_GEN_299)
-      rdata_table_38 <= io_inst_sram_rdata;
+      rdata_table_38 <= io_cache_io_rdata;
     if (_GEN_300)
-      rdata_table_39 <= io_inst_sram_rdata;
+      rdata_table_39 <= io_cache_io_rdata;
     if (_GEN_301)
-      rdata_table_40 <= io_inst_sram_rdata;
+      rdata_table_40 <= io_cache_io_rdata;
     if (_GEN_302)
-      rdata_table_41 <= io_inst_sram_rdata;
+      rdata_table_41 <= io_cache_io_rdata;
     if (_GEN_303)
-      rdata_table_42 <= io_inst_sram_rdata;
+      rdata_table_42 <= io_cache_io_rdata;
     if (_GEN_304)
-      rdata_table_43 <= io_inst_sram_rdata;
+      rdata_table_43 <= io_cache_io_rdata;
     if (_GEN_305)
-      rdata_table_44 <= io_inst_sram_rdata;
+      rdata_table_44 <= io_cache_io_rdata;
     if (_GEN_306)
-      rdata_table_45 <= io_inst_sram_rdata;
+      rdata_table_45 <= io_cache_io_rdata;
     if (_GEN_307)
-      rdata_table_46 <= io_inst_sram_rdata;
+      rdata_table_46 <= io_cache_io_rdata;
     if (_GEN_308)
-      rdata_table_47 <= io_inst_sram_rdata;
+      rdata_table_47 <= io_cache_io_rdata;
     if (_GEN_309)
-      rdata_table_48 <= io_inst_sram_rdata;
+      rdata_table_48 <= io_cache_io_rdata;
     if (_GEN_310)
-      rdata_table_49 <= io_inst_sram_rdata;
+      rdata_table_49 <= io_cache_io_rdata;
     if (_GEN_311)
-      rdata_table_50 <= io_inst_sram_rdata;
+      rdata_table_50 <= io_cache_io_rdata;
     if (_GEN_312)
-      rdata_table_51 <= io_inst_sram_rdata;
+      rdata_table_51 <= io_cache_io_rdata;
     if (_GEN_313)
-      rdata_table_52 <= io_inst_sram_rdata;
+      rdata_table_52 <= io_cache_io_rdata;
     if (_GEN_314)
-      rdata_table_53 <= io_inst_sram_rdata;
+      rdata_table_53 <= io_cache_io_rdata;
     if (_GEN_315)
-      rdata_table_54 <= io_inst_sram_rdata;
+      rdata_table_54 <= io_cache_io_rdata;
     if (_GEN_316)
-      rdata_table_55 <= io_inst_sram_rdata;
+      rdata_table_55 <= io_cache_io_rdata;
     if (_GEN_317)
-      rdata_table_56 <= io_inst_sram_rdata;
+      rdata_table_56 <= io_cache_io_rdata;
     if (_GEN_318)
-      rdata_table_57 <= io_inst_sram_rdata;
+      rdata_table_57 <= io_cache_io_rdata;
     if (_GEN_319)
-      rdata_table_58 <= io_inst_sram_rdata;
+      rdata_table_58 <= io_cache_io_rdata;
     if (_GEN_320)
-      rdata_table_59 <= io_inst_sram_rdata;
+      rdata_table_59 <= io_cache_io_rdata;
     if (_GEN_321)
-      rdata_table_60 <= io_inst_sram_rdata;
+      rdata_table_60 <= io_cache_io_rdata;
     if (_GEN_322)
-      rdata_table_61 <= io_inst_sram_rdata;
+      rdata_table_61 <= io_cache_io_rdata;
     if (_GEN_323)
-      rdata_table_62 <= io_inst_sram_rdata;
+      rdata_table_62 <= io_cache_io_rdata;
     if (_GEN_324)
-      rdata_table_63 <= io_inst_sram_rdata;
+      rdata_table_63 <= io_cache_io_rdata;
     if (_GEN_325)
-      rdata_table_64 <= io_inst_sram_rdata;
+      rdata_table_64 <= io_cache_io_rdata;
     if (_GEN_326)
-      rdata_table_65 <= io_inst_sram_rdata;
+      rdata_table_65 <= io_cache_io_rdata;
     if (_GEN_327)
-      rdata_table_66 <= io_inst_sram_rdata;
+      rdata_table_66 <= io_cache_io_rdata;
     if (_GEN_328)
-      rdata_table_67 <= io_inst_sram_rdata;
+      rdata_table_67 <= io_cache_io_rdata;
     if (_GEN_329)
-      rdata_table_68 <= io_inst_sram_rdata;
+      rdata_table_68 <= io_cache_io_rdata;
     if (_GEN_330)
-      rdata_table_69 <= io_inst_sram_rdata;
+      rdata_table_69 <= io_cache_io_rdata;
     if (_GEN_331)
-      rdata_table_70 <= io_inst_sram_rdata;
+      rdata_table_70 <= io_cache_io_rdata;
     if (_GEN_332)
-      rdata_table_71 <= io_inst_sram_rdata;
+      rdata_table_71 <= io_cache_io_rdata;
     if (_GEN_333)
-      rdata_table_72 <= io_inst_sram_rdata;
+      rdata_table_72 <= io_cache_io_rdata;
     if (_GEN_334)
-      rdata_table_73 <= io_inst_sram_rdata;
+      rdata_table_73 <= io_cache_io_rdata;
     if (_GEN_335)
-      rdata_table_74 <= io_inst_sram_rdata;
+      rdata_table_74 <= io_cache_io_rdata;
     if (_GEN_336)
-      rdata_table_75 <= io_inst_sram_rdata;
+      rdata_table_75 <= io_cache_io_rdata;
     if (_GEN_337)
-      rdata_table_76 <= io_inst_sram_rdata;
+      rdata_table_76 <= io_cache_io_rdata;
     if (_GEN_338)
-      rdata_table_77 <= io_inst_sram_rdata;
+      rdata_table_77 <= io_cache_io_rdata;
     if (_GEN_339)
-      rdata_table_78 <= io_inst_sram_rdata;
+      rdata_table_78 <= io_cache_io_rdata;
     if (_GEN_340)
-      rdata_table_79 <= io_inst_sram_rdata;
+      rdata_table_79 <= io_cache_io_rdata;
     if (_GEN_341)
-      rdata_table_80 <= io_inst_sram_rdata;
+      rdata_table_80 <= io_cache_io_rdata;
     if (_GEN_342)
-      rdata_table_81 <= io_inst_sram_rdata;
+      rdata_table_81 <= io_cache_io_rdata;
     if (_GEN_343)
-      rdata_table_82 <= io_inst_sram_rdata;
+      rdata_table_82 <= io_cache_io_rdata;
     if (_GEN_344)
-      rdata_table_83 <= io_inst_sram_rdata;
+      rdata_table_83 <= io_cache_io_rdata;
     if (_GEN_345)
-      rdata_table_84 <= io_inst_sram_rdata;
+      rdata_table_84 <= io_cache_io_rdata;
     if (_GEN_346)
-      rdata_table_85 <= io_inst_sram_rdata;
+      rdata_table_85 <= io_cache_io_rdata;
     if (_GEN_347)
-      rdata_table_86 <= io_inst_sram_rdata;
+      rdata_table_86 <= io_cache_io_rdata;
     if (_GEN_348)
-      rdata_table_87 <= io_inst_sram_rdata;
+      rdata_table_87 <= io_cache_io_rdata;
     if (_GEN_349)
-      rdata_table_88 <= io_inst_sram_rdata;
+      rdata_table_88 <= io_cache_io_rdata;
     if (_GEN_350)
-      rdata_table_89 <= io_inst_sram_rdata;
+      rdata_table_89 <= io_cache_io_rdata;
     if (_GEN_351)
-      rdata_table_90 <= io_inst_sram_rdata;
+      rdata_table_90 <= io_cache_io_rdata;
     if (_GEN_352)
-      rdata_table_91 <= io_inst_sram_rdata;
+      rdata_table_91 <= io_cache_io_rdata;
     if (_GEN_353)
-      rdata_table_92 <= io_inst_sram_rdata;
+      rdata_table_92 <= io_cache_io_rdata;
     if (_GEN_354)
-      rdata_table_93 <= io_inst_sram_rdata;
+      rdata_table_93 <= io_cache_io_rdata;
     if (_GEN_355)
-      rdata_table_94 <= io_inst_sram_rdata;
+      rdata_table_94 <= io_cache_io_rdata;
     if (_GEN_356)
-      rdata_table_95 <= io_inst_sram_rdata;
+      rdata_table_95 <= io_cache_io_rdata;
     if (_GEN_357)
-      rdata_table_96 <= io_inst_sram_rdata;
+      rdata_table_96 <= io_cache_io_rdata;
     if (_GEN_358)
-      rdata_table_97 <= io_inst_sram_rdata;
+      rdata_table_97 <= io_cache_io_rdata;
     if (_GEN_359)
-      rdata_table_98 <= io_inst_sram_rdata;
+      rdata_table_98 <= io_cache_io_rdata;
     if (_GEN_360)
-      rdata_table_99 <= io_inst_sram_rdata;
+      rdata_table_99 <= io_cache_io_rdata;
     if (_GEN_361)
-      rdata_table_100 <= io_inst_sram_rdata;
+      rdata_table_100 <= io_cache_io_rdata;
     if (_GEN_362)
-      rdata_table_101 <= io_inst_sram_rdata;
+      rdata_table_101 <= io_cache_io_rdata;
     if (_GEN_363)
-      rdata_table_102 <= io_inst_sram_rdata;
+      rdata_table_102 <= io_cache_io_rdata;
     if (_GEN_364)
-      rdata_table_103 <= io_inst_sram_rdata;
+      rdata_table_103 <= io_cache_io_rdata;
     if (_GEN_365)
-      rdata_table_104 <= io_inst_sram_rdata;
+      rdata_table_104 <= io_cache_io_rdata;
     if (_GEN_366)
-      rdata_table_105 <= io_inst_sram_rdata;
+      rdata_table_105 <= io_cache_io_rdata;
     if (_GEN_367)
-      rdata_table_106 <= io_inst_sram_rdata;
+      rdata_table_106 <= io_cache_io_rdata;
     if (_GEN_368)
-      rdata_table_107 <= io_inst_sram_rdata;
+      rdata_table_107 <= io_cache_io_rdata;
     if (_GEN_369)
-      rdata_table_108 <= io_inst_sram_rdata;
+      rdata_table_108 <= io_cache_io_rdata;
     if (_GEN_370)
-      rdata_table_109 <= io_inst_sram_rdata;
+      rdata_table_109 <= io_cache_io_rdata;
     if (_GEN_371)
-      rdata_table_110 <= io_inst_sram_rdata;
+      rdata_table_110 <= io_cache_io_rdata;
     if (_GEN_372)
-      rdata_table_111 <= io_inst_sram_rdata;
+      rdata_table_111 <= io_cache_io_rdata;
     if (_GEN_373)
-      rdata_table_112 <= io_inst_sram_rdata;
+      rdata_table_112 <= io_cache_io_rdata;
     if (_GEN_374)
-      rdata_table_113 <= io_inst_sram_rdata;
+      rdata_table_113 <= io_cache_io_rdata;
     if (_GEN_375)
-      rdata_table_114 <= io_inst_sram_rdata;
+      rdata_table_114 <= io_cache_io_rdata;
     if (_GEN_376)
-      rdata_table_115 <= io_inst_sram_rdata;
+      rdata_table_115 <= io_cache_io_rdata;
     if (_GEN_377)
-      rdata_table_116 <= io_inst_sram_rdata;
+      rdata_table_116 <= io_cache_io_rdata;
     if (_GEN_378)
-      rdata_table_117 <= io_inst_sram_rdata;
+      rdata_table_117 <= io_cache_io_rdata;
     if (_GEN_379)
-      rdata_table_118 <= io_inst_sram_rdata;
+      rdata_table_118 <= io_cache_io_rdata;
     if (_GEN_380)
-      rdata_table_119 <= io_inst_sram_rdata;
+      rdata_table_119 <= io_cache_io_rdata;
     if (_GEN_381)
-      rdata_table_120 <= io_inst_sram_rdata;
+      rdata_table_120 <= io_cache_io_rdata;
     if (_GEN_382)
-      rdata_table_121 <= io_inst_sram_rdata;
+      rdata_table_121 <= io_cache_io_rdata;
     if (_GEN_383)
-      rdata_table_122 <= io_inst_sram_rdata;
+      rdata_table_122 <= io_cache_io_rdata;
     if (_GEN_384)
-      rdata_table_123 <= io_inst_sram_rdata;
+      rdata_table_123 <= io_cache_io_rdata;
     if (_GEN_385)
-      rdata_table_124 <= io_inst_sram_rdata;
+      rdata_table_124 <= io_cache_io_rdata;
     if (_GEN_386)
-      rdata_table_125 <= io_inst_sram_rdata;
+      rdata_table_125 <= io_cache_io_rdata;
     if (_GEN_387)
-      rdata_table_126 <= io_inst_sram_rdata;
+      rdata_table_126 <= io_cache_io_rdata;
     if (_GEN_388)
-      rdata_table_127 <= io_inst_sram_rdata;
+      rdata_table_127 <= io_cache_io_rdata;
     if (_GEN_389)
-      rdata_table_128 <= io_inst_sram_rdata;
+      rdata_table_128 <= io_cache_io_rdata;
     if (_GEN_390)
-      rdata_table_129 <= io_inst_sram_rdata;
+      rdata_table_129 <= io_cache_io_rdata;
     if (_GEN_391)
-      rdata_table_130 <= io_inst_sram_rdata;
+      rdata_table_130 <= io_cache_io_rdata;
     if (_GEN_392)
-      rdata_table_131 <= io_inst_sram_rdata;
+      rdata_table_131 <= io_cache_io_rdata;
     if (_GEN_393)
-      rdata_table_132 <= io_inst_sram_rdata;
+      rdata_table_132 <= io_cache_io_rdata;
     if (_GEN_394)
-      rdata_table_133 <= io_inst_sram_rdata;
+      rdata_table_133 <= io_cache_io_rdata;
     if (_GEN_395)
-      rdata_table_134 <= io_inst_sram_rdata;
+      rdata_table_134 <= io_cache_io_rdata;
     if (_GEN_396)
-      rdata_table_135 <= io_inst_sram_rdata;
+      rdata_table_135 <= io_cache_io_rdata;
     if (_GEN_397)
-      rdata_table_136 <= io_inst_sram_rdata;
+      rdata_table_136 <= io_cache_io_rdata;
     if (_GEN_398)
-      rdata_table_137 <= io_inst_sram_rdata;
+      rdata_table_137 <= io_cache_io_rdata;
     if (_GEN_399)
-      rdata_table_138 <= io_inst_sram_rdata;
+      rdata_table_138 <= io_cache_io_rdata;
     if (_GEN_400)
-      rdata_table_139 <= io_inst_sram_rdata;
+      rdata_table_139 <= io_cache_io_rdata;
     if (_GEN_401)
-      rdata_table_140 <= io_inst_sram_rdata;
+      rdata_table_140 <= io_cache_io_rdata;
     if (_GEN_402)
-      rdata_table_141 <= io_inst_sram_rdata;
+      rdata_table_141 <= io_cache_io_rdata;
     if (_GEN_403)
-      rdata_table_142 <= io_inst_sram_rdata;
+      rdata_table_142 <= io_cache_io_rdata;
     if (_GEN_404)
-      rdata_table_143 <= io_inst_sram_rdata;
+      rdata_table_143 <= io_cache_io_rdata;
     if (_GEN_405)
-      rdata_table_144 <= io_inst_sram_rdata;
+      rdata_table_144 <= io_cache_io_rdata;
     if (_GEN_406)
-      rdata_table_145 <= io_inst_sram_rdata;
+      rdata_table_145 <= io_cache_io_rdata;
     if (_GEN_407)
-      rdata_table_146 <= io_inst_sram_rdata;
+      rdata_table_146 <= io_cache_io_rdata;
     if (_GEN_408)
-      rdata_table_147 <= io_inst_sram_rdata;
+      rdata_table_147 <= io_cache_io_rdata;
     if (_GEN_409)
-      rdata_table_148 <= io_inst_sram_rdata;
+      rdata_table_148 <= io_cache_io_rdata;
     if (_GEN_410)
-      rdata_table_149 <= io_inst_sram_rdata;
+      rdata_table_149 <= io_cache_io_rdata;
     if (_GEN_411)
-      rdata_table_150 <= io_inst_sram_rdata;
+      rdata_table_150 <= io_cache_io_rdata;
     if (_GEN_412)
-      rdata_table_151 <= io_inst_sram_rdata;
+      rdata_table_151 <= io_cache_io_rdata;
     if (_GEN_413)
-      rdata_table_152 <= io_inst_sram_rdata;
+      rdata_table_152 <= io_cache_io_rdata;
     if (_GEN_414)
-      rdata_table_153 <= io_inst_sram_rdata;
+      rdata_table_153 <= io_cache_io_rdata;
     if (_GEN_415)
-      rdata_table_154 <= io_inst_sram_rdata;
+      rdata_table_154 <= io_cache_io_rdata;
     if (_GEN_416)
-      rdata_table_155 <= io_inst_sram_rdata;
+      rdata_table_155 <= io_cache_io_rdata;
     if (_GEN_417)
-      rdata_table_156 <= io_inst_sram_rdata;
+      rdata_table_156 <= io_cache_io_rdata;
     if (_GEN_418)
-      rdata_table_157 <= io_inst_sram_rdata;
+      rdata_table_157 <= io_cache_io_rdata;
     if (_GEN_419)
-      rdata_table_158 <= io_inst_sram_rdata;
+      rdata_table_158 <= io_cache_io_rdata;
     if (_GEN_420)
-      rdata_table_159 <= io_inst_sram_rdata;
+      rdata_table_159 <= io_cache_io_rdata;
     if (_GEN_421)
-      rdata_table_160 <= io_inst_sram_rdata;
+      rdata_table_160 <= io_cache_io_rdata;
     if (_GEN_422)
-      rdata_table_161 <= io_inst_sram_rdata;
+      rdata_table_161 <= io_cache_io_rdata;
     if (_GEN_423)
-      rdata_table_162 <= io_inst_sram_rdata;
+      rdata_table_162 <= io_cache_io_rdata;
     if (_GEN_424)
-      rdata_table_163 <= io_inst_sram_rdata;
+      rdata_table_163 <= io_cache_io_rdata;
     if (_GEN_425)
-      rdata_table_164 <= io_inst_sram_rdata;
+      rdata_table_164 <= io_cache_io_rdata;
     if (_GEN_426)
-      rdata_table_165 <= io_inst_sram_rdata;
+      rdata_table_165 <= io_cache_io_rdata;
     if (_GEN_427)
-      rdata_table_166 <= io_inst_sram_rdata;
+      rdata_table_166 <= io_cache_io_rdata;
     if (_GEN_428)
-      rdata_table_167 <= io_inst_sram_rdata;
+      rdata_table_167 <= io_cache_io_rdata;
     if (_GEN_429)
-      rdata_table_168 <= io_inst_sram_rdata;
+      rdata_table_168 <= io_cache_io_rdata;
     if (_GEN_430)
-      rdata_table_169 <= io_inst_sram_rdata;
+      rdata_table_169 <= io_cache_io_rdata;
     if (_GEN_431)
-      rdata_table_170 <= io_inst_sram_rdata;
+      rdata_table_170 <= io_cache_io_rdata;
     if (_GEN_432)
-      rdata_table_171 <= io_inst_sram_rdata;
+      rdata_table_171 <= io_cache_io_rdata;
     if (_GEN_433)
-      rdata_table_172 <= io_inst_sram_rdata;
+      rdata_table_172 <= io_cache_io_rdata;
     if (_GEN_434)
-      rdata_table_173 <= io_inst_sram_rdata;
+      rdata_table_173 <= io_cache_io_rdata;
     if (_GEN_435)
-      rdata_table_174 <= io_inst_sram_rdata;
+      rdata_table_174 <= io_cache_io_rdata;
     if (_GEN_436)
-      rdata_table_175 <= io_inst_sram_rdata;
+      rdata_table_175 <= io_cache_io_rdata;
     if (_GEN_437)
-      rdata_table_176 <= io_inst_sram_rdata;
+      rdata_table_176 <= io_cache_io_rdata;
     if (_GEN_438)
-      rdata_table_177 <= io_inst_sram_rdata;
+      rdata_table_177 <= io_cache_io_rdata;
     if (_GEN_439)
-      rdata_table_178 <= io_inst_sram_rdata;
+      rdata_table_178 <= io_cache_io_rdata;
     if (_GEN_440)
-      rdata_table_179 <= io_inst_sram_rdata;
+      rdata_table_179 <= io_cache_io_rdata;
     if (_GEN_441)
-      rdata_table_180 <= io_inst_sram_rdata;
+      rdata_table_180 <= io_cache_io_rdata;
     if (_GEN_442)
-      rdata_table_181 <= io_inst_sram_rdata;
+      rdata_table_181 <= io_cache_io_rdata;
     if (_GEN_443)
-      rdata_table_182 <= io_inst_sram_rdata;
+      rdata_table_182 <= io_cache_io_rdata;
     if (_GEN_444)
-      rdata_table_183 <= io_inst_sram_rdata;
+      rdata_table_183 <= io_cache_io_rdata;
     if (_GEN_445)
-      rdata_table_184 <= io_inst_sram_rdata;
+      rdata_table_184 <= io_cache_io_rdata;
     if (_GEN_446)
-      rdata_table_185 <= io_inst_sram_rdata;
+      rdata_table_185 <= io_cache_io_rdata;
     if (_GEN_447)
-      rdata_table_186 <= io_inst_sram_rdata;
+      rdata_table_186 <= io_cache_io_rdata;
     if (_GEN_448)
-      rdata_table_187 <= io_inst_sram_rdata;
+      rdata_table_187 <= io_cache_io_rdata;
     if (_GEN_449)
-      rdata_table_188 <= io_inst_sram_rdata;
+      rdata_table_188 <= io_cache_io_rdata;
     if (_GEN_450)
-      rdata_table_189 <= io_inst_sram_rdata;
+      rdata_table_189 <= io_cache_io_rdata;
     if (_GEN_451)
-      rdata_table_190 <= io_inst_sram_rdata;
+      rdata_table_190 <= io_cache_io_rdata;
     if (_GEN_452)
-      rdata_table_191 <= io_inst_sram_rdata;
+      rdata_table_191 <= io_cache_io_rdata;
     if (_GEN_453)
-      rdata_table_192 <= io_inst_sram_rdata;
+      rdata_table_192 <= io_cache_io_rdata;
     if (_GEN_454)
-      rdata_table_193 <= io_inst_sram_rdata;
+      rdata_table_193 <= io_cache_io_rdata;
     if (_GEN_455)
-      rdata_table_194 <= io_inst_sram_rdata;
+      rdata_table_194 <= io_cache_io_rdata;
     if (_GEN_456)
-      rdata_table_195 <= io_inst_sram_rdata;
+      rdata_table_195 <= io_cache_io_rdata;
     if (_GEN_457)
-      rdata_table_196 <= io_inst_sram_rdata;
+      rdata_table_196 <= io_cache_io_rdata;
     if (_GEN_458)
-      rdata_table_197 <= io_inst_sram_rdata;
+      rdata_table_197 <= io_cache_io_rdata;
     if (_GEN_459)
-      rdata_table_198 <= io_inst_sram_rdata;
+      rdata_table_198 <= io_cache_io_rdata;
     if (_GEN_460)
-      rdata_table_199 <= io_inst_sram_rdata;
+      rdata_table_199 <= io_cache_io_rdata;
     if (_GEN_461)
-      rdata_table_200 <= io_inst_sram_rdata;
+      rdata_table_200 <= io_cache_io_rdata;
     if (_GEN_462)
-      rdata_table_201 <= io_inst_sram_rdata;
+      rdata_table_201 <= io_cache_io_rdata;
     if (_GEN_463)
-      rdata_table_202 <= io_inst_sram_rdata;
+      rdata_table_202 <= io_cache_io_rdata;
     if (_GEN_464)
-      rdata_table_203 <= io_inst_sram_rdata;
+      rdata_table_203 <= io_cache_io_rdata;
     if (_GEN_465)
-      rdata_table_204 <= io_inst_sram_rdata;
+      rdata_table_204 <= io_cache_io_rdata;
     if (_GEN_466)
-      rdata_table_205 <= io_inst_sram_rdata;
+      rdata_table_205 <= io_cache_io_rdata;
     if (_GEN_467)
-      rdata_table_206 <= io_inst_sram_rdata;
+      rdata_table_206 <= io_cache_io_rdata;
     if (_GEN_468)
-      rdata_table_207 <= io_inst_sram_rdata;
+      rdata_table_207 <= io_cache_io_rdata;
     if (_GEN_469)
-      rdata_table_208 <= io_inst_sram_rdata;
+      rdata_table_208 <= io_cache_io_rdata;
     if (_GEN_470)
-      rdata_table_209 <= io_inst_sram_rdata;
+      rdata_table_209 <= io_cache_io_rdata;
     if (_GEN_471)
-      rdata_table_210 <= io_inst_sram_rdata;
+      rdata_table_210 <= io_cache_io_rdata;
     if (_GEN_472)
-      rdata_table_211 <= io_inst_sram_rdata;
+      rdata_table_211 <= io_cache_io_rdata;
     if (_GEN_473)
-      rdata_table_212 <= io_inst_sram_rdata;
+      rdata_table_212 <= io_cache_io_rdata;
     if (_GEN_474)
-      rdata_table_213 <= io_inst_sram_rdata;
+      rdata_table_213 <= io_cache_io_rdata;
     if (_GEN_475)
-      rdata_table_214 <= io_inst_sram_rdata;
+      rdata_table_214 <= io_cache_io_rdata;
     if (_GEN_476)
-      rdata_table_215 <= io_inst_sram_rdata;
+      rdata_table_215 <= io_cache_io_rdata;
     if (_GEN_477)
-      rdata_table_216 <= io_inst_sram_rdata;
+      rdata_table_216 <= io_cache_io_rdata;
     if (_GEN_478)
-      rdata_table_217 <= io_inst_sram_rdata;
+      rdata_table_217 <= io_cache_io_rdata;
     if (_GEN_479)
-      rdata_table_218 <= io_inst_sram_rdata;
+      rdata_table_218 <= io_cache_io_rdata;
     if (_GEN_480)
-      rdata_table_219 <= io_inst_sram_rdata;
+      rdata_table_219 <= io_cache_io_rdata;
     if (_GEN_481)
-      rdata_table_220 <= io_inst_sram_rdata;
+      rdata_table_220 <= io_cache_io_rdata;
     if (_GEN_482)
-      rdata_table_221 <= io_inst_sram_rdata;
+      rdata_table_221 <= io_cache_io_rdata;
     if (_GEN_483)
-      rdata_table_222 <= io_inst_sram_rdata;
+      rdata_table_222 <= io_cache_io_rdata;
     if (_GEN_484)
-      rdata_table_223 <= io_inst_sram_rdata;
+      rdata_table_223 <= io_cache_io_rdata;
     if (_GEN_485)
-      rdata_table_224 <= io_inst_sram_rdata;
+      rdata_table_224 <= io_cache_io_rdata;
     if (_GEN_486)
-      rdata_table_225 <= io_inst_sram_rdata;
+      rdata_table_225 <= io_cache_io_rdata;
     if (_GEN_487)
-      rdata_table_226 <= io_inst_sram_rdata;
+      rdata_table_226 <= io_cache_io_rdata;
     if (_GEN_488)
-      rdata_table_227 <= io_inst_sram_rdata;
+      rdata_table_227 <= io_cache_io_rdata;
     if (_GEN_489)
-      rdata_table_228 <= io_inst_sram_rdata;
+      rdata_table_228 <= io_cache_io_rdata;
     if (_GEN_490)
-      rdata_table_229 <= io_inst_sram_rdata;
+      rdata_table_229 <= io_cache_io_rdata;
     if (_GEN_491)
-      rdata_table_230 <= io_inst_sram_rdata;
+      rdata_table_230 <= io_cache_io_rdata;
     if (_GEN_492)
-      rdata_table_231 <= io_inst_sram_rdata;
+      rdata_table_231 <= io_cache_io_rdata;
     if (_GEN_493)
-      rdata_table_232 <= io_inst_sram_rdata;
+      rdata_table_232 <= io_cache_io_rdata;
     if (_GEN_494)
-      rdata_table_233 <= io_inst_sram_rdata;
+      rdata_table_233 <= io_cache_io_rdata;
     if (_GEN_495)
-      rdata_table_234 <= io_inst_sram_rdata;
+      rdata_table_234 <= io_cache_io_rdata;
     if (_GEN_496)
-      rdata_table_235 <= io_inst_sram_rdata;
+      rdata_table_235 <= io_cache_io_rdata;
     if (_GEN_497)
-      rdata_table_236 <= io_inst_sram_rdata;
+      rdata_table_236 <= io_cache_io_rdata;
     if (_GEN_498)
-      rdata_table_237 <= io_inst_sram_rdata;
+      rdata_table_237 <= io_cache_io_rdata;
     if (_GEN_499)
-      rdata_table_238 <= io_inst_sram_rdata;
+      rdata_table_238 <= io_cache_io_rdata;
     if (_GEN_500)
-      rdata_table_239 <= io_inst_sram_rdata;
+      rdata_table_239 <= io_cache_io_rdata;
     if (_GEN_501)
-      rdata_table_240 <= io_inst_sram_rdata;
+      rdata_table_240 <= io_cache_io_rdata;
     if (_GEN_502)
-      rdata_table_241 <= io_inst_sram_rdata;
+      rdata_table_241 <= io_cache_io_rdata;
     if (_GEN_503)
-      rdata_table_242 <= io_inst_sram_rdata;
+      rdata_table_242 <= io_cache_io_rdata;
     if (_GEN_504)
-      rdata_table_243 <= io_inst_sram_rdata;
+      rdata_table_243 <= io_cache_io_rdata;
     if (_GEN_505)
-      rdata_table_244 <= io_inst_sram_rdata;
+      rdata_table_244 <= io_cache_io_rdata;
     if (_GEN_506)
-      rdata_table_245 <= io_inst_sram_rdata;
+      rdata_table_245 <= io_cache_io_rdata;
     if (_GEN_507)
-      rdata_table_246 <= io_inst_sram_rdata;
+      rdata_table_246 <= io_cache_io_rdata;
     if (_GEN_508)
-      rdata_table_247 <= io_inst_sram_rdata;
+      rdata_table_247 <= io_cache_io_rdata;
     if (_GEN_509)
-      rdata_table_248 <= io_inst_sram_rdata;
+      rdata_table_248 <= io_cache_io_rdata;
     if (_GEN_510)
-      rdata_table_249 <= io_inst_sram_rdata;
+      rdata_table_249 <= io_cache_io_rdata;
     if (_GEN_511)
-      rdata_table_250 <= io_inst_sram_rdata;
+      rdata_table_250 <= io_cache_io_rdata;
     if (_GEN_512)
-      rdata_table_251 <= io_inst_sram_rdata;
+      rdata_table_251 <= io_cache_io_rdata;
     if (_GEN_513)
-      rdata_table_252 <= io_inst_sram_rdata;
+      rdata_table_252 <= io_cache_io_rdata;
     if (_GEN_514)
-      rdata_table_253 <= io_inst_sram_rdata;
+      rdata_table_253 <= io_cache_io_rdata;
     if (_GEN_515)
-      rdata_table_254 <= io_inst_sram_rdata;
+      rdata_table_254 <= io_cache_io_rdata;
     if (_GEN_516)
-      rdata_table_255 <= io_inst_sram_rdata;
+      rdata_table_255 <= io_cache_io_rdata;
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
@@ -15954,8 +15954,8 @@ module StageIF(
     _meta_queue_io_deq_bits_pred_type0 == 2'h0
       ? {_meta_queue_io_deq_bits_ghr[8:0], _meta_queue_io_deq_bits_pred_taken0}
       : _meta_queue_io_deq_bits_ghr;
-  assign io_inst_sram_req = can_req;
-  assign io_inst_sram_addr =
+  assign io_cache_io_req = can_req;
+  assign io_cache_io_addr =
     (|(pc_reg[1:0])) | mmu_exc_now
       ? 32'h1C000000
       : io_mmu_config_crmd_da & ~io_mmu_config_crmd_pg
@@ -15963,15 +15963,15 @@ module StageIF(
           : dmw_hit
               ? {dmw0_hit ? io_mmu_config_dmw0_pseg : io_mmu_config_dmw1_pseg,
                  pc_reg[28:0]}
-              : io_tlb_s0_found & io_tlb_s0_v
-                  ? (io_tlb_s0_ps == 6'hC
-                       ? {io_tlb_s0_ppn, pc_reg[11:0]}
-                       : {io_tlb_s0_ppn[19:9], pc_reg[20:0]})
+              : io_tlb_port_found & io_tlb_port_v
+                  ? (io_tlb_port_ps == 6'hC
+                       ? {io_tlb_port_ppn, pc_reg[11:0]}
+                       : {io_tlb_port_ppn[19:9], pc_reg[20:0]})
                   : pc_reg;
   assign io_inst_uncached = io_inst_uncached_0;
   assign io_inst_req_id = ticket_cnt;
-  assign io_tlb_s0_vppn = pc_reg[31:13];
-  assign io_tlb_s0_va_bit12 = pc_reg[12];
-  assign io_tlb_s0_asid = io_mmu_config_asid_asid;
+  assign io_tlb_port_vppn = pc_reg[31:13];
+  assign io_tlb_port_va_bit12 = pc_reg[12];
+  assign io_tlb_port_asid = io_mmu_config_asid_asid;
 endmodule
 

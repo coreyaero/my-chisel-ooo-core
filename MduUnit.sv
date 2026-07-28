@@ -4,6 +4,7 @@ module MduUnit(
                 reset,
   output        io_in_ready,
   input         io_in_valid,
+  input  [31:0] io_in_bits_pc,
   input  [6:0]  io_in_bits_mduOp,
   input  [31:0] io_in_bits_src1_value,
                 io_in_bits_src2_value,
@@ -26,7 +27,8 @@ module MduUnit(
   input  [3:0]  io_in_bits_branch_mask,
   input         io_out_ready,
   output        io_out_valid,
-  output [31:0] io_out_bits_src2_value,
+  output [31:0] io_out_bits_pc,
+                io_out_bits_src2_value,
   output        io_out_bits_memWe,
                 io_out_bits_resFromMem,
                 io_out_bits_regWriteEn,
@@ -53,7 +55,10 @@ module MduUnit(
   wire [31:0] _div_io_r;
   wire        _div_io_done;
   wire [63:0] _mul_io_result64;
+  wire        br_fail = io_br_resolve_in_valid & io_br_resolve_in_mispredict;
+  wire [6:0]  br_tag_bit = 7'h1 << io_br_resolve_in_tag;
   reg         valid_reg;
+  reg  [31:0] data_reg_pc;
   reg  [6:0]  data_reg_mduOp;
   reg  [31:0] data_reg_src1_value;
   reg  [31:0] data_reg_src2_value;
@@ -74,33 +79,29 @@ module MduUnit(
   reg  [4:0]  data_reg_rob_idx;
   reg  [5:0]  data_reg_pdest;
   reg  [3:0]  data_reg_branch_mask;
-  wire [6:0]  _clear_mask_T = 7'h1 << io_br_resolve_in_tag;
-  wire        current_is_killed =
-    valid_reg & io_br_resolve_in_valid & io_br_resolve_in_mispredict
-    & (|(_clear_mask_T[3:0] & data_reg_branch_mask));
+  wire [3:0]  _GEN = br_tag_bit[3:0] & data_reg_branch_mask;
+  wire        active = valid_reg & ~(br_fail & (|_GEN));
+  reg         mdu_busy;
+  reg         mdu_finished;
   wire        _mdu_res_T_9 = data_reg_mduOp == 7'h8;
   wire        _mdu_res_T_11 = data_reg_mduOp == 7'h10;
   wire        _mdu_res_T_13 = data_reg_mduOp == 7'h20;
   wire        _mdu_res_T_15 = data_reg_mduOp == 7'h40;
+  wire        is_div = _mdu_res_T_9 | _mdu_res_T_11 | _mdu_res_T_13 | _mdu_res_T_15;
   wire        _mdu_res_T_3 = data_reg_mduOp == 7'h1;
   wire        _mdu_res_T_5 = data_reg_mduOp == 7'h2;
   wire        _mdu_res_T_7 = data_reg_mduOp == 7'h4;
-  wire        is_mdu = data_reg_resFromMulDiv & ~data_reg_hasException;
-  reg         mdu_busy;
-  reg         mdu_finished;
+  wire        is_signed = _mdu_res_T_5 | _mdu_res_T_9 | _mdu_res_T_11;
+  wire        valid_mdu_req = active & data_reg_resFromMulDiv & ~data_reg_hasException;
+  wire        start_pulse = valid_mdu_req & ~mdu_busy & ~mdu_finished & ~io_flush;
   reg         mul_done;
-  wire        _ready_go_T_2 = _div_io_done | mul_done;
-  wire        ready_go = ~is_mdu | mdu_finished | mdu_busy & _ready_go_T_2;
-  wire        allow_in = ~valid_reg | ready_go & io_out_ready;
-  reg  [31:0] mdu_src1_reg;
-  reg  [31:0] mdu_src2_reg;
-  wire        _real_mdu_src2_T = mdu_busy | mdu_finished;
-  wire [31:0] mul_io_src1 = _real_mdu_src2_T ? mdu_src1_reg : data_reg_src1_value;
-  wire [31:0] mul_io_src2 = _real_mdu_src2_T ? mdu_src2_reg : data_reg_src2_value;
-  wire        mul_io_isSigned = _mdu_res_T_5 | _mdu_res_T_9 | _mdu_res_T_11;
+  wire        math_done =
+    ~valid_mdu_req | mdu_finished | mdu_busy & (is_div ? _div_io_done : mul_done);
+  wire        in_ready = ~active | math_done & io_out_ready;
   always @(posedge clock or posedge reset) begin
     if (reset) begin
       valid_reg <= 1'h0;
+      data_reg_pc <= 32'h0;
       data_reg_mduOp <= 7'h0;
       data_reg_src1_value <= 32'h0;
       data_reg_src2_value <= 32'h0;
@@ -126,15 +127,19 @@ module MduUnit(
       mul_done <= 1'h0;
     end
     else begin
-      automatic logic _GEN;
-      automatic logic _GEN_0 = io_flush | current_is_killed;
+      automatic logic _GEN_0 = br_fail & (|_GEN);
       automatic logic _GEN_1;
-      automatic logic _GEN_2;
-      _GEN = io_in_valid & allow_in;
-      _GEN_1 = valid_reg & is_mdu & ~mdu_busy & ~mdu_finished;
-      _GEN_2 = mdu_busy & _ready_go_T_2;
-      valid_reg <= ~io_flush & (allow_in ? io_in_valid : ~current_is_killed & valid_reg);
-      if (_GEN) begin
+      automatic logic _GEN_2 = io_flush | in_ready | _GEN_0;
+      _GEN_1 = mdu_busy & (_div_io_done | mul_done);
+      valid_reg <=
+        ~io_flush
+        & (in_ready
+             ? io_in_valid & ~(br_fail & (|(br_tag_bit[3:0] & io_in_bits_branch_mask)))
+             : ~_GEN_0 & valid_reg);
+      if (io_flush | ~in_ready) begin
+      end
+      else begin
+        data_reg_pc <= io_in_bits_pc;
         data_reg_mduOp <= io_in_bits_mduOp;
         data_reg_src1_value <= io_in_bits_src1_value;
         data_reg_src2_value <= io_in_bits_src2_value;
@@ -155,31 +160,19 @@ module MduUnit(
         data_reg_rob_idx <= io_in_bits_rob_idx;
         data_reg_pdest <= io_in_bits_pdest;
       end
-      if (io_br_resolve_in_valid & ~io_br_resolve_in_mispredict)
+      if (io_flush) begin
+      end
+      else begin
+        automatic logic [3:0] _GEN_3 =
+          {4{io_br_resolve_in_valid & ~io_br_resolve_in_mispredict}} & br_tag_bit[3:0];
         data_reg_branch_mask <=
-          ~(_clear_mask_T[3:0])
-          & (io_in_valid & allow_in ? io_in_bits_branch_mask : data_reg_branch_mask);
-      else if (_GEN)
-        data_reg_branch_mask <= io_in_bits_branch_mask;
-      mdu_busy <= ~_GEN_0 & (_GEN_1 | ~_GEN_2 & mdu_busy);
-      mdu_finished <=
-        ~_GEN_0
-        & (_GEN_1
-             ? mdu_finished
-             : _GEN_2
-                 ? ~io_out_ready
-                 : ~(valid_reg & ready_go & io_out_ready) & mdu_finished);
-      mul_done <=
-        valid_reg & (_mdu_res_T_3 | _mdu_res_T_5 | _mdu_res_T_7) & ~data_reg_hasException
-        & ~mdu_busy & ~io_flush & ~current_is_killed;
+          in_ready ? ~_GEN_3 & io_in_bits_branch_mask : ~_GEN_3 & data_reg_branch_mask;
+      end
+      mdu_busy <= ~_GEN_2 & (start_pulse | ~_GEN_1 & mdu_busy);
+      mdu_finished <= ~_GEN_2 & (~start_pulse & _GEN_1 | mdu_finished);
+      mul_done <= start_pulse & (_mdu_res_T_3 | _mdu_res_T_5 | _mdu_res_T_7);
     end
   end // always @(posedge, posedge)
-  always @(posedge clock) begin
-    if (valid_reg & ~mdu_busy & ~mdu_finished) begin
-      mdu_src1_reg <= data_reg_src1_value;
-      mdu_src2_reg <= data_reg_src2_value;
-    end
-  end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
       `FIRRTL_BEFORE_INITIAL
@@ -187,6 +180,7 @@ module MduUnit(
     initial begin
       if (reset) begin
         valid_reg = 1'h0;
+        data_reg_pc = 32'h0;
         data_reg_mduOp = 7'h0;
         data_reg_src1_value = 32'h0;
         data_reg_src2_value = 32'h0;
@@ -218,31 +212,30 @@ module MduUnit(
   `endif // ENABLE_INITIAL_REG_
   Multiplier mul (
     .clock       (clock),
-    .io_src1     (mul_io_src1),
-    .io_src2     (mul_io_src2),
-    .io_isSigned (mul_io_isSigned),
+    .io_src1     (data_reg_src1_value),
+    .io_src2     (data_reg_src2_value),
+    .io_isSigned (is_signed),
     .io_result64 (_mul_io_result64)
   );
   Divider div (
-    .clock     (clock),
-    .io_enable
-      (valid_reg & (_mdu_res_T_9 | _mdu_res_T_11 | _mdu_res_T_13 | _mdu_res_T_15)
-       & ~data_reg_hasException & ~mdu_busy & ~mdu_finished & ~io_flush
-       & ~current_is_killed),
+    .clock      (clock),
+    .io_enable  (start_pulse & is_div),
+    .io_aresetn (~(io_flush | br_fail & (|_GEN))),
     .io_a
-      (mul_io_isSigned & data_reg_src1_value[31]
+      (is_signed & data_reg_src1_value[31]
          ? ~data_reg_src1_value + 32'h1
-         : mul_io_src1),
+         : data_reg_src1_value),
     .io_b
-      (mul_io_isSigned & data_reg_src2_value[31]
+      (is_signed & data_reg_src2_value[31]
          ? ~data_reg_src2_value + 32'h1
-         : mul_io_src2),
-    .io_q      (_div_io_q),
-    .io_r      (_div_io_r),
-    .io_done   (_div_io_done)
+         : data_reg_src2_value),
+    .io_q       (_div_io_q),
+    .io_r       (_div_io_r),
+    .io_done    (_div_io_done)
   );
-  assign io_in_ready = allow_in;
-  assign io_out_valid = valid_reg & ready_go;
+  assign io_in_ready = in_ready;
+  assign io_out_valid = active & math_done;
+  assign io_out_bits_pc = data_reg_pc;
   assign io_out_bits_src2_value = data_reg_src2_value;
   assign io_out_bits_memWe = data_reg_memWe;
   assign io_out_bits_resFromMem = data_reg_resFromMem;
@@ -253,9 +246,9 @@ module MduUnit(
       : _mdu_res_T_13
           ? _div_io_q
           : _mdu_res_T_11
-              ? (mul_io_isSigned & mul_io_src1[31] ? ~_div_io_r + 32'h1 : _div_io_r)
+              ? (is_signed & data_reg_src1_value[31] ? ~_div_io_r + 32'h1 : _div_io_r)
               : _mdu_res_T_9
-                  ? (mul_io_isSigned & (mul_io_src1[31] ^ mul_io_src2[31])
+                  ? (is_signed & (data_reg_src1_value[31] ^ data_reg_src2_value[31])
                        ? ~_div_io_q + 32'h1
                        : _div_io_q)
                   : _mdu_res_T_7 | _mdu_res_T_5
