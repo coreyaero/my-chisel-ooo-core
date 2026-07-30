@@ -54,6 +54,9 @@ class Exec extends Module {
 
         val debug_cdb0_pc = Output(UInt(32.W))
         val debug_cdb1_pc = Output(UInt(32.W))
+
+        //LSQ -> IQ
+        val early_wakeup = Valid(UInt(Config.prfPtrWidth.W))
     })
 
     //==========================================
@@ -155,6 +158,8 @@ class Exec extends Module {
     io.cacop_en        := lsq.io.cacop_en
     io.cacop_op        := lsq.io.cacop_op
     io.cacop_is_icache := lsq.io.cacop_is_icache
+
+    io.early_wakeup    := lsq.io.early_wakeup
 
     //==========================================
     // Debug

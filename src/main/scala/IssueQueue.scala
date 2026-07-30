@@ -38,16 +38,27 @@ class IssueQueue extends Module {
         val cdb1_pdest  = Input(UInt(Config.prfPtrWidth.W))
 
         val br_resolve  = Input(new BranchResolve())
+
+        // ★★★ 新增：接收提前唤醒，并向上输出 PRF 的真实完备状态 ★★★
+        val early_wakeup = Flipped(Valid(UInt(Config.prfPtrWidth.W)))
+        val prf_ready_state = Output(Vec(Config.prfEntries, Bool()))
     })
 
     val prf_ready = RegInit(VecInit(Seq.fill(Config.prfEntries)(true.B)))
-    
-    // 双路唤醒 (Dual Wakeup)：包含新增的第二路探测
-    io.psrc1_rdy := prf_ready(io.psrc1) || (io.cdb0_valid && io.cdb0_pdest === io.psrc1) || (io.cdb1_valid && io.cdb1_pdest === io.psrc1)
-    io.psrc2_rdy := prf_ready(io.psrc2) || (io.cdb0_valid && io.cdb0_pdest === io.psrc2) || (io.cdb1_valid && io.cdb1_pdest === io.psrc2)
 
-    io.psrc1_rdy_1 := prf_ready(io.psrc1_1) || (io.cdb0_valid && io.cdb0_pdest === io.psrc1_1) || (io.cdb1_valid && io.cdb1_pdest === io.psrc1_1)
-    io.psrc2_rdy_1 := prf_ready(io.psrc2_1) || (io.cdb0_valid && io.cdb0_pdest === io.psrc2_1) || (io.cdb1_valid && io.cdb1_pdest === io.psrc2_1)
+    // ★ 向 Top.scala 暴露 PRF 真实状态
+    io.prf_ready_state := prf_ready
+
+    // ★ 将 Early Wakeup 信号展开
+    val ew_valid = io.early_wakeup.valid && io.early_wakeup.bits =/= 0.U
+    val ew_pdest = io.early_wakeup.bits
+    
+    // ★ 满血版 3 路唤醒：PRF已就绪 || CDB0 广播 || CDB1 广播 || LSQ 提前唤醒
+    io.psrc1_rdy := prf_ready(io.psrc1) || (io.cdb0_valid && io.cdb0_pdest === io.psrc1) || (io.cdb1_valid && io.cdb1_pdest === io.psrc1) || (ew_valid && ew_pdest === io.psrc1)
+    io.psrc2_rdy := prf_ready(io.psrc2) || (io.cdb0_valid && io.cdb0_pdest === io.psrc2) || (io.cdb1_valid && io.cdb1_pdest === io.psrc2) || (ew_valid && ew_pdest === io.psrc2)
+
+    io.psrc1_rdy_1 := prf_ready(io.psrc1_1) || (io.cdb0_valid && io.cdb0_pdest === io.psrc1_1) || (io.cdb1_valid && io.cdb1_pdest === io.psrc1_1) || (ew_valid && ew_pdest === io.psrc1_1)
+    io.psrc2_rdy_1 := prf_ready(io.psrc2_1) || (io.cdb0_valid && io.cdb0_pdest === io.psrc2_1) || (io.cdb1_valid && io.cdb1_pdest === io.psrc2_1) || (ew_valid && ew_pdest === io.psrc2_1)
 
     class IqEntry extends Bundle {
         val valid     = Bool()
@@ -143,8 +154,11 @@ class IssueQueue extends Module {
         when(iq(i).valid) {
             when(cdb0_write && iq(i).psrc1 === io.cdb0_pdest) { iq(i).psrc1_rdy := true.B }
             when(cdb1_write && iq(i).psrc1 === io.cdb1_pdest) { iq(i).psrc1_rdy := true.B }
+            when(ew_valid && iq(i).psrc1 === ew_pdest) { iq(i).psrc1_rdy := true.B } // ★ 新增
+
             when(cdb0_write && iq(i).psrc2 === io.cdb0_pdest) { iq(i).psrc2_rdy := true.B }
             when(cdb1_write && iq(i).psrc2 === io.cdb1_pdest) { iq(i).psrc2_rdy := true.B }
+            when(ew_valid && iq(i).psrc2 === ew_pdest) { iq(i).psrc2_rdy := true.B } // ★ 新增
         }
     }
 
@@ -165,8 +179,19 @@ class IssueQueue extends Module {
         is_agu_vec(i) := d.resFromMem || d.memWe || d.is_cacop || (d.tlbOp =/= TlbOp.NOP)
         is_br_csr(i)  := d.is_branch || d.isCsr || d.rdtimel || d.rdtimeh
 
-        // ★ 终极解耦：IQ 的当拍仲裁，绝对不看当拍的分支失败信号！只看当拍初的寄存器状态！
-        ready_vec(i) := iq(i).valid && iq(i).psrc1_rdy && iq(i).psrc2_rdy
+        // ★ 修复方案：当拍的前馈唤醒 (Combinatorial Bypass Wakeup)
+        val p1_rdy_now = iq(i).psrc1_rdy || 
+                        (cdb0_write && iq(i).psrc1 === io.cdb0_pdest) || 
+                        (cdb1_write && iq(i).psrc1 === io.cdb1_pdest) || 
+                        (ew_valid   && iq(i).psrc1 === ew_pdest)
+
+        val p2_rdy_now = iq(i).psrc2_rdy || 
+                        (cdb0_write && iq(i).psrc2 === io.cdb0_pdest) || 
+                        (cdb1_write && iq(i).psrc2 === io.cdb1_pdest) || 
+                        (ew_valid   && iq(i).psrc2 === ew_pdest)
+
+        // 使用当拍的组合逻辑状态进行仲裁
+        ready_vec(i) := iq(i).valid && p1_rdy_now && p2_rdy_now
     }
     
     val ready_mask = ready_vec.asUInt

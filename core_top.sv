@@ -102,6 +102,8 @@ module core_top(
   wire         _iss_q_agu_io_deq_bits_is_cacop;
   wire [4:0]   _iss_q_agu_io_deq_bits_cacop_op;
   wire [4:0]   _iss_q_agu_io_deq_bits_rob_idx;
+  wire         _iss_q_agu_io_deq_bits_src1_read;
+  wire         _iss_q_agu_io_deq_bits_src2_read;
   wire [5:0]   _iss_q_agu_io_deq_bits_pdest;
   wire [5:0]   _iss_q_agu_io_deq_bits_psrc1;
   wire [5:0]   _iss_q_agu_io_deq_bits_psrc2;
@@ -130,6 +132,8 @@ module core_top(
   wire         _iss_q_mdu_io_deq_bits_is_refetch;
   wire         _iss_q_mdu_io_deq_bits_is_cacop;
   wire [4:0]   _iss_q_mdu_io_deq_bits_rob_idx;
+  wire         _iss_q_mdu_io_deq_bits_src1_read;
+  wire         _iss_q_mdu_io_deq_bits_src2_read;
   wire [5:0]   _iss_q_mdu_io_deq_bits_pdest;
   wire [5:0]   _iss_q_mdu_io_deq_bits_psrc1;
   wire [5:0]   _iss_q_mdu_io_deq_bits_psrc2;
@@ -160,6 +164,8 @@ module core_top(
   wire         _iss_q_alu1_io_deq_bits_is_refetch;
   wire         _iss_q_alu1_io_deq_bits_is_cacop;
   wire [4:0]   _iss_q_alu1_io_deq_bits_rob_idx;
+  wire         _iss_q_alu1_io_deq_bits_src1_read;
+  wire         _iss_q_alu1_io_deq_bits_src2_read;
   wire [5:0]   _iss_q_alu1_io_deq_bits_pdest;
   wire [5:0]   _iss_q_alu1_io_deq_bits_psrc1;
   wire [5:0]   _iss_q_alu1_io_deq_bits_psrc2;
@@ -194,6 +200,8 @@ module core_top(
   wire         _iss_q_alu0_io_deq_bits_is_refetch;
   wire         _iss_q_alu0_io_deq_bits_is_cacop;
   wire [4:0]   _iss_q_alu0_io_deq_bits_rob_idx;
+  wire         _iss_q_alu0_io_deq_bits_src1_read;
+  wire         _iss_q_alu0_io_deq_bits_src2_read;
   wire [5:0]   _iss_q_alu0_io_deq_bits_pdest;
   wire [5:0]   _iss_q_alu0_io_deq_bits_psrc1;
   wire [5:0]   _iss_q_alu0_io_deq_bits_psrc2;
@@ -402,6 +410,8 @@ module core_top(
   wire         _exec_engine_io_cacop_en;
   wire [1:0]   _exec_engine_io_cacop_op;
   wire         _exec_engine_io_cacop_is_icache;
+  wire         _exec_engine_io_early_wakeup_valid;
+  wire [5:0]   _exec_engine_io_early_wakeup_bits;
   wire [4:0]   _rob_io_head_idx;
   wire [4:0]   _rob_io_alloc_idx;
   wire         _rob_io_alloc_ready;
@@ -490,6 +500,8 @@ module core_top(
   wire         _iq_io_issue_alu0_bits_is_cacop;
   wire [4:0]   _iq_io_issue_alu0_bits_cacop_op;
   wire [4:0]   _iq_io_issue_alu0_bits_rob_idx;
+  wire         _iq_io_issue_alu0_bits_src1_read;
+  wire         _iq_io_issue_alu0_bits_src2_read;
   wire [5:0]   _iq_io_issue_alu0_bits_pdest;
   wire [5:0]   _iq_io_issue_alu0_bits_psrc1;
   wire [5:0]   _iq_io_issue_alu0_bits_psrc2;
@@ -535,6 +547,8 @@ module core_top(
   wire         _iq_io_issue_alu1_bits_is_cacop;
   wire [4:0]   _iq_io_issue_alu1_bits_cacop_op;
   wire [4:0]   _iq_io_issue_alu1_bits_rob_idx;
+  wire         _iq_io_issue_alu1_bits_src1_read;
+  wire         _iq_io_issue_alu1_bits_src2_read;
   wire [5:0]   _iq_io_issue_alu1_bits_pdest;
   wire [5:0]   _iq_io_issue_alu1_bits_psrc1;
   wire [5:0]   _iq_io_issue_alu1_bits_psrc2;
@@ -580,6 +594,8 @@ module core_top(
   wire         _iq_io_issue_mdu_bits_is_cacop;
   wire [4:0]   _iq_io_issue_mdu_bits_cacop_op;
   wire [4:0]   _iq_io_issue_mdu_bits_rob_idx;
+  wire         _iq_io_issue_mdu_bits_src1_read;
+  wire         _iq_io_issue_mdu_bits_src2_read;
   wire [5:0]   _iq_io_issue_mdu_bits_pdest;
   wire [5:0]   _iq_io_issue_mdu_bits_psrc1;
   wire [5:0]   _iq_io_issue_mdu_bits_psrc2;
@@ -625,6 +641,8 @@ module core_top(
   wire         _iq_io_issue_agu_bits_is_cacop;
   wire [4:0]   _iq_io_issue_agu_bits_cacop_op;
   wire [4:0]   _iq_io_issue_agu_bits_rob_idx;
+  wire         _iq_io_issue_agu_bits_src1_read;
+  wire         _iq_io_issue_agu_bits_src2_read;
   wire [5:0]   _iq_io_issue_agu_bits_pdest;
   wire [5:0]   _iq_io_issue_agu_bits_psrc1;
   wire [5:0]   _iq_io_issue_agu_bits_psrc2;
@@ -639,6 +657,70 @@ module core_top(
   wire [3:0]   _iq_io_issue_agu_bits_ras_tos;
   wire         _iq_io_issue_agu_bits_br_actual_taken;
   wire [1:0]   _iq_io_issue_agu_bits_br_type;
+  wire         _iq_io_prf_ready_state_0;
+  wire         _iq_io_prf_ready_state_1;
+  wire         _iq_io_prf_ready_state_2;
+  wire         _iq_io_prf_ready_state_3;
+  wire         _iq_io_prf_ready_state_4;
+  wire         _iq_io_prf_ready_state_5;
+  wire         _iq_io_prf_ready_state_6;
+  wire         _iq_io_prf_ready_state_7;
+  wire         _iq_io_prf_ready_state_8;
+  wire         _iq_io_prf_ready_state_9;
+  wire         _iq_io_prf_ready_state_10;
+  wire         _iq_io_prf_ready_state_11;
+  wire         _iq_io_prf_ready_state_12;
+  wire         _iq_io_prf_ready_state_13;
+  wire         _iq_io_prf_ready_state_14;
+  wire         _iq_io_prf_ready_state_15;
+  wire         _iq_io_prf_ready_state_16;
+  wire         _iq_io_prf_ready_state_17;
+  wire         _iq_io_prf_ready_state_18;
+  wire         _iq_io_prf_ready_state_19;
+  wire         _iq_io_prf_ready_state_20;
+  wire         _iq_io_prf_ready_state_21;
+  wire         _iq_io_prf_ready_state_22;
+  wire         _iq_io_prf_ready_state_23;
+  wire         _iq_io_prf_ready_state_24;
+  wire         _iq_io_prf_ready_state_25;
+  wire         _iq_io_prf_ready_state_26;
+  wire         _iq_io_prf_ready_state_27;
+  wire         _iq_io_prf_ready_state_28;
+  wire         _iq_io_prf_ready_state_29;
+  wire         _iq_io_prf_ready_state_30;
+  wire         _iq_io_prf_ready_state_31;
+  wire         _iq_io_prf_ready_state_32;
+  wire         _iq_io_prf_ready_state_33;
+  wire         _iq_io_prf_ready_state_34;
+  wire         _iq_io_prf_ready_state_35;
+  wire         _iq_io_prf_ready_state_36;
+  wire         _iq_io_prf_ready_state_37;
+  wire         _iq_io_prf_ready_state_38;
+  wire         _iq_io_prf_ready_state_39;
+  wire         _iq_io_prf_ready_state_40;
+  wire         _iq_io_prf_ready_state_41;
+  wire         _iq_io_prf_ready_state_42;
+  wire         _iq_io_prf_ready_state_43;
+  wire         _iq_io_prf_ready_state_44;
+  wire         _iq_io_prf_ready_state_45;
+  wire         _iq_io_prf_ready_state_46;
+  wire         _iq_io_prf_ready_state_47;
+  wire         _iq_io_prf_ready_state_48;
+  wire         _iq_io_prf_ready_state_49;
+  wire         _iq_io_prf_ready_state_50;
+  wire         _iq_io_prf_ready_state_51;
+  wire         _iq_io_prf_ready_state_52;
+  wire         _iq_io_prf_ready_state_53;
+  wire         _iq_io_prf_ready_state_54;
+  wire         _iq_io_prf_ready_state_55;
+  wire         _iq_io_prf_ready_state_56;
+  wire         _iq_io_prf_ready_state_57;
+  wire         _iq_io_prf_ready_state_58;
+  wire         _iq_io_prf_ready_state_59;
+  wire         _iq_io_prf_ready_state_60;
+  wire         _iq_io_prf_ready_state_61;
+  wire         _iq_io_prf_ready_state_62;
+  wire         _iq_io_prf_ready_state_63;
   wire [31:0]  _prf_io_rdata1;
   wire [31:0]  _prf_io_rdata2;
   wire [31:0]  _prf_io_rdata3;
@@ -918,10 +1000,141 @@ module core_top(
   wire [3:0]   rob_io_alloc_br_mask = ~_GEN & _rename_io_dec0_br_mask;
   wire [3:0]   rob_io_alloc1_br_mask = ~_GEN & _rename_io_dec1_br_mask;
   wire         issue_flush = _reset_high_T | _rob_io_wb_flush;
-  wire         prf_io_we1 =
-    _exec_engine_io_cdb0_valid & _exec_engine_io_cdb0_bits_regWriteEn;
-  wire         prf_io_we2 =
-    _exec_engine_io_cdb1_valid & _exec_engine_io_cdb1_bits_regWriteEn;
+  wire         cdb0_v = _exec_engine_io_cdb0_valid & _exec_engine_io_cdb0_bits_regWriteEn;
+  wire         cdb1_v = _exec_engine_io_cdb1_valid & _exec_engine_io_cdb1_bits_regWriteEn;
+  wire         src1_in_cdb0 =
+    cdb0_v & _exec_engine_io_cdb0_bits_pdest == _iss_q_alu0_io_deq_bits_psrc1
+    & (|_iss_q_alu0_io_deq_bits_psrc1);
+  wire         src1_in_cdb1 =
+    cdb1_v & _exec_engine_io_cdb1_bits_pdest == _iss_q_alu0_io_deq_bits_psrc1
+    & (|_iss_q_alu0_io_deq_bits_psrc1);
+  wire         src2_in_cdb0 =
+    cdb0_v & _exec_engine_io_cdb0_bits_pdest == _iss_q_alu0_io_deq_bits_psrc2
+    & (|_iss_q_alu0_io_deq_bits_psrc2);
+  wire         src2_in_cdb1 =
+    cdb1_v & _exec_engine_io_cdb1_bits_pdest == _iss_q_alu0_io_deq_bits_psrc2
+    & (|_iss_q_alu0_io_deq_bits_psrc2);
+  wire [63:0]  _GEN_0 =
+    {{_iq_io_prf_ready_state_63},
+     {_iq_io_prf_ready_state_62},
+     {_iq_io_prf_ready_state_61},
+     {_iq_io_prf_ready_state_60},
+     {_iq_io_prf_ready_state_59},
+     {_iq_io_prf_ready_state_58},
+     {_iq_io_prf_ready_state_57},
+     {_iq_io_prf_ready_state_56},
+     {_iq_io_prf_ready_state_55},
+     {_iq_io_prf_ready_state_54},
+     {_iq_io_prf_ready_state_53},
+     {_iq_io_prf_ready_state_52},
+     {_iq_io_prf_ready_state_51},
+     {_iq_io_prf_ready_state_50},
+     {_iq_io_prf_ready_state_49},
+     {_iq_io_prf_ready_state_48},
+     {_iq_io_prf_ready_state_47},
+     {_iq_io_prf_ready_state_46},
+     {_iq_io_prf_ready_state_45},
+     {_iq_io_prf_ready_state_44},
+     {_iq_io_prf_ready_state_43},
+     {_iq_io_prf_ready_state_42},
+     {_iq_io_prf_ready_state_41},
+     {_iq_io_prf_ready_state_40},
+     {_iq_io_prf_ready_state_39},
+     {_iq_io_prf_ready_state_38},
+     {_iq_io_prf_ready_state_37},
+     {_iq_io_prf_ready_state_36},
+     {_iq_io_prf_ready_state_35},
+     {_iq_io_prf_ready_state_34},
+     {_iq_io_prf_ready_state_33},
+     {_iq_io_prf_ready_state_32},
+     {_iq_io_prf_ready_state_31},
+     {_iq_io_prf_ready_state_30},
+     {_iq_io_prf_ready_state_29},
+     {_iq_io_prf_ready_state_28},
+     {_iq_io_prf_ready_state_27},
+     {_iq_io_prf_ready_state_26},
+     {_iq_io_prf_ready_state_25},
+     {_iq_io_prf_ready_state_24},
+     {_iq_io_prf_ready_state_23},
+     {_iq_io_prf_ready_state_22},
+     {_iq_io_prf_ready_state_21},
+     {_iq_io_prf_ready_state_20},
+     {_iq_io_prf_ready_state_19},
+     {_iq_io_prf_ready_state_18},
+     {_iq_io_prf_ready_state_17},
+     {_iq_io_prf_ready_state_16},
+     {_iq_io_prf_ready_state_15},
+     {_iq_io_prf_ready_state_14},
+     {_iq_io_prf_ready_state_13},
+     {_iq_io_prf_ready_state_12},
+     {_iq_io_prf_ready_state_11},
+     {_iq_io_prf_ready_state_10},
+     {_iq_io_prf_ready_state_9},
+     {_iq_io_prf_ready_state_8},
+     {_iq_io_prf_ready_state_7},
+     {_iq_io_prf_ready_state_6},
+     {_iq_io_prf_ready_state_5},
+     {_iq_io_prf_ready_state_4},
+     {_iq_io_prf_ready_state_3},
+     {_iq_io_prf_ready_state_2},
+     {_iq_io_prf_ready_state_1},
+     {_iq_io_prf_ready_state_0}};
+  wire         door_ready =
+    (~_iss_q_alu0_io_deq_bits_src1_read | _iss_q_alu0_io_deq_bits_psrc1 == 6'h0
+     | _GEN_0[_iss_q_alu0_io_deq_bits_psrc1] | src1_in_cdb0 | src1_in_cdb1)
+    & (~_iss_q_alu0_io_deq_bits_src2_read | _iss_q_alu0_io_deq_bits_psrc2 == 6'h0
+       | _GEN_0[_iss_q_alu0_io_deq_bits_psrc2] | src2_in_cdb0 | src2_in_cdb1);
+  wire         src1_in_cdb0_1 =
+    cdb0_v & _exec_engine_io_cdb0_bits_pdest == _iss_q_alu1_io_deq_bits_psrc1
+    & (|_iss_q_alu1_io_deq_bits_psrc1);
+  wire         src1_in_cdb1_1 =
+    cdb1_v & _exec_engine_io_cdb1_bits_pdest == _iss_q_alu1_io_deq_bits_psrc1
+    & (|_iss_q_alu1_io_deq_bits_psrc1);
+  wire         src2_in_cdb0_1 =
+    cdb0_v & _exec_engine_io_cdb0_bits_pdest == _iss_q_alu1_io_deq_bits_psrc2
+    & (|_iss_q_alu1_io_deq_bits_psrc2);
+  wire         src2_in_cdb1_1 =
+    cdb1_v & _exec_engine_io_cdb1_bits_pdest == _iss_q_alu1_io_deq_bits_psrc2
+    & (|_iss_q_alu1_io_deq_bits_psrc2);
+  wire         door_ready_1 =
+    (~_iss_q_alu1_io_deq_bits_src1_read | _iss_q_alu1_io_deq_bits_psrc1 == 6'h0
+     | _GEN_0[_iss_q_alu1_io_deq_bits_psrc1] | src1_in_cdb0_1 | src1_in_cdb1_1)
+    & (~_iss_q_alu1_io_deq_bits_src2_read | _iss_q_alu1_io_deq_bits_psrc2 == 6'h0
+       | _GEN_0[_iss_q_alu1_io_deq_bits_psrc2] | src2_in_cdb0_1 | src2_in_cdb1_1);
+  wire         src1_in_cdb0_2 =
+    cdb0_v & _exec_engine_io_cdb0_bits_pdest == _iss_q_mdu_io_deq_bits_psrc1
+    & (|_iss_q_mdu_io_deq_bits_psrc1);
+  wire         src1_in_cdb1_2 =
+    cdb1_v & _exec_engine_io_cdb1_bits_pdest == _iss_q_mdu_io_deq_bits_psrc1
+    & (|_iss_q_mdu_io_deq_bits_psrc1);
+  wire         src2_in_cdb0_2 =
+    cdb0_v & _exec_engine_io_cdb0_bits_pdest == _iss_q_mdu_io_deq_bits_psrc2
+    & (|_iss_q_mdu_io_deq_bits_psrc2);
+  wire         src2_in_cdb1_2 =
+    cdb1_v & _exec_engine_io_cdb1_bits_pdest == _iss_q_mdu_io_deq_bits_psrc2
+    & (|_iss_q_mdu_io_deq_bits_psrc2);
+  wire         door_ready_2 =
+    (~_iss_q_mdu_io_deq_bits_src1_read | _iss_q_mdu_io_deq_bits_psrc1 == 6'h0
+     | _GEN_0[_iss_q_mdu_io_deq_bits_psrc1] | src1_in_cdb0_2 | src1_in_cdb1_2)
+    & (~_iss_q_mdu_io_deq_bits_src2_read | _iss_q_mdu_io_deq_bits_psrc2 == 6'h0
+       | _GEN_0[_iss_q_mdu_io_deq_bits_psrc2] | src2_in_cdb0_2 | src2_in_cdb1_2);
+  wire         src1_in_cdb0_3 =
+    cdb0_v & _exec_engine_io_cdb0_bits_pdest == _iss_q_agu_io_deq_bits_psrc1
+    & (|_iss_q_agu_io_deq_bits_psrc1);
+  wire         src1_in_cdb1_3 =
+    cdb1_v & _exec_engine_io_cdb1_bits_pdest == _iss_q_agu_io_deq_bits_psrc1
+    & (|_iss_q_agu_io_deq_bits_psrc1);
+  wire         src2_in_cdb0_3 =
+    cdb0_v & _exec_engine_io_cdb0_bits_pdest == _iss_q_agu_io_deq_bits_psrc2
+    & (|_iss_q_agu_io_deq_bits_psrc2);
+  wire         src2_in_cdb1_3 =
+    cdb1_v & _exec_engine_io_cdb1_bits_pdest == _iss_q_agu_io_deq_bits_psrc2
+    & (|_iss_q_agu_io_deq_bits_psrc2);
+  wire         door_ready_3 =
+    (~_iss_q_agu_io_deq_bits_src1_read | _iss_q_agu_io_deq_bits_psrc1 == 6'h0
+     | _GEN_0[_iss_q_agu_io_deq_bits_psrc1] | src1_in_cdb0_3 | src1_in_cdb1_3)
+    & (~_iss_q_agu_io_deq_bits_src2_read | _iss_q_agu_io_deq_bits_psrc2 == 6'h0
+       | _GEN_0[_iss_q_agu_io_deq_bits_psrc2] | src2_in_cdb0_3 | src2_in_cdb1_3);
   wire         is_agu_resp = _icache_io_cpu_data_ok & _icache_io_cpu_ret_id[8];
   reg          agu_icache_req_reg;
   wire         can_issue_if = ~agu_icache_req_reg & ~_agu_icache_q_io_deq_valid;
@@ -1439,10 +1652,10 @@ module core_top(
     .io_rdata7 (_prf_io_rdata7),
     .io_raddr8 (_iss_q_agu_io_deq_bits_psrc2),
     .io_rdata8 (_prf_io_rdata8),
-    .io_we1    (prf_io_we1),
+    .io_we1    (cdb0_v),
     .io_waddr1 (_exec_engine_io_cdb0_bits_pdest),
     .io_wdata1 (_exec_engine_io_cdb0_bits_ex_result),
-    .io_we2    (prf_io_we2),
+    .io_we2    (cdb1_v),
     .io_waddr2 (_exec_engine_io_cdb1_bits_pdest),
     .io_wdata2 (_exec_engine_io_cdb1_bits_ex_result)
   );
@@ -1582,6 +1795,8 @@ module core_top(
     .io_issue_alu0_bits_is_cacop        (_iq_io_issue_alu0_bits_is_cacop),
     .io_issue_alu0_bits_cacop_op        (_iq_io_issue_alu0_bits_cacop_op),
     .io_issue_alu0_bits_rob_idx         (_iq_io_issue_alu0_bits_rob_idx),
+    .io_issue_alu0_bits_src1_read       (_iq_io_issue_alu0_bits_src1_read),
+    .io_issue_alu0_bits_src2_read       (_iq_io_issue_alu0_bits_src2_read),
     .io_issue_alu0_bits_pdest           (_iq_io_issue_alu0_bits_pdest),
     .io_issue_alu0_bits_psrc1           (_iq_io_issue_alu0_bits_psrc1),
     .io_issue_alu0_bits_psrc2           (_iq_io_issue_alu0_bits_psrc2),
@@ -1628,6 +1843,8 @@ module core_top(
     .io_issue_alu1_bits_is_cacop        (_iq_io_issue_alu1_bits_is_cacop),
     .io_issue_alu1_bits_cacop_op        (_iq_io_issue_alu1_bits_cacop_op),
     .io_issue_alu1_bits_rob_idx         (_iq_io_issue_alu1_bits_rob_idx),
+    .io_issue_alu1_bits_src1_read       (_iq_io_issue_alu1_bits_src1_read),
+    .io_issue_alu1_bits_src2_read       (_iq_io_issue_alu1_bits_src2_read),
     .io_issue_alu1_bits_pdest           (_iq_io_issue_alu1_bits_pdest),
     .io_issue_alu1_bits_psrc1           (_iq_io_issue_alu1_bits_psrc1),
     .io_issue_alu1_bits_psrc2           (_iq_io_issue_alu1_bits_psrc2),
@@ -1674,6 +1891,8 @@ module core_top(
     .io_issue_mdu_bits_is_cacop         (_iq_io_issue_mdu_bits_is_cacop),
     .io_issue_mdu_bits_cacop_op         (_iq_io_issue_mdu_bits_cacop_op),
     .io_issue_mdu_bits_rob_idx          (_iq_io_issue_mdu_bits_rob_idx),
+    .io_issue_mdu_bits_src1_read        (_iq_io_issue_mdu_bits_src1_read),
+    .io_issue_mdu_bits_src2_read        (_iq_io_issue_mdu_bits_src2_read),
     .io_issue_mdu_bits_pdest            (_iq_io_issue_mdu_bits_pdest),
     .io_issue_mdu_bits_psrc1            (_iq_io_issue_mdu_bits_psrc1),
     .io_issue_mdu_bits_psrc2            (_iq_io_issue_mdu_bits_psrc2),
@@ -1720,6 +1939,8 @@ module core_top(
     .io_issue_agu_bits_is_cacop         (_iq_io_issue_agu_bits_is_cacop),
     .io_issue_agu_bits_cacop_op         (_iq_io_issue_agu_bits_cacop_op),
     .io_issue_agu_bits_rob_idx          (_iq_io_issue_agu_bits_rob_idx),
+    .io_issue_agu_bits_src1_read        (_iq_io_issue_agu_bits_src1_read),
+    .io_issue_agu_bits_src2_read        (_iq_io_issue_agu_bits_src2_read),
     .io_issue_agu_bits_pdest            (_iq_io_issue_agu_bits_pdest),
     .io_issue_agu_bits_psrc1            (_iq_io_issue_agu_bits_psrc1),
     .io_issue_agu_bits_psrc2            (_iq_io_issue_agu_bits_psrc2),
@@ -1734,13 +1955,79 @@ module core_top(
     .io_issue_agu_bits_ras_tos          (_iq_io_issue_agu_bits_ras_tos),
     .io_issue_agu_bits_br_actual_taken  (_iq_io_issue_agu_bits_br_actual_taken),
     .io_issue_agu_bits_br_type          (_iq_io_issue_agu_bits_br_type),
-    .io_cdb0_valid                      (prf_io_we1),
+    .io_cdb0_valid                      (cdb0_v),
     .io_cdb0_pdest                      (_exec_engine_io_cdb0_bits_pdest),
-    .io_cdb1_valid                      (prf_io_we2),
+    .io_cdb1_valid                      (cdb1_v),
     .io_cdb1_pdest                      (_exec_engine_io_cdb1_bits_pdest),
     .io_br_resolve_valid                (_exec_engine_io_br_resolve_valid),
     .io_br_resolve_mispredict           (_exec_engine_io_br_resolve_mispredict),
-    .io_br_resolve_tag                  (_exec_engine_io_br_resolve_tag)
+    .io_br_resolve_tag                  (_exec_engine_io_br_resolve_tag),
+    .io_early_wakeup_valid              (_exec_engine_io_early_wakeup_valid),
+    .io_early_wakeup_bits               (_exec_engine_io_early_wakeup_bits),
+    .io_prf_ready_state_0               (_iq_io_prf_ready_state_0),
+    .io_prf_ready_state_1               (_iq_io_prf_ready_state_1),
+    .io_prf_ready_state_2               (_iq_io_prf_ready_state_2),
+    .io_prf_ready_state_3               (_iq_io_prf_ready_state_3),
+    .io_prf_ready_state_4               (_iq_io_prf_ready_state_4),
+    .io_prf_ready_state_5               (_iq_io_prf_ready_state_5),
+    .io_prf_ready_state_6               (_iq_io_prf_ready_state_6),
+    .io_prf_ready_state_7               (_iq_io_prf_ready_state_7),
+    .io_prf_ready_state_8               (_iq_io_prf_ready_state_8),
+    .io_prf_ready_state_9               (_iq_io_prf_ready_state_9),
+    .io_prf_ready_state_10              (_iq_io_prf_ready_state_10),
+    .io_prf_ready_state_11              (_iq_io_prf_ready_state_11),
+    .io_prf_ready_state_12              (_iq_io_prf_ready_state_12),
+    .io_prf_ready_state_13              (_iq_io_prf_ready_state_13),
+    .io_prf_ready_state_14              (_iq_io_prf_ready_state_14),
+    .io_prf_ready_state_15              (_iq_io_prf_ready_state_15),
+    .io_prf_ready_state_16              (_iq_io_prf_ready_state_16),
+    .io_prf_ready_state_17              (_iq_io_prf_ready_state_17),
+    .io_prf_ready_state_18              (_iq_io_prf_ready_state_18),
+    .io_prf_ready_state_19              (_iq_io_prf_ready_state_19),
+    .io_prf_ready_state_20              (_iq_io_prf_ready_state_20),
+    .io_prf_ready_state_21              (_iq_io_prf_ready_state_21),
+    .io_prf_ready_state_22              (_iq_io_prf_ready_state_22),
+    .io_prf_ready_state_23              (_iq_io_prf_ready_state_23),
+    .io_prf_ready_state_24              (_iq_io_prf_ready_state_24),
+    .io_prf_ready_state_25              (_iq_io_prf_ready_state_25),
+    .io_prf_ready_state_26              (_iq_io_prf_ready_state_26),
+    .io_prf_ready_state_27              (_iq_io_prf_ready_state_27),
+    .io_prf_ready_state_28              (_iq_io_prf_ready_state_28),
+    .io_prf_ready_state_29              (_iq_io_prf_ready_state_29),
+    .io_prf_ready_state_30              (_iq_io_prf_ready_state_30),
+    .io_prf_ready_state_31              (_iq_io_prf_ready_state_31),
+    .io_prf_ready_state_32              (_iq_io_prf_ready_state_32),
+    .io_prf_ready_state_33              (_iq_io_prf_ready_state_33),
+    .io_prf_ready_state_34              (_iq_io_prf_ready_state_34),
+    .io_prf_ready_state_35              (_iq_io_prf_ready_state_35),
+    .io_prf_ready_state_36              (_iq_io_prf_ready_state_36),
+    .io_prf_ready_state_37              (_iq_io_prf_ready_state_37),
+    .io_prf_ready_state_38              (_iq_io_prf_ready_state_38),
+    .io_prf_ready_state_39              (_iq_io_prf_ready_state_39),
+    .io_prf_ready_state_40              (_iq_io_prf_ready_state_40),
+    .io_prf_ready_state_41              (_iq_io_prf_ready_state_41),
+    .io_prf_ready_state_42              (_iq_io_prf_ready_state_42),
+    .io_prf_ready_state_43              (_iq_io_prf_ready_state_43),
+    .io_prf_ready_state_44              (_iq_io_prf_ready_state_44),
+    .io_prf_ready_state_45              (_iq_io_prf_ready_state_45),
+    .io_prf_ready_state_46              (_iq_io_prf_ready_state_46),
+    .io_prf_ready_state_47              (_iq_io_prf_ready_state_47),
+    .io_prf_ready_state_48              (_iq_io_prf_ready_state_48),
+    .io_prf_ready_state_49              (_iq_io_prf_ready_state_49),
+    .io_prf_ready_state_50              (_iq_io_prf_ready_state_50),
+    .io_prf_ready_state_51              (_iq_io_prf_ready_state_51),
+    .io_prf_ready_state_52              (_iq_io_prf_ready_state_52),
+    .io_prf_ready_state_53              (_iq_io_prf_ready_state_53),
+    .io_prf_ready_state_54              (_iq_io_prf_ready_state_54),
+    .io_prf_ready_state_55              (_iq_io_prf_ready_state_55),
+    .io_prf_ready_state_56              (_iq_io_prf_ready_state_56),
+    .io_prf_ready_state_57              (_iq_io_prf_ready_state_57),
+    .io_prf_ready_state_58              (_iq_io_prf_ready_state_58),
+    .io_prf_ready_state_59              (_iq_io_prf_ready_state_59),
+    .io_prf_ready_state_60              (_iq_io_prf_ready_state_60),
+    .io_prf_ready_state_61              (_iq_io_prf_ready_state_61),
+    .io_prf_ready_state_62              (_iq_io_prf_ready_state_62),
+    .io_prf_ready_state_63              (_iq_io_prf_ready_state_63)
   );
   ROB rob (
     .clock                              (aclk),
@@ -1893,7 +2180,7 @@ module core_top(
     .clock                           (aclk),
     .reset                           (_reset_high_T),
     .io_in_alu0_ready                (_exec_engine_io_in_alu0_ready),
-    .io_in_alu0_valid                (_iss_q_alu0_io_deq_valid),
+    .io_in_alu0_valid                (_iss_q_alu0_io_deq_valid & door_ready),
     .io_in_alu0_bits_pc              (_iss_q_alu0_io_deq_bits_pc),
     .io_in_alu0_bits_inst            (_iss_q_alu0_io_deq_bits_inst),
     .io_in_alu0_bits_aluOp           (_iss_q_alu0_io_deq_bits_aluOp),
@@ -1903,8 +2190,14 @@ module core_top(
     .io_in_alu0_bits_src2IsImm       (_iss_q_alu0_io_deq_bits_src2IsImm),
     .io_in_alu0_bits_src2IsFour      (_iss_q_alu0_io_deq_bits_src2IsFour),
     .io_in_alu0_bits_src1_addr       (_iss_q_alu0_io_deq_bits_src1_addr),
-    .io_in_alu0_bits_src1_value      (_prf_io_rdata1),
-    .io_in_alu0_bits_src2_value      (_prf_io_rdata2),
+    .io_in_alu0_bits_src1_value
+      (src1_in_cdb0
+         ? _exec_engine_io_cdb0_bits_ex_result
+         : src1_in_cdb1 ? _exec_engine_io_cdb1_bits_ex_result : _prf_io_rdata1),
+    .io_in_alu0_bits_src2_value
+      (src2_in_cdb0
+         ? _exec_engine_io_cdb0_bits_ex_result
+         : src2_in_cdb1 ? _exec_engine_io_cdb1_bits_ex_result : _prf_io_rdata2),
     .io_in_alu0_bits_memWe           (_iss_q_alu0_io_deq_bits_memWe),
     .io_in_alu0_bits_resFromMem      (_iss_q_alu0_io_deq_bits_resFromMem),
     .io_in_alu0_bits_regWriteEn      (_iss_q_alu0_io_deq_bits_regWriteEn),
@@ -1930,15 +2223,21 @@ module core_top(
     .io_in_alu0_bits_ghr             (_iss_q_alu0_io_deq_bits_ghr),
     .io_in_alu0_bits_ras_tos         (_iss_q_alu0_io_deq_bits_ras_tos),
     .io_in_alu1_ready                (_exec_engine_io_in_alu1_ready),
-    .io_in_alu1_valid                (_iss_q_alu1_io_deq_valid),
+    .io_in_alu1_valid                (_iss_q_alu1_io_deq_valid & door_ready_1),
     .io_in_alu1_bits_pc              (_iss_q_alu1_io_deq_bits_pc),
     .io_in_alu1_bits_aluOp           (_iss_q_alu1_io_deq_bits_aluOp),
     .io_in_alu1_bits_imm             (_iss_q_alu1_io_deq_bits_imm),
     .io_in_alu1_bits_src1IsPC        (_iss_q_alu1_io_deq_bits_src1IsPC),
     .io_in_alu1_bits_src2IsImm       (_iss_q_alu1_io_deq_bits_src2IsImm),
     .io_in_alu1_bits_src2IsFour      (_iss_q_alu1_io_deq_bits_src2IsFour),
-    .io_in_alu1_bits_src1_value      (_prf_io_rdata3),
-    .io_in_alu1_bits_src2_value      (_prf_io_rdata4),
+    .io_in_alu1_bits_src1_value
+      (src1_in_cdb0_1
+         ? _exec_engine_io_cdb0_bits_ex_result
+         : src1_in_cdb1_1 ? _exec_engine_io_cdb1_bits_ex_result : _prf_io_rdata3),
+    .io_in_alu1_bits_src2_value
+      (src2_in_cdb0_1
+         ? _exec_engine_io_cdb0_bits_ex_result
+         : src2_in_cdb1_1 ? _exec_engine_io_cdb1_bits_ex_result : _prf_io_rdata4),
     .io_in_alu1_bits_memWe           (_iss_q_alu1_io_deq_bits_memWe),
     .io_in_alu1_bits_resFromMem      (_iss_q_alu1_io_deq_bits_resFromMem),
     .io_in_alu1_bits_regWriteEn      (_iss_q_alu1_io_deq_bits_regWriteEn),
@@ -1960,11 +2259,17 @@ module core_top(
     .io_in_alu1_bits_br_actual_taken (_iss_q_alu1_io_deq_bits_br_actual_taken),
     .io_in_alu1_bits_br_type         (_iss_q_alu1_io_deq_bits_br_type),
     .io_in_mdu_ready                 (_exec_engine_io_in_mdu_ready),
-    .io_in_mdu_valid                 (_iss_q_mdu_io_deq_valid),
+    .io_in_mdu_valid                 (_iss_q_mdu_io_deq_valid & door_ready_2),
     .io_in_mdu_bits_pc               (_iss_q_mdu_io_deq_bits_pc),
     .io_in_mdu_bits_mduOp            (_iss_q_mdu_io_deq_bits_mduOp),
-    .io_in_mdu_bits_src1_value       (_prf_io_rdata5),
-    .io_in_mdu_bits_src2_value       (_prf_io_rdata6),
+    .io_in_mdu_bits_src1_value
+      (src1_in_cdb0_2
+         ? _exec_engine_io_cdb0_bits_ex_result
+         : src1_in_cdb1_2 ? _exec_engine_io_cdb1_bits_ex_result : _prf_io_rdata5),
+    .io_in_mdu_bits_src2_value
+      (src2_in_cdb0_2
+         ? _exec_engine_io_cdb0_bits_ex_result
+         : src2_in_cdb1_2 ? _exec_engine_io_cdb1_bits_ex_result : _prf_io_rdata6),
     .io_in_mdu_bits_resFromMulDiv    (_iss_q_mdu_io_deq_bits_resFromMulDiv),
     .io_in_mdu_bits_memWe            (_iss_q_mdu_io_deq_bits_memWe),
     .io_in_mdu_bits_resFromMem       (_iss_q_mdu_io_deq_bits_resFromMem),
@@ -1987,12 +2292,18 @@ module core_top(
     .io_in_mdu_bits_br_actual_taken  (_iss_q_mdu_io_deq_bits_br_actual_taken),
     .io_in_mdu_bits_br_type          (_iss_q_mdu_io_deq_bits_br_type),
     .io_in_agu_ready                 (_exec_engine_io_in_agu_ready),
-    .io_in_agu_valid                 (_iss_q_agu_io_deq_valid),
+    .io_in_agu_valid                 (_iss_q_agu_io_deq_valid & door_ready_3),
     .io_in_agu_bits_pc               (_iss_q_agu_io_deq_bits_pc),
     .io_in_agu_bits_imm              (_iss_q_agu_io_deq_bits_imm),
     .io_in_agu_bits_src2IsImm        (_iss_q_agu_io_deq_bits_src2IsImm),
-    .io_in_agu_bits_src1_value       (_prf_io_rdata7),
-    .io_in_agu_bits_src2_value       (_prf_io_rdata8),
+    .io_in_agu_bits_src1_value
+      (src1_in_cdb0_3
+         ? _exec_engine_io_cdb0_bits_ex_result
+         : src1_in_cdb1_3 ? _exec_engine_io_cdb1_bits_ex_result : _prf_io_rdata7),
+    .io_in_agu_bits_src2_value
+      (src2_in_cdb0_3
+         ? _exec_engine_io_cdb0_bits_ex_result
+         : src2_in_cdb1_3 ? _exec_engine_io_cdb1_bits_ex_result : _prf_io_rdata8),
     .io_in_agu_bits_memWe            (_iss_q_agu_io_deq_bits_memWe),
     .io_in_agu_bits_lsOp             (_iss_q_agu_io_deq_bits_lsOp),
     .io_in_agu_bits_resFromMem       (_iss_q_agu_io_deq_bits_resFromMem),
@@ -2163,7 +2474,9 @@ module core_top(
     .io_cacop_op                     (_exec_engine_io_cacop_op),
     .io_cacop_is_icache              (_exec_engine_io_cacop_is_icache),
     .io_debug_cdb0_pc                (probe_cdb0_pc),
-    .io_debug_cdb1_pc                (probe_cdb1_pc)
+    .io_debug_cdb1_pc                (probe_cdb1_pc),
+    .io_early_wakeup_valid           (_exec_engine_io_early_wakeup_valid),
+    .io_early_wakeup_bits            (_exec_engine_io_early_wakeup_bits)
   );
   CSR csr (
     .clock                     (aclk),
@@ -2461,6 +2774,8 @@ module core_top(
     .io_enq_bits_is_cacop        (_iq_io_issue_alu0_bits_is_cacop),
     .io_enq_bits_cacop_op        (_iq_io_issue_alu0_bits_cacop_op),
     .io_enq_bits_rob_idx         (_iq_io_issue_alu0_bits_rob_idx),
+    .io_enq_bits_src1_read       (_iq_io_issue_alu0_bits_src1_read),
+    .io_enq_bits_src2_read       (_iq_io_issue_alu0_bits_src2_read),
     .io_enq_bits_pdest           (_iq_io_issue_alu0_bits_pdest),
     .io_enq_bits_psrc1           (_iq_io_issue_alu0_bits_psrc1),
     .io_enq_bits_psrc2           (_iq_io_issue_alu0_bits_psrc2),
@@ -2475,7 +2790,7 @@ module core_top(
     .io_enq_bits_ras_tos         (_iq_io_issue_alu0_bits_ras_tos),
     .io_enq_bits_br_actual_taken (_iq_io_issue_alu0_bits_br_actual_taken),
     .io_enq_bits_br_type         (_iq_io_issue_alu0_bits_br_type),
-    .io_deq_ready                (_exec_engine_io_in_alu0_ready),
+    .io_deq_ready                (_exec_engine_io_in_alu0_ready & door_ready),
     .io_deq_valid                (_iss_q_alu0_io_deq_valid),
     .io_deq_bits_pc              (_iss_q_alu0_io_deq_bits_pc),
     .io_deq_bits_inst            (_iss_q_alu0_io_deq_bits_inst),
@@ -2507,6 +2822,8 @@ module core_top(
     .io_deq_bits_is_cacop        (_iss_q_alu0_io_deq_bits_is_cacop),
     .io_deq_bits_cacop_op        (/* unused */),
     .io_deq_bits_rob_idx         (_iss_q_alu0_io_deq_bits_rob_idx),
+    .io_deq_bits_src1_read       (_iss_q_alu0_io_deq_bits_src1_read),
+    .io_deq_bits_src2_read       (_iss_q_alu0_io_deq_bits_src2_read),
     .io_deq_bits_pdest           (_iss_q_alu0_io_deq_bits_pdest),
     .io_deq_bits_psrc1           (_iss_q_alu0_io_deq_bits_psrc1),
     .io_deq_bits_psrc2           (_iss_q_alu0_io_deq_bits_psrc2),
@@ -2561,6 +2878,8 @@ module core_top(
     .io_enq_bits_is_cacop        (_iq_io_issue_alu1_bits_is_cacop),
     .io_enq_bits_cacop_op        (_iq_io_issue_alu1_bits_cacop_op),
     .io_enq_bits_rob_idx         (_iq_io_issue_alu1_bits_rob_idx),
+    .io_enq_bits_src1_read       (_iq_io_issue_alu1_bits_src1_read),
+    .io_enq_bits_src2_read       (_iq_io_issue_alu1_bits_src2_read),
     .io_enq_bits_pdest           (_iq_io_issue_alu1_bits_pdest),
     .io_enq_bits_psrc1           (_iq_io_issue_alu1_bits_psrc1),
     .io_enq_bits_psrc2           (_iq_io_issue_alu1_bits_psrc2),
@@ -2575,7 +2894,7 @@ module core_top(
     .io_enq_bits_ras_tos         (_iq_io_issue_alu1_bits_ras_tos),
     .io_enq_bits_br_actual_taken (_iq_io_issue_alu1_bits_br_actual_taken),
     .io_enq_bits_br_type         (_iq_io_issue_alu1_bits_br_type),
-    .io_deq_ready                (_exec_engine_io_in_alu1_ready),
+    .io_deq_ready                (_exec_engine_io_in_alu1_ready & door_ready_1),
     .io_deq_valid                (_iss_q_alu1_io_deq_valid),
     .io_deq_bits_pc              (_iss_q_alu1_io_deq_bits_pc),
     .io_deq_bits_inst            (/* unused */),
@@ -2607,6 +2926,8 @@ module core_top(
     .io_deq_bits_is_cacop        (_iss_q_alu1_io_deq_bits_is_cacop),
     .io_deq_bits_cacop_op        (/* unused */),
     .io_deq_bits_rob_idx         (_iss_q_alu1_io_deq_bits_rob_idx),
+    .io_deq_bits_src1_read       (_iss_q_alu1_io_deq_bits_src1_read),
+    .io_deq_bits_src2_read       (_iss_q_alu1_io_deq_bits_src2_read),
     .io_deq_bits_pdest           (_iss_q_alu1_io_deq_bits_pdest),
     .io_deq_bits_psrc1           (_iss_q_alu1_io_deq_bits_psrc1),
     .io_deq_bits_psrc2           (_iss_q_alu1_io_deq_bits_psrc2),
@@ -2661,6 +2982,8 @@ module core_top(
     .io_enq_bits_is_cacop        (_iq_io_issue_mdu_bits_is_cacop),
     .io_enq_bits_cacop_op        (_iq_io_issue_mdu_bits_cacop_op),
     .io_enq_bits_rob_idx         (_iq_io_issue_mdu_bits_rob_idx),
+    .io_enq_bits_src1_read       (_iq_io_issue_mdu_bits_src1_read),
+    .io_enq_bits_src2_read       (_iq_io_issue_mdu_bits_src2_read),
     .io_enq_bits_pdest           (_iq_io_issue_mdu_bits_pdest),
     .io_enq_bits_psrc1           (_iq_io_issue_mdu_bits_psrc1),
     .io_enq_bits_psrc2           (_iq_io_issue_mdu_bits_psrc2),
@@ -2675,7 +2998,7 @@ module core_top(
     .io_enq_bits_ras_tos         (_iq_io_issue_mdu_bits_ras_tos),
     .io_enq_bits_br_actual_taken (_iq_io_issue_mdu_bits_br_actual_taken),
     .io_enq_bits_br_type         (_iq_io_issue_mdu_bits_br_type),
-    .io_deq_ready                (_exec_engine_io_in_mdu_ready),
+    .io_deq_ready                (_exec_engine_io_in_mdu_ready & door_ready_2),
     .io_deq_valid                (_iss_q_mdu_io_deq_valid),
     .io_deq_bits_pc              (_iss_q_mdu_io_deq_bits_pc),
     .io_deq_bits_inst            (/* unused */),
@@ -2707,6 +3030,8 @@ module core_top(
     .io_deq_bits_is_cacop        (_iss_q_mdu_io_deq_bits_is_cacop),
     .io_deq_bits_cacop_op        (/* unused */),
     .io_deq_bits_rob_idx         (_iss_q_mdu_io_deq_bits_rob_idx),
+    .io_deq_bits_src1_read       (_iss_q_mdu_io_deq_bits_src1_read),
+    .io_deq_bits_src2_read       (_iss_q_mdu_io_deq_bits_src2_read),
     .io_deq_bits_pdest           (_iss_q_mdu_io_deq_bits_pdest),
     .io_deq_bits_psrc1           (_iss_q_mdu_io_deq_bits_psrc1),
     .io_deq_bits_psrc2           (_iss_q_mdu_io_deq_bits_psrc2),
@@ -2761,6 +3086,8 @@ module core_top(
     .io_enq_bits_is_cacop        (_iq_io_issue_agu_bits_is_cacop),
     .io_enq_bits_cacop_op        (_iq_io_issue_agu_bits_cacop_op),
     .io_enq_bits_rob_idx         (_iq_io_issue_agu_bits_rob_idx),
+    .io_enq_bits_src1_read       (_iq_io_issue_agu_bits_src1_read),
+    .io_enq_bits_src2_read       (_iq_io_issue_agu_bits_src2_read),
     .io_enq_bits_pdest           (_iq_io_issue_agu_bits_pdest),
     .io_enq_bits_psrc1           (_iq_io_issue_agu_bits_psrc1),
     .io_enq_bits_psrc2           (_iq_io_issue_agu_bits_psrc2),
@@ -2775,7 +3102,7 @@ module core_top(
     .io_enq_bits_ras_tos         (_iq_io_issue_agu_bits_ras_tos),
     .io_enq_bits_br_actual_taken (_iq_io_issue_agu_bits_br_actual_taken),
     .io_enq_bits_br_type         (_iq_io_issue_agu_bits_br_type),
-    .io_deq_ready                (_exec_engine_io_in_agu_ready),
+    .io_deq_ready                (_exec_engine_io_in_agu_ready & door_ready_3),
     .io_deq_valid                (_iss_q_agu_io_deq_valid),
     .io_deq_bits_pc              (_iss_q_agu_io_deq_bits_pc),
     .io_deq_bits_inst            (/* unused */),
@@ -2807,6 +3134,8 @@ module core_top(
     .io_deq_bits_is_cacop        (_iss_q_agu_io_deq_bits_is_cacop),
     .io_deq_bits_cacop_op        (_iss_q_agu_io_deq_bits_cacop_op),
     .io_deq_bits_rob_idx         (_iss_q_agu_io_deq_bits_rob_idx),
+    .io_deq_bits_src1_read       (_iss_q_agu_io_deq_bits_src1_read),
+    .io_deq_bits_src2_read       (_iss_q_agu_io_deq_bits_src2_read),
     .io_deq_bits_pdest           (_iss_q_agu_io_deq_bits_pdest),
     .io_deq_bits_psrc1           (_iss_q_agu_io_deq_bits_psrc1),
     .io_deq_bits_psrc2           (_iss_q_agu_io_deq_bits_psrc2),

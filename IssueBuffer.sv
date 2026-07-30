@@ -38,6 +38,8 @@ module IssueBuffer(
                 io_enq_bits_is_cacop,
   input  [4:0]  io_enq_bits_cacop_op,
                 io_enq_bits_rob_idx,
+  input         io_enq_bits_src1_read,
+                io_enq_bits_src2_read,
   input  [5:0]  io_enq_bits_pdest,
                 io_enq_bits_psrc1,
                 io_enq_bits_psrc2,
@@ -84,6 +86,8 @@ module IssueBuffer(
                 io_deq_bits_is_cacop,
   output [4:0]  io_deq_bits_cacop_op,
                 io_deq_bits_rob_idx,
+  output        io_deq_bits_src1_read,
+                io_deq_bits_src2_read,
   output [5:0]  io_deq_bits_pdest,
                 io_deq_bits_psrc1,
                 io_deq_bits_psrc2,
@@ -131,6 +135,8 @@ module IssueBuffer(
   reg         data_reg_is_cacop;
   reg  [4:0]  data_reg_cacop_op;
   reg  [4:0]  data_reg_rob_idx;
+  reg         data_reg_src1_read;
+  reg         data_reg_src2_read;
   reg  [5:0]  data_reg_pdest;
   reg  [5:0]  data_reg_psrc1;
   reg  [5:0]  data_reg_psrc2;
@@ -184,6 +190,8 @@ module IssueBuffer(
       data_reg_is_cacop <= 1'h0;
       data_reg_cacop_op <= 5'h0;
       data_reg_rob_idx <= 5'h0;
+      data_reg_src1_read <= 1'h0;
+      data_reg_src2_read <= 1'h0;
       data_reg_pdest <= 6'h0;
       data_reg_psrc1 <= 6'h0;
       data_reg_psrc2 <= 6'h0;
@@ -240,6 +248,8 @@ module IssueBuffer(
         data_reg_is_cacop <= io_enq_bits_is_cacop;
         data_reg_cacop_op <= io_enq_bits_cacop_op;
         data_reg_rob_idx <= io_enq_bits_rob_idx;
+        data_reg_src1_read <= io_enq_bits_src1_read;
+        data_reg_src2_read <= io_enq_bits_src2_read;
         data_reg_pdest <= io_enq_bits_pdest;
         data_reg_psrc1 <= io_enq_bits_psrc1;
         data_reg_psrc2 <= io_enq_bits_psrc2;
@@ -299,6 +309,8 @@ module IssueBuffer(
         data_reg_is_cacop = 1'h0;
         data_reg_cacop_op = 5'h0;
         data_reg_rob_idx = 5'h0;
+        data_reg_src1_read = 1'h0;
+        data_reg_src2_read = 1'h0;
         data_reg_pdest = 6'h0;
         data_reg_psrc1 = 6'h0;
         data_reg_psrc2 = 6'h0;
@@ -351,6 +363,8 @@ module IssueBuffer(
   assign io_deq_bits_is_cacop = data_reg_is_cacop;
   assign io_deq_bits_cacop_op = data_reg_cacop_op;
   assign io_deq_bits_rob_idx = data_reg_rob_idx;
+  assign io_deq_bits_src1_read = data_reg_src1_read;
+  assign io_deq_bits_src2_read = data_reg_src2_read;
   assign io_deq_bits_pdest = data_reg_pdest;
   assign io_deq_bits_psrc1 = data_reg_psrc1;
   assign io_deq_bits_psrc2 = data_reg_psrc2;

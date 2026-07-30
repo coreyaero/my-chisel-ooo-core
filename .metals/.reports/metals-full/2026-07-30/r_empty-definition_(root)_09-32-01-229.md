@@ -1,3 +1,25 @@
+error id: file://<WORKSPACE>/src/main/scala/Top.scala:head_idx
+file://<WORKSPACE>/src/main/scala/Top.scala
+empty definition using pc, found symbol in pc: head_idx
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+	 -chisel3/rob/io/head_idx.
+	 -chisel3/rob/io/head_idx#
+	 -chisel3/rob/io/head_idx().
+	 -chisel3/util/rob/io/head_idx.
+	 -chisel3/util/rob/io/head_idx#
+	 -chisel3/util/rob/io/head_idx().
+	 -rob/io/head_idx.
+	 -rob/io/head_idx#
+	 -rob/io/head_idx().
+	 -scala/Predef.rob.io.head_idx.
+	 -scala/Predef.rob.io.head_idx#
+	 -scala/Predef.rob.io.head_idx().
+offset: 15339
+uri: file://<WORKSPACE>/src/main/scala/Top.scala
+text:
+```scala
 package mycpu
 
 import chisel3._
@@ -258,8 +280,6 @@ class core_top extends RawModule {
         iq.io.flush      := flush_global
         iq.io.br_resolve := exec_engine.io.br_resolve
 
-        iq.io.early_wakeup := exec_engine.io.early_wakeup
-
         iq.io.disp_valid := d0_valid && can_disp0
         iq.io.disp_data  := renamed_d0
         iq.io.psrc1      := rename.io.dec0_psrc1
@@ -323,7 +343,6 @@ class core_top extends RawModule {
         iss_q_agu.io.enq  <> iq.io.issue_agu
 
         // 1. 操作数地址现在从流水段寄存器中拉出，打向 PRF (跨界布线彻底终结！)
-        // (这8行 prf.io.raddr 保留不变)
         prf.io.raddr1 := iss_q_alu0.io.deq.bits.psrc1
         prf.io.raddr2 := iss_q_alu0.io.deq.bits.psrc2
         prf.io.raddr3 := iss_q_alu1.io.deq.bits.psrc1
@@ -333,59 +352,40 @@ class core_top extends RawModule {
         prf.io.raddr7 := iss_q_agu.io.deq.bits.psrc1
         prf.io.raddr8 := iss_q_agu.io.deq.bits.psrc2
 
-        // =====================================================================
-        // ★ 终极前递与防御性停车网络 (Execution Bypass & Stall)
-        // =====================================================================
-        // 提取天上飘来的 CDB 广播信息
-        val cdb0_v = exec_engine.io.cdb0.valid && exec_engine.io.cdb0.bits.regWriteEn
-        val cdb0_p = exec_engine.io.cdb0.bits.pdest
-        val cdb0_d = exec_engine.io.cdb0.bits.ex_result
-        
-        val cdb1_v = exec_engine.io.cdb1.valid && exec_engine.io.cdb1.bits.regWriteEn
-        val cdb1_p = exec_engine.io.cdb1.bits.pdest
-        val cdb1_d = exec_engine.io.cdb1.bits.ex_result
+        // 2. 劫持 ALU0，注入真实数据 (从流水段出队)
+        val alu0_in_data = WireDefault(iss_q_alu0.io.deq.bits)
+        alu0_in_data.src1_value := prf.io.rdata1
+        alu0_in_data.src2_value := prf.io.rdata2
+        exec_engine.io.in_alu0.valid := iss_q_alu0.io.deq.valid
+        exec_engine.io.in_alu0.bits  := alu0_in_data
+        iss_q_alu0.io.deq.ready      := exec_engine.io.in_alu0.ready
 
-        // 定义大门保镖：自动拦截垃圾数据并完成 Bypass 替换
-        def attachBypass(
-            iss_q: IssueBuffer,
-            exec_in: DecoupledIO[PipelineData],
-            rdata1: UInt, rdata2: UInt
-        ) = {
-            val d = iss_q.io.deq.bits
-            
-            // 1. 数据来源检测 (在天上吗？在库里吗？)
-            val src1_in_cdb0 = cdb0_v && (cdb0_p === d.psrc1) && (d.psrc1 =/= 0.U)
-            val src1_in_cdb1 = cdb1_v && (cdb1_p === d.psrc1) && (d.psrc1 =/= 0.U)
-            val src1_in_prf  = iq.io.prf_ready_state(d.psrc1)
-            
-            val src2_in_cdb0 = cdb0_v && (cdb0_p === d.psrc2) && (d.psrc2 =/= 0.U)
-            val src2_in_cdb1 = cdb1_v && (cdb1_p === d.psrc2) && (d.psrc2 =/= 0.U)
-            val src2_in_prf  = iq.io.prf_ready_state(d.psrc2)
+        // 3. 劫持 ALU1
+        val alu1_in_data = WireDefault(iss_q_alu1.io.deq.bits)
+        alu1_in_data.src1_value := prf.io.rdata3
+        alu1_in_data.src2_value := prf.io.rdata4
+        exec_engine.io.in_alu1.valid := iss_q_alu1.io.deq.valid
+        exec_engine.io.in_alu1.bits  := alu1_in_data
+        iss_q_alu1.io.deq.ready      := exec_engine.io.in_alu1.ready
 
-            // 2. 防御性停车条件 (如果需要读，且既不在 PRF 也不在总线上，立刻挂起死等！)
-            val src1_ok = !d.src1_read || (d.psrc1 === 0.U) || src1_in_prf || src1_in_cdb0 || src1_in_cdb1
-            val src2_ok = !d.src2_read || (d.psrc2 === 0.U) || src2_in_prf || src2_in_cdb0 || src2_in_cdb1
-            val door_ready = src1_ok && src2_ok
+        // 4. 劫持 MDU
+        val mdu_in_data = WireDefault(iss_q_mdu.io.deq.bits)
+        mdu_in_data.src1_value := prf.io.rdata5
+        mdu_in_data.src2_value := prf.io.rdata6
+        exec_engine.io.in_mdu.valid  := iss_q_mdu.io.deq.valid
+        exec_engine.io.in_mdu.bits   := mdu_in_data
+        iss_q_mdu.io.deq.ready       := exec_engine.io.in_mdu.ready
 
-            // 3. 组装截胡数据 (如果天上飘着，就抓天上的；否则用 PRF 读出来的)
-            val bypassed_data = WireDefault(d)
-            bypassed_data.src1_value := Mux(src1_in_cdb0, cdb0_d, Mux(src1_in_cdb1, cdb1_d, rdata1))
-            bypassed_data.src2_value := Mux(src2_in_cdb0, cdb0_d, Mux(src2_in_cdb1, cdb1_d, rdata2))
-
-            // 4. 握手放行 (只有当拍 MUX 都选到真数据了，才放行进 AGU)
-            exec_in.valid := iss_q.io.deq.valid && door_ready
-            exec_in.bits  := bypassed_data
-            iss_q.io.deq.ready := exec_in.ready && door_ready
-        }
-
-        // 把 4 个执行单元的大门全部挂上保镖和截胡器！
-        attachBypass(iss_q_alu0, exec_engine.io.in_alu0, prf.io.rdata1, prf.io.rdata2)
-        attachBypass(iss_q_alu1, exec_engine.io.in_alu1, prf.io.rdata3, prf.io.rdata4)
-        attachBypass(iss_q_mdu,  exec_engine.io.in_mdu,  prf.io.rdata5, prf.io.rdata6)
-        attachBypass(iss_q_agu,  exec_engine.io.in_agu,  prf.io.rdata7, prf.io.rdata8)
+        // 5. 劫持 AGU
+        val agu_in_data = WireDefault(iss_q_agu.io.deq.bits)
+        agu_in_data.src1_value := prf.io.rdata7
+        agu_in_data.src2_value := prf.io.rdata8
+        exec_engine.io.in_agu.valid  := iss_q_agu.io.deq.valid
+        exec_engine.io.in_agu.bits   := agu_in_data
+        iss_q_agu.io.deq.ready       := exec_engine.io.in_agu.ready
         
         exec_engine.io.flush    := flush_global
-        exec_engine.io.rob_head := rob.io.head_idx
+        exec_engine.io.rob_head := rob.io.@@head_idx
 
 
 
@@ -862,3 +862,9 @@ class CommitMemPort extends Bundle {
     val valid1 = Output(Bool())
     val idx1   = Output(UInt(Config.robPtrWidth.W))
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: head_idx

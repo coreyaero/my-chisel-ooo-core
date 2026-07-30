@@ -58,7 +58,9 @@ module LSQ(
   output [5:0]  io_lsq_wb_bits_pdest,
   output [7:0]  io_dcache_req_id,
   input  [7:0]  io_dcache_ret_id,
-  input  [4:0]  io_rob_head
+  input  [4:0]  io_rob_head,
+  output        io_early_wakeup_valid,
+  output [5:0]  io_early_wakeup_bits
 );
 
   reg  [7:0]        ticket_counter;
@@ -570,6 +572,134 @@ module LSQ(
   reg               pipe_addr_valid_13;
   reg               pipe_addr_valid_14;
   reg               pipe_addr_valid_15;
+  wire              is_active =
+    entries_0_valid & ~entries_0_req_sent & ~entries_0_executed & ~entries_0_has_exc;
+  wire              stable_addr_valid = entries_0_addr_valid & pipe_addr_valid_0;
+  wire              base_rdy =
+    _store_ready_T & stable_addr_valid & entries_0_committed | entries_0_is_load
+    & stable_addr_valid;
+  wire              actual_do_stlf_0 =
+    is_active & entries_0_is_load & base_rdy & pipe_can_fwd_0;
+  wire              is_active_1 =
+    entries_1_valid & ~entries_1_req_sent & ~entries_1_executed & ~entries_1_has_exc;
+  wire              stable_addr_valid_1 = entries_1_addr_valid & pipe_addr_valid_1;
+  wire              base_rdy_1 =
+    _store_ready_T_2 & stable_addr_valid_1 & entries_1_committed | entries_1_is_load
+    & stable_addr_valid_1;
+  wire              actual_do_stlf_1 =
+    is_active_1 & entries_1_is_load & base_rdy_1 & pipe_can_fwd_1;
+  wire              is_active_2 =
+    entries_2_valid & ~entries_2_req_sent & ~entries_2_executed & ~entries_2_has_exc;
+  wire              stable_addr_valid_2 = entries_2_addr_valid & pipe_addr_valid_2;
+  wire              base_rdy_2 =
+    _store_ready_T_4 & stable_addr_valid_2 & entries_2_committed | entries_2_is_load
+    & stable_addr_valid_2;
+  wire              actual_do_stlf_2 =
+    is_active_2 & entries_2_is_load & base_rdy_2 & pipe_can_fwd_2;
+  wire              is_active_3 =
+    entries_3_valid & ~entries_3_req_sent & ~entries_3_executed & ~entries_3_has_exc;
+  wire              stable_addr_valid_3 = entries_3_addr_valid & pipe_addr_valid_3;
+  wire              base_rdy_3 =
+    _store_ready_T_6 & stable_addr_valid_3 & entries_3_committed | entries_3_is_load
+    & stable_addr_valid_3;
+  wire              actual_do_stlf_3 =
+    is_active_3 & entries_3_is_load & base_rdy_3 & pipe_can_fwd_3;
+  wire              is_active_4 =
+    entries_4_valid & ~entries_4_req_sent & ~entries_4_executed & ~entries_4_has_exc;
+  wire              stable_addr_valid_4 = entries_4_addr_valid & pipe_addr_valid_4;
+  wire              base_rdy_4 =
+    _store_ready_T_8 & stable_addr_valid_4 & entries_4_committed | entries_4_is_load
+    & stable_addr_valid_4;
+  wire              actual_do_stlf_4 =
+    is_active_4 & entries_4_is_load & base_rdy_4 & pipe_can_fwd_4;
+  wire              is_active_5 =
+    entries_5_valid & ~entries_5_req_sent & ~entries_5_executed & ~entries_5_has_exc;
+  wire              stable_addr_valid_5 = entries_5_addr_valid & pipe_addr_valid_5;
+  wire              base_rdy_5 =
+    _store_ready_T_10 & stable_addr_valid_5 & entries_5_committed | entries_5_is_load
+    & stable_addr_valid_5;
+  wire              actual_do_stlf_5 =
+    is_active_5 & entries_5_is_load & base_rdy_5 & pipe_can_fwd_5;
+  wire              is_active_6 =
+    entries_6_valid & ~entries_6_req_sent & ~entries_6_executed & ~entries_6_has_exc;
+  wire              stable_addr_valid_6 = entries_6_addr_valid & pipe_addr_valid_6;
+  wire              base_rdy_6 =
+    _store_ready_T_12 & stable_addr_valid_6 & entries_6_committed | entries_6_is_load
+    & stable_addr_valid_6;
+  wire              actual_do_stlf_6 =
+    is_active_6 & entries_6_is_load & base_rdy_6 & pipe_can_fwd_6;
+  wire              is_active_7 =
+    entries_7_valid & ~entries_7_req_sent & ~entries_7_executed & ~entries_7_has_exc;
+  wire              stable_addr_valid_7 = entries_7_addr_valid & pipe_addr_valid_7;
+  wire              base_rdy_7 =
+    _store_ready_T_14 & stable_addr_valid_7 & entries_7_committed | entries_7_is_load
+    & stable_addr_valid_7;
+  wire              actual_do_stlf_7 =
+    is_active_7 & entries_7_is_load & base_rdy_7 & pipe_can_fwd_7;
+  wire              is_active_8 =
+    entries_8_valid & ~entries_8_req_sent & ~entries_8_executed & ~entries_8_has_exc;
+  wire              stable_addr_valid_8 = entries_8_addr_valid & pipe_addr_valid_8;
+  wire              base_rdy_8 =
+    _store_ready_T_16 & stable_addr_valid_8 & entries_8_committed | entries_8_is_load
+    & stable_addr_valid_8;
+  wire              actual_do_stlf_8 =
+    is_active_8 & entries_8_is_load & base_rdy_8 & pipe_can_fwd_8;
+  wire              is_active_9 =
+    entries_9_valid & ~entries_9_req_sent & ~entries_9_executed & ~entries_9_has_exc;
+  wire              stable_addr_valid_9 = entries_9_addr_valid & pipe_addr_valid_9;
+  wire              base_rdy_9 =
+    _store_ready_T_18 & stable_addr_valid_9 & entries_9_committed | entries_9_is_load
+    & stable_addr_valid_9;
+  wire              actual_do_stlf_9 =
+    is_active_9 & entries_9_is_load & base_rdy_9 & pipe_can_fwd_9;
+  wire              is_active_10 =
+    entries_10_valid & ~entries_10_req_sent & ~entries_10_executed & ~entries_10_has_exc;
+  wire              stable_addr_valid_10 = entries_10_addr_valid & pipe_addr_valid_10;
+  wire              base_rdy_10 =
+    _store_ready_T_20 & stable_addr_valid_10 & entries_10_committed | entries_10_is_load
+    & stable_addr_valid_10;
+  wire              actual_do_stlf_10 =
+    is_active_10 & entries_10_is_load & base_rdy_10 & pipe_can_fwd_10;
+  wire              is_active_11 =
+    entries_11_valid & ~entries_11_req_sent & ~entries_11_executed & ~entries_11_has_exc;
+  wire              stable_addr_valid_11 = entries_11_addr_valid & pipe_addr_valid_11;
+  wire              base_rdy_11 =
+    _store_ready_T_22 & stable_addr_valid_11 & entries_11_committed | entries_11_is_load
+    & stable_addr_valid_11;
+  wire              actual_do_stlf_11 =
+    is_active_11 & entries_11_is_load & base_rdy_11 & pipe_can_fwd_11;
+  wire              is_active_12 =
+    entries_12_valid & ~entries_12_req_sent & ~entries_12_executed & ~entries_12_has_exc;
+  wire              stable_addr_valid_12 = entries_12_addr_valid & pipe_addr_valid_12;
+  wire              base_rdy_12 =
+    _store_ready_T_24 & stable_addr_valid_12 & entries_12_committed | entries_12_is_load
+    & stable_addr_valid_12;
+  wire              actual_do_stlf_12 =
+    is_active_12 & entries_12_is_load & base_rdy_12 & pipe_can_fwd_12;
+  wire              is_active_13 =
+    entries_13_valid & ~entries_13_req_sent & ~entries_13_executed & ~entries_13_has_exc;
+  wire              stable_addr_valid_13 = entries_13_addr_valid & pipe_addr_valid_13;
+  wire              base_rdy_13 =
+    _store_ready_T_26 & stable_addr_valid_13 & entries_13_committed | entries_13_is_load
+    & stable_addr_valid_13;
+  wire              actual_do_stlf_13 =
+    is_active_13 & entries_13_is_load & base_rdy_13 & pipe_can_fwd_13;
+  wire              is_active_14 =
+    entries_14_valid & ~entries_14_req_sent & ~entries_14_executed & ~entries_14_has_exc;
+  wire              stable_addr_valid_14 = entries_14_addr_valid & pipe_addr_valid_14;
+  wire              base_rdy_14 =
+    _store_ready_T_28 & stable_addr_valid_14 & entries_14_committed | entries_14_is_load
+    & stable_addr_valid_14;
+  wire              actual_do_stlf_14 =
+    is_active_14 & entries_14_is_load & base_rdy_14 & pipe_can_fwd_14;
+  wire              is_active_15 =
+    entries_15_valid & ~entries_15_req_sent & ~entries_15_executed & ~entries_15_has_exc;
+  wire              stable_addr_valid_15 = entries_15_addr_valid & pipe_addr_valid_15;
+  wire              base_rdy_15 =
+    _store_ready_T_30 & stable_addr_valid_15 & entries_15_committed | entries_15_is_load
+    & stable_addr_valid_15;
+  wire              actual_do_stlf_15 =
+    is_active_15 & entries_15_is_load & base_rdy_15 & pipe_can_fwd_15;
   reg               out_valid_reg;
   reg               out_e_reg_is_store;
   reg               out_e_reg_is_cacop;
@@ -819,6 +949,54 @@ module LSQ(
   wire [7:0]        byte_data = _GEN_9[_GEN_2[wb_idx][1:0]];
   wire [15:0]       half_data =
     _GEN_2[wb_idx][1] ? _GEN_4[wb_idx][31:16] : _GEN_4[wb_idx][15:0];
+  wire              early_match_vec_0 =
+    entries_0_valid & entries_0_ticket == io_dcache_ret_id & entries_0_is_load;
+  wire              early_match_vec_1 =
+    entries_1_valid & entries_1_ticket == io_dcache_ret_id & entries_1_is_load;
+  wire              early_match_vec_2 =
+    entries_2_valid & entries_2_ticket == io_dcache_ret_id & entries_2_is_load;
+  wire              early_match_vec_3 =
+    entries_3_valid & entries_3_ticket == io_dcache_ret_id & entries_3_is_load;
+  wire              early_match_vec_4 =
+    entries_4_valid & entries_4_ticket == io_dcache_ret_id & entries_4_is_load;
+  wire              early_match_vec_5 =
+    entries_5_valid & entries_5_ticket == io_dcache_ret_id & entries_5_is_load;
+  wire              early_match_vec_6 =
+    entries_6_valid & entries_6_ticket == io_dcache_ret_id & entries_6_is_load;
+  wire              early_match_vec_7 =
+    entries_7_valid & entries_7_ticket == io_dcache_ret_id & entries_7_is_load;
+  wire              early_match_vec_8 =
+    entries_8_valid & entries_8_ticket == io_dcache_ret_id & entries_8_is_load;
+  wire              early_match_vec_9 =
+    entries_9_valid & entries_9_ticket == io_dcache_ret_id & entries_9_is_load;
+  wire              early_match_vec_10 =
+    entries_10_valid & entries_10_ticket == io_dcache_ret_id & entries_10_is_load;
+  wire              early_match_vec_11 =
+    entries_11_valid & entries_11_ticket == io_dcache_ret_id & entries_11_is_load;
+  wire              early_match_vec_12 =
+    entries_12_valid & entries_12_ticket == io_dcache_ret_id & entries_12_is_load;
+  wire              early_match_vec_13 =
+    entries_13_valid & entries_13_ticket == io_dcache_ret_id & entries_13_is_load;
+  wire              early_match_vec_14 =
+    entries_14_valid & entries_14_ticket == io_dcache_ret_id & entries_14_is_load;
+  wire              early_ret_valid =
+    io_dcache_data_ok
+    & (|{entries_15_valid & entries_15_ticket == io_dcache_ret_id & entries_15_is_load,
+         early_match_vec_14,
+         early_match_vec_13,
+         early_match_vec_12,
+         early_match_vec_11,
+         early_match_vec_10,
+         early_match_vec_9,
+         early_match_vec_8,
+         early_match_vec_7,
+         early_match_vec_6,
+         early_match_vec_5,
+         early_match_vec_4,
+         early_match_vec_3,
+         early_match_vec_2,
+         early_match_vec_1,
+         early_match_vec_0});
   always @(posedge clock or posedge reset) begin
     if (reset) begin
       ticket_counter <= 8'h0;
@@ -1399,86 +1577,22 @@ module LSQ(
       automatic logic        _GEN_157;
       automatic logic        normal_in_flight;
       automatic logic        cacop_in_flight_state;
-      automatic logic        is_active;
-      automatic logic        stable_addr_valid;
-      automatic logic        base_rdy;
       automatic logic        actual_can_issue_0;
-      automatic logic        actual_do_stlf_0;
-      automatic logic        is_active_1;
-      automatic logic        stable_addr_valid_1;
-      automatic logic        base_rdy_1;
       automatic logic        actual_can_issue_1;
-      automatic logic        actual_do_stlf_1;
-      automatic logic        is_active_2;
-      automatic logic        stable_addr_valid_2;
-      automatic logic        base_rdy_2;
       automatic logic        actual_can_issue_2;
-      automatic logic        actual_do_stlf_2;
-      automatic logic        is_active_3;
-      automatic logic        stable_addr_valid_3;
-      automatic logic        base_rdy_3;
       automatic logic        actual_can_issue_3;
-      automatic logic        actual_do_stlf_3;
-      automatic logic        is_active_4;
-      automatic logic        stable_addr_valid_4;
-      automatic logic        base_rdy_4;
       automatic logic        actual_can_issue_4;
-      automatic logic        actual_do_stlf_4;
-      automatic logic        is_active_5;
-      automatic logic        stable_addr_valid_5;
-      automatic logic        base_rdy_5;
       automatic logic        actual_can_issue_5;
-      automatic logic        actual_do_stlf_5;
-      automatic logic        is_active_6;
-      automatic logic        stable_addr_valid_6;
-      automatic logic        base_rdy_6;
       automatic logic        actual_can_issue_6;
-      automatic logic        actual_do_stlf_6;
-      automatic logic        is_active_7;
-      automatic logic        stable_addr_valid_7;
-      automatic logic        base_rdy_7;
       automatic logic        actual_can_issue_7;
-      automatic logic        actual_do_stlf_7;
-      automatic logic        is_active_8;
-      automatic logic        stable_addr_valid_8;
-      automatic logic        base_rdy_8;
       automatic logic        actual_can_issue_8;
-      automatic logic        actual_do_stlf_8;
-      automatic logic        is_active_9;
-      automatic logic        stable_addr_valid_9;
-      automatic logic        base_rdy_9;
       automatic logic        actual_can_issue_9;
-      automatic logic        actual_do_stlf_9;
-      automatic logic        is_active_10;
-      automatic logic        stable_addr_valid_10;
-      automatic logic        base_rdy_10;
       automatic logic        actual_can_issue_10;
-      automatic logic        actual_do_stlf_10;
-      automatic logic        is_active_11;
-      automatic logic        stable_addr_valid_11;
-      automatic logic        base_rdy_11;
       automatic logic        actual_can_issue_11;
-      automatic logic        actual_do_stlf_11;
-      automatic logic        is_active_12;
-      automatic logic        stable_addr_valid_12;
-      automatic logic        base_rdy_12;
       automatic logic        actual_can_issue_12;
-      automatic logic        actual_do_stlf_12;
-      automatic logic        is_active_13;
-      automatic logic        stable_addr_valid_13;
-      automatic logic        base_rdy_13;
       automatic logic        actual_can_issue_13;
-      automatic logic        actual_do_stlf_13;
-      automatic logic        is_active_14;
-      automatic logic        stable_addr_valid_14;
-      automatic logic        base_rdy_14;
       automatic logic        actual_can_issue_14;
-      automatic logic        actual_do_stlf_14;
-      automatic logic        is_active_15;
-      automatic logic        stable_addr_valid_15;
-      automatic logic        base_rdy_15;
       automatic logic        actual_can_issue_15;
-      automatic logic        actual_do_stlf_15;
       automatic logic [15:0] req;
       automatic logic [30:0] _head_mask_T;
       automatic logic [15:0] _head_mask_T_3;
@@ -1870,216 +1984,92 @@ module LSQ(
         & ~entries_13_executed | entries_14_valid & entries_14_is_cacop
         & entries_14_req_sent & ~entries_14_executed | entries_15_valid
         & entries_15_is_cacop & entries_15_req_sent & ~entries_15_executed;
-      is_active =
-        entries_0_valid & ~entries_0_req_sent & ~entries_0_executed & ~entries_0_has_exc;
-      stable_addr_valid = entries_0_addr_valid & pipe_addr_valid_0;
-      base_rdy =
-        _store_ready_T & stable_addr_valid & entries_0_committed | entries_0_is_load
-        & stable_addr_valid;
       actual_can_issue_0 =
         is_active & base_rdy
         & (~entries_0_uncached | entries_0_committed | entries_0_rob_idx == io_rob_head)
         & (~entries_0_is_load | ~pipe_conflict_0 & ~pipe_can_fwd_0)
         & (entries_0_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_0 = is_active & entries_0_is_load & base_rdy & pipe_can_fwd_0;
-      is_active_1 =
-        entries_1_valid & ~entries_1_req_sent & ~entries_1_executed & ~entries_1_has_exc;
-      stable_addr_valid_1 = entries_1_addr_valid & pipe_addr_valid_1;
-      base_rdy_1 =
-        _store_ready_T_2 & stable_addr_valid_1 & entries_1_committed | entries_1_is_load
-        & stable_addr_valid_1;
       actual_can_issue_1 =
         is_active_1 & base_rdy_1
         & (~entries_1_uncached | entries_1_committed | entries_1_rob_idx == io_rob_head)
         & (~entries_1_is_load | ~pipe_conflict_1 & ~pipe_can_fwd_1)
         & (entries_1_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_1 = is_active_1 & entries_1_is_load & base_rdy_1 & pipe_can_fwd_1;
-      is_active_2 =
-        entries_2_valid & ~entries_2_req_sent & ~entries_2_executed & ~entries_2_has_exc;
-      stable_addr_valid_2 = entries_2_addr_valid & pipe_addr_valid_2;
-      base_rdy_2 =
-        _store_ready_T_4 & stable_addr_valid_2 & entries_2_committed | entries_2_is_load
-        & stable_addr_valid_2;
       actual_can_issue_2 =
         is_active_2 & base_rdy_2
         & (~entries_2_uncached | entries_2_committed | entries_2_rob_idx == io_rob_head)
         & (~entries_2_is_load | ~pipe_conflict_2 & ~pipe_can_fwd_2)
         & (entries_2_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_2 = is_active_2 & entries_2_is_load & base_rdy_2 & pipe_can_fwd_2;
-      is_active_3 =
-        entries_3_valid & ~entries_3_req_sent & ~entries_3_executed & ~entries_3_has_exc;
-      stable_addr_valid_3 = entries_3_addr_valid & pipe_addr_valid_3;
-      base_rdy_3 =
-        _store_ready_T_6 & stable_addr_valid_3 & entries_3_committed | entries_3_is_load
-        & stable_addr_valid_3;
       actual_can_issue_3 =
         is_active_3 & base_rdy_3
         & (~entries_3_uncached | entries_3_committed | entries_3_rob_idx == io_rob_head)
         & (~entries_3_is_load | ~pipe_conflict_3 & ~pipe_can_fwd_3)
         & (entries_3_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_3 = is_active_3 & entries_3_is_load & base_rdy_3 & pipe_can_fwd_3;
-      is_active_4 =
-        entries_4_valid & ~entries_4_req_sent & ~entries_4_executed & ~entries_4_has_exc;
-      stable_addr_valid_4 = entries_4_addr_valid & pipe_addr_valid_4;
-      base_rdy_4 =
-        _store_ready_T_8 & stable_addr_valid_4 & entries_4_committed | entries_4_is_load
-        & stable_addr_valid_4;
       actual_can_issue_4 =
         is_active_4 & base_rdy_4
         & (~entries_4_uncached | entries_4_committed | entries_4_rob_idx == io_rob_head)
         & (~entries_4_is_load | ~pipe_conflict_4 & ~pipe_can_fwd_4)
         & (entries_4_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_4 = is_active_4 & entries_4_is_load & base_rdy_4 & pipe_can_fwd_4;
-      is_active_5 =
-        entries_5_valid & ~entries_5_req_sent & ~entries_5_executed & ~entries_5_has_exc;
-      stable_addr_valid_5 = entries_5_addr_valid & pipe_addr_valid_5;
-      base_rdy_5 =
-        _store_ready_T_10 & stable_addr_valid_5 & entries_5_committed | entries_5_is_load
-        & stable_addr_valid_5;
       actual_can_issue_5 =
         is_active_5 & base_rdy_5
         & (~entries_5_uncached | entries_5_committed | entries_5_rob_idx == io_rob_head)
         & (~entries_5_is_load | ~pipe_conflict_5 & ~pipe_can_fwd_5)
         & (entries_5_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_5 = is_active_5 & entries_5_is_load & base_rdy_5 & pipe_can_fwd_5;
-      is_active_6 =
-        entries_6_valid & ~entries_6_req_sent & ~entries_6_executed & ~entries_6_has_exc;
-      stable_addr_valid_6 = entries_6_addr_valid & pipe_addr_valid_6;
-      base_rdy_6 =
-        _store_ready_T_12 & stable_addr_valid_6 & entries_6_committed | entries_6_is_load
-        & stable_addr_valid_6;
       actual_can_issue_6 =
         is_active_6 & base_rdy_6
         & (~entries_6_uncached | entries_6_committed | entries_6_rob_idx == io_rob_head)
         & (~entries_6_is_load | ~pipe_conflict_6 & ~pipe_can_fwd_6)
         & (entries_6_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_6 = is_active_6 & entries_6_is_load & base_rdy_6 & pipe_can_fwd_6;
-      is_active_7 =
-        entries_7_valid & ~entries_7_req_sent & ~entries_7_executed & ~entries_7_has_exc;
-      stable_addr_valid_7 = entries_7_addr_valid & pipe_addr_valid_7;
-      base_rdy_7 =
-        _store_ready_T_14 & stable_addr_valid_7 & entries_7_committed | entries_7_is_load
-        & stable_addr_valid_7;
       actual_can_issue_7 =
         is_active_7 & base_rdy_7
         & (~entries_7_uncached | entries_7_committed | entries_7_rob_idx == io_rob_head)
         & (~entries_7_is_load | ~pipe_conflict_7 & ~pipe_can_fwd_7)
         & (entries_7_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_7 = is_active_7 & entries_7_is_load & base_rdy_7 & pipe_can_fwd_7;
-      is_active_8 =
-        entries_8_valid & ~entries_8_req_sent & ~entries_8_executed & ~entries_8_has_exc;
-      stable_addr_valid_8 = entries_8_addr_valid & pipe_addr_valid_8;
-      base_rdy_8 =
-        _store_ready_T_16 & stable_addr_valid_8 & entries_8_committed | entries_8_is_load
-        & stable_addr_valid_8;
       actual_can_issue_8 =
         is_active_8 & base_rdy_8
         & (~entries_8_uncached | entries_8_committed | entries_8_rob_idx == io_rob_head)
         & (~entries_8_is_load | ~pipe_conflict_8 & ~pipe_can_fwd_8)
         & (entries_8_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_8 = is_active_8 & entries_8_is_load & base_rdy_8 & pipe_can_fwd_8;
-      is_active_9 =
-        entries_9_valid & ~entries_9_req_sent & ~entries_9_executed & ~entries_9_has_exc;
-      stable_addr_valid_9 = entries_9_addr_valid & pipe_addr_valid_9;
-      base_rdy_9 =
-        _store_ready_T_18 & stable_addr_valid_9 & entries_9_committed | entries_9_is_load
-        & stable_addr_valid_9;
       actual_can_issue_9 =
         is_active_9 & base_rdy_9
         & (~entries_9_uncached | entries_9_committed | entries_9_rob_idx == io_rob_head)
         & (~entries_9_is_load | ~pipe_conflict_9 & ~pipe_can_fwd_9)
         & (entries_9_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_9 = is_active_9 & entries_9_is_load & base_rdy_9 & pipe_can_fwd_9;
-      is_active_10 =
-        entries_10_valid & ~entries_10_req_sent & ~entries_10_executed
-        & ~entries_10_has_exc;
-      stable_addr_valid_10 = entries_10_addr_valid & pipe_addr_valid_10;
-      base_rdy_10 =
-        _store_ready_T_20 & stable_addr_valid_10 & entries_10_committed
-        | entries_10_is_load & stable_addr_valid_10;
       actual_can_issue_10 =
         is_active_10 & base_rdy_10
         & (~entries_10_uncached | entries_10_committed
            | entries_10_rob_idx == io_rob_head)
         & (~entries_10_is_load | ~pipe_conflict_10 & ~pipe_can_fwd_10)
         & (entries_10_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_10 =
-        is_active_10 & entries_10_is_load & base_rdy_10 & pipe_can_fwd_10;
-      is_active_11 =
-        entries_11_valid & ~entries_11_req_sent & ~entries_11_executed
-        & ~entries_11_has_exc;
-      stable_addr_valid_11 = entries_11_addr_valid & pipe_addr_valid_11;
-      base_rdy_11 =
-        _store_ready_T_22 & stable_addr_valid_11 & entries_11_committed
-        | entries_11_is_load & stable_addr_valid_11;
       actual_can_issue_11 =
         is_active_11 & base_rdy_11
         & (~entries_11_uncached | entries_11_committed
            | entries_11_rob_idx == io_rob_head)
         & (~entries_11_is_load | ~pipe_conflict_11 & ~pipe_can_fwd_11)
         & (entries_11_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_11 =
-        is_active_11 & entries_11_is_load & base_rdy_11 & pipe_can_fwd_11;
-      is_active_12 =
-        entries_12_valid & ~entries_12_req_sent & ~entries_12_executed
-        & ~entries_12_has_exc;
-      stable_addr_valid_12 = entries_12_addr_valid & pipe_addr_valid_12;
-      base_rdy_12 =
-        _store_ready_T_24 & stable_addr_valid_12 & entries_12_committed
-        | entries_12_is_load & stable_addr_valid_12;
       actual_can_issue_12 =
         is_active_12 & base_rdy_12
         & (~entries_12_uncached | entries_12_committed
            | entries_12_rob_idx == io_rob_head)
         & (~entries_12_is_load | ~pipe_conflict_12 & ~pipe_can_fwd_12)
         & (entries_12_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_12 =
-        is_active_12 & entries_12_is_load & base_rdy_12 & pipe_can_fwd_12;
-      is_active_13 =
-        entries_13_valid & ~entries_13_req_sent & ~entries_13_executed
-        & ~entries_13_has_exc;
-      stable_addr_valid_13 = entries_13_addr_valid & pipe_addr_valid_13;
-      base_rdy_13 =
-        _store_ready_T_26 & stable_addr_valid_13 & entries_13_committed
-        | entries_13_is_load & stable_addr_valid_13;
       actual_can_issue_13 =
         is_active_13 & base_rdy_13
         & (~entries_13_uncached | entries_13_committed
            | entries_13_rob_idx == io_rob_head)
         & (~entries_13_is_load | ~pipe_conflict_13 & ~pipe_can_fwd_13)
         & (entries_13_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_13 =
-        is_active_13 & entries_13_is_load & base_rdy_13 & pipe_can_fwd_13;
-      is_active_14 =
-        entries_14_valid & ~entries_14_req_sent & ~entries_14_executed
-        & ~entries_14_has_exc;
-      stable_addr_valid_14 = entries_14_addr_valid & pipe_addr_valid_14;
-      base_rdy_14 =
-        _store_ready_T_28 & stable_addr_valid_14 & entries_14_committed
-        | entries_14_is_load & stable_addr_valid_14;
       actual_can_issue_14 =
         is_active_14 & base_rdy_14
         & (~entries_14_uncached | entries_14_committed
            | entries_14_rob_idx == io_rob_head)
         & (~entries_14_is_load | ~pipe_conflict_14 & ~pipe_can_fwd_14)
         & (entries_14_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_14 =
-        is_active_14 & entries_14_is_load & base_rdy_14 & pipe_can_fwd_14;
-      is_active_15 =
-        entries_15_valid & ~entries_15_req_sent & ~entries_15_executed
-        & ~entries_15_has_exc;
-      stable_addr_valid_15 = entries_15_addr_valid & pipe_addr_valid_15;
-      base_rdy_15 =
-        _store_ready_T_30 & stable_addr_valid_15 & entries_15_committed
-        | entries_15_is_load & stable_addr_valid_15;
       actual_can_issue_15 =
         is_active_15 & base_rdy_15
         & (~entries_15_uncached | entries_15_committed
            | entries_15_rob_idx == io_rob_head)
         & (~entries_15_is_load | ~pipe_conflict_15 & ~pipe_can_fwd_15)
         & (entries_15_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
-      actual_do_stlf_15 =
-        is_active_15 & entries_15_is_load & base_rdy_15 & pipe_can_fwd_15;
       req =
         {actual_can_issue_15,
          actual_can_issue_14,
@@ -11241,5 +11231,85 @@ module LSQ(
   assign io_lsq_wb_bits_rob_idx = _GEN[wb_idx];
   assign io_lsq_wb_bits_pdest = _GEN_1[wb_idx];
   assign io_dcache_req_id = out_e_reg_ticket;
+  assign io_early_wakeup_valid =
+    |{early_ret_valid,
+      actual_do_stlf_15,
+      actual_do_stlf_14,
+      actual_do_stlf_13,
+      actual_do_stlf_12,
+      actual_do_stlf_11,
+      actual_do_stlf_10,
+      actual_do_stlf_9,
+      actual_do_stlf_8,
+      actual_do_stlf_7,
+      actual_do_stlf_6,
+      actual_do_stlf_5,
+      actual_do_stlf_4,
+      actual_do_stlf_3,
+      actual_do_stlf_2,
+      actual_do_stlf_1,
+      actual_do_stlf_0};
+  assign io_early_wakeup_bits =
+    early_ret_valid
+      ? _GEN_1[early_match_vec_0
+                 ? 4'h0
+                 : early_match_vec_1
+                     ? 4'h1
+                     : early_match_vec_2
+                         ? 4'h2
+                         : early_match_vec_3
+                             ? 4'h3
+                             : early_match_vec_4
+                                 ? 4'h4
+                                 : early_match_vec_5
+                                     ? 4'h5
+                                     : early_match_vec_6
+                                         ? 4'h6
+                                         : early_match_vec_7
+                                             ? 4'h7
+                                             : early_match_vec_8
+                                                 ? 4'h8
+                                                 : early_match_vec_9
+                                                     ? 4'h9
+                                                     : early_match_vec_10
+                                                         ? 4'hA
+                                                         : early_match_vec_11
+                                                             ? 4'hB
+                                                             : early_match_vec_12
+                                                                 ? 4'hC
+                                                                 : early_match_vec_13
+                                                                     ? 4'hD
+                                                                     : {3'h7,
+                                                                        ~early_match_vec_14}]
+      : _GEN_1[actual_do_stlf_0
+                 ? 4'h0
+                 : actual_do_stlf_1
+                     ? 4'h1
+                     : actual_do_stlf_2
+                         ? 4'h2
+                         : actual_do_stlf_3
+                             ? 4'h3
+                             : actual_do_stlf_4
+                                 ? 4'h4
+                                 : actual_do_stlf_5
+                                     ? 4'h5
+                                     : actual_do_stlf_6
+                                         ? 4'h6
+                                         : actual_do_stlf_7
+                                             ? 4'h7
+                                             : actual_do_stlf_8
+                                                 ? 4'h8
+                                                 : actual_do_stlf_9
+                                                     ? 4'h9
+                                                     : actual_do_stlf_10
+                                                         ? 4'hA
+                                                         : actual_do_stlf_11
+                                                             ? 4'hB
+                                                             : actual_do_stlf_12
+                                                                 ? 4'hC
+                                                                 : actual_do_stlf_13
+                                                                     ? 4'hD
+                                                                     : {3'h7,
+                                                                        ~actual_do_stlf_14}];
 endmodule
 

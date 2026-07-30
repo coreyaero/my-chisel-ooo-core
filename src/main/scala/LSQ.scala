@@ -74,6 +74,9 @@ class LSQ extends Module {
         val dcache_ret_id = Input(UInt(8.W))  // ★ 新增
 
         val rob_head   = Input(UInt(Config.robPtrWidth.W))
+
+        // ★★★ 新增：提前唤醒专线 (Early Wakeup) ★★★
+        val early_wakeup = Valid(UInt(Config.prfPtrWidth.W))
     })
     val ticket_counter = RegInit(0.U(8.W))
 
@@ -518,4 +521,27 @@ class LSQ extends Module {
         is_full := (commit_cnt === 16.U)
         violation_reg := false.B
     }
+
+
+
+
+    // ==========================================
+    // ★ 前递网络：推测唤醒 (Early Wakeup)
+    // ==========================================
+    // 1. 抓取即将从 DCache 回来的外卖
+    val early_ret_ticket = io.dcache_ret_id
+    val early_match_vec = WireDefault(VecInit(Seq.fill(16)(false.B)))
+    for(i <- 0 until 16) {
+        early_match_vec(i) := entries(i).valid && (entries(i).ticket === early_ret_ticket) && entries(i).is_load
+    }
+    val early_ret_valid = io.dcache.data_ok && early_match_vec.asUInt.orR
+    val early_ret_idx   = PriorityEncoder(early_match_vec)
+
+    // 2. 抓取内部 STLF (Store-to-Load Forwarding) 即将成功的数据
+    val stlf_wakeup_valid = actual_do_stlf.asUInt.orR
+    val stlf_wakeup_idx   = PriorityEncoder(actual_do_stlf)
+
+    // 3. 只要有一路成功，立刻向 IQ 广播该指令的目标物理寄存器号 (pdest)！
+    io.early_wakeup.valid := early_ret_valid || stlf_wakeup_valid
+    io.early_wakeup.bits  := Mux(early_ret_valid, entries(early_ret_idx).pdest, entries(stlf_wakeup_idx).pdest)
 }

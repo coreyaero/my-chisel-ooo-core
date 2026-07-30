@@ -251,7 +251,9 @@ module Exec(
   output [1:0]  io_cacop_op,
   output        io_cacop_is_icache,
   output [31:0] io_debug_cdb0_pc,
-                io_debug_cdb1_pc
+                io_debug_cdb1_pc,
+  output        io_early_wakeup_valid,
+  output [5:0]  io_early_wakeup_bits
 );
 
   wire        _agu_cdb_q_io_enq_ready;
@@ -765,7 +767,9 @@ module Exec(
     .io_lsq_wb_bits_pdest        (_lsq_io_lsq_wb_bits_pdest),
     .io_dcache_req_id            (io_lsq_req_id),
     .io_dcache_ret_id            (io_lsq_ret_id),
-    .io_rob_head                 (io_rob_head)
+    .io_rob_head                 (io_rob_head),
+    .io_early_wakeup_valid       (io_early_wakeup_valid),
+    .io_early_wakeup_bits        (io_early_wakeup_bits)
   );
   CdbArbiter arbiter (
     .io_reqs_0_ready                (_arbiter_io_reqs_0_ready),
