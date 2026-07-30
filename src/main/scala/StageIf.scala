@@ -45,6 +45,8 @@ class StageIF extends Module {
         val tlb_port        = new TlbSearchPort()
         // ★ 新增：来自后端的 BTB 训练线
         val bpu_update      = Flipped(Valid(new BpuUpdate()))
+
+        val commit_bpu_update = Flipped(Valid(new BpuUpdate()))
     })
 
     val pc_reg = RegInit(Config.START_PC)
@@ -117,14 +119,13 @@ class StageIF extends Module {
     // ------------------------------------------
     // 训练逻辑：ALU 后端发来的 BHT 饱和更新
     // ------------------------------------------
-    when(io.bpu_update.valid && io.bpu_update.bits.bpu_type === BpuType.COND) {
-        val update_hash = io.bpu_update.bits.pc(11, 2) ^ io.bpu_update.bits.ghr
+    when(io.commit_bpu_update.valid && io.commit_bpu_update.bits.bpu_type === BpuType.COND) {
+        val update_hash = io.commit_bpu_update.bits.pc(11, 2) ^ io.commit_bpu_update.bits.ghr
         
-        // ★ 拦截 X 态：如果没被写过，强制认为是 1.U (弱不跳转)
         val raw_old_ctr = bht(update_hash)
         val old_ctr = Mux(bht_valid(update_hash), raw_old_ctr, 1.U(2.W))
         
-        val new_ctr = Mux(io.bpu_update.bits.taken,
+        val new_ctr = Mux(io.commit_bpu_update.bits.taken,
             Mux(old_ctr === 3.U, 3.U, old_ctr + 1.U), 
             Mux(old_ctr === 0.U, 0.U, old_ctr - 1.U)) 
             

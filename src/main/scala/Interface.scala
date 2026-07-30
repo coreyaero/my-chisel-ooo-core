@@ -114,6 +114,11 @@ class PipelineData extends Bundle{
 
     val ghr             = UInt(10.W)
     val ras_tos         = UInt(4.W) // ★ 新增：携带栈顶快照
+
+    // ★ 新增：记录真实的分支结算结果，送往 ROB
+    val br_actual_taken = Bool()
+    val br_target       = UInt(32.W)
+    val br_type         = UInt(2.W)
 }
 
 class BranchResolve extends Bundle {

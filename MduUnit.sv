@@ -24,7 +24,11 @@ module MduUnit(
                 io_in_bits_is_cacop,
   input  [4:0]  io_in_bits_rob_idx,
   input  [5:0]  io_in_bits_pdest,
+  input         io_in_bits_is_branch,
   input  [3:0]  io_in_bits_branch_mask,
+  input  [9:0]  io_in_bits_ghr,
+  input         io_in_bits_br_actual_taken,
+  input  [1:0]  io_in_bits_br_type,
   input         io_out_ready,
   output        io_out_valid,
   output [31:0] io_out_bits_pc,
@@ -45,6 +49,10 @@ module MduUnit(
                 io_out_bits_is_cacop,
   output [4:0]  io_out_bits_rob_idx,
   output [5:0]  io_out_bits_pdest,
+  output        io_out_bits_is_branch,
+  output [9:0]  io_out_bits_ghr,
+  output        io_out_bits_br_actual_taken,
+  output [1:0]  io_out_bits_br_type,
   input         io_flush,
                 io_br_resolve_in_valid,
                 io_br_resolve_in_mispredict,
@@ -78,7 +86,11 @@ module MduUnit(
   reg         data_reg_is_cacop;
   reg  [4:0]  data_reg_rob_idx;
   reg  [5:0]  data_reg_pdest;
+  reg         data_reg_is_branch;
   reg  [3:0]  data_reg_branch_mask;
+  reg  [9:0]  data_reg_ghr;
+  reg         data_reg_br_actual_taken;
+  reg  [1:0]  data_reg_br_type;
   wire [3:0]  _GEN = br_tag_bit[3:0] & data_reg_branch_mask;
   wire        active = valid_reg & ~(br_fail & (|_GEN));
   reg         mdu_busy;
@@ -121,22 +133,27 @@ module MduUnit(
       data_reg_is_cacop <= 1'h0;
       data_reg_rob_idx <= 5'h0;
       data_reg_pdest <= 6'h0;
+      data_reg_is_branch <= 1'h0;
       data_reg_branch_mask <= 4'h0;
+      data_reg_ghr <= 10'h0;
+      data_reg_br_actual_taken <= 1'h0;
+      data_reg_br_type <= 2'h0;
       mdu_busy <= 1'h0;
       mdu_finished <= 1'h0;
       mul_done <= 1'h0;
     end
     else begin
-      automatic logic _GEN_0 = br_fail & (|_GEN);
-      automatic logic _GEN_1;
-      automatic logic _GEN_2 = io_flush | in_ready | _GEN_0;
-      _GEN_1 = mdu_busy & (_div_io_done | mul_done);
+      automatic logic _GEN_0 = io_flush | ~in_ready;
+      automatic logic _GEN_1 = br_fail & (|_GEN);
+      automatic logic _GEN_2;
+      automatic logic _GEN_3 = io_flush | in_ready | _GEN_1;
+      _GEN_2 = mdu_busy & (_div_io_done | mul_done);
       valid_reg <=
         ~io_flush
         & (in_ready
              ? io_in_valid & ~(br_fail & (|(br_tag_bit[3:0] & io_in_bits_branch_mask)))
-             : ~_GEN_0 & valid_reg);
-      if (io_flush | ~in_ready) begin
+             : ~_GEN_1 & valid_reg);
+      if (_GEN_0) begin
       end
       else begin
         data_reg_pc <= io_in_bits_pc;
@@ -159,17 +176,25 @@ module MduUnit(
         data_reg_is_cacop <= io_in_bits_is_cacop;
         data_reg_rob_idx <= io_in_bits_rob_idx;
         data_reg_pdest <= io_in_bits_pdest;
+        data_reg_is_branch <= io_in_bits_is_branch;
       end
       if (io_flush) begin
       end
       else begin
-        automatic logic [3:0] _GEN_3 =
+        automatic logic [3:0] _GEN_4 =
           {4{io_br_resolve_in_valid & ~io_br_resolve_in_mispredict}} & br_tag_bit[3:0];
         data_reg_branch_mask <=
-          in_ready ? ~_GEN_3 & io_in_bits_branch_mask : ~_GEN_3 & data_reg_branch_mask;
+          in_ready ? ~_GEN_4 & io_in_bits_branch_mask : ~_GEN_4 & data_reg_branch_mask;
       end
-      mdu_busy <= ~_GEN_2 & (start_pulse | ~_GEN_1 & mdu_busy);
-      mdu_finished <= ~_GEN_2 & (~start_pulse & _GEN_1 | mdu_finished);
+      if (_GEN_0) begin
+      end
+      else begin
+        data_reg_ghr <= io_in_bits_ghr;
+        data_reg_br_actual_taken <= io_in_bits_br_actual_taken;
+        data_reg_br_type <= io_in_bits_br_type;
+      end
+      mdu_busy <= ~_GEN_3 & (start_pulse | ~_GEN_2 & mdu_busy);
+      mdu_finished <= ~_GEN_3 & (~start_pulse & _GEN_2 | mdu_finished);
       mul_done <= start_pulse & (_mdu_res_T_3 | _mdu_res_T_5 | _mdu_res_T_7);
     end
   end // always @(posedge, posedge)
@@ -200,7 +225,11 @@ module MduUnit(
         data_reg_is_cacop = 1'h0;
         data_reg_rob_idx = 5'h0;
         data_reg_pdest = 6'h0;
+        data_reg_is_branch = 1'h0;
         data_reg_branch_mask = 4'h0;
+        data_reg_ghr = 10'h0;
+        data_reg_br_actual_taken = 1'h0;
+        data_reg_br_type = 2'h0;
         mdu_busy = 1'h0;
         mdu_finished = 1'h0;
         mul_done = 1'h0;
@@ -266,5 +295,9 @@ module MduUnit(
   assign io_out_bits_is_cacop = data_reg_is_cacop;
   assign io_out_bits_rob_idx = data_reg_rob_idx;
   assign io_out_bits_pdest = data_reg_pdest;
+  assign io_out_bits_is_branch = data_reg_is_branch;
+  assign io_out_bits_ghr = data_reg_ghr;
+  assign io_out_bits_br_actual_taken = data_reg_br_actual_taken;
+  assign io_out_bits_br_type = data_reg_br_type;
 endmodule
 

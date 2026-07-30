@@ -36,6 +36,8 @@ module FetchBuffer(
   output [1:0]  io_out_inst0_bpu_type,
   output [9:0]  io_out_inst0_ghr,
   output [3:0]  io_out_inst0_ras_tos,
+  output        io_out_inst0_br_actual_taken,
+  output [1:0]  io_out_inst0_br_type,
   output        io_out_valid1,
   output [31:0] io_out_inst1_pc,
                 io_out_inst1_inst,
@@ -47,6 +49,8 @@ module FetchBuffer(
   output [1:0]  io_out_inst1_bpu_type,
   output [9:0]  io_out_inst1_ghr,
   output [3:0]  io_out_inst1_ras_tos,
+  output        io_out_inst1_br_actual_taken,
+  output [1:0]  io_out_inst1_br_type,
   input  [1:0]  io_out_pop
 );
 
@@ -59,6 +63,7 @@ module FetchBuffer(
   reg  [1:0]       buffer_0_bpu_type;
   reg  [9:0]       buffer_0_ghr;
   reg  [3:0]       buffer_0_ras_tos;
+  reg              buffer_0_br_actual_taken;
   reg  [31:0]      buffer_1_pc;
   reg  [31:0]      buffer_1_inst;
   reg              buffer_1_hasException;
@@ -68,6 +73,7 @@ module FetchBuffer(
   reg  [1:0]       buffer_1_bpu_type;
   reg  [9:0]       buffer_1_ghr;
   reg  [3:0]       buffer_1_ras_tos;
+  reg              buffer_1_br_actual_taken;
   reg  [31:0]      buffer_2_pc;
   reg  [31:0]      buffer_2_inst;
   reg              buffer_2_hasException;
@@ -77,6 +83,7 @@ module FetchBuffer(
   reg  [1:0]       buffer_2_bpu_type;
   reg  [9:0]       buffer_2_ghr;
   reg  [3:0]       buffer_2_ras_tos;
+  reg              buffer_2_br_actual_taken;
   reg  [31:0]      buffer_3_pc;
   reg  [31:0]      buffer_3_inst;
   reg              buffer_3_hasException;
@@ -86,6 +93,7 @@ module FetchBuffer(
   reg  [1:0]       buffer_3_bpu_type;
   reg  [9:0]       buffer_3_ghr;
   reg  [3:0]       buffer_3_ras_tos;
+  reg              buffer_3_br_actual_taken;
   reg  [31:0]      buffer_4_pc;
   reg  [31:0]      buffer_4_inst;
   reg              buffer_4_hasException;
@@ -95,6 +103,7 @@ module FetchBuffer(
   reg  [1:0]       buffer_4_bpu_type;
   reg  [9:0]       buffer_4_ghr;
   reg  [3:0]       buffer_4_ras_tos;
+  reg              buffer_4_br_actual_taken;
   reg  [31:0]      buffer_5_pc;
   reg  [31:0]      buffer_5_inst;
   reg              buffer_5_hasException;
@@ -104,6 +113,7 @@ module FetchBuffer(
   reg  [1:0]       buffer_5_bpu_type;
   reg  [9:0]       buffer_5_ghr;
   reg  [3:0]       buffer_5_ras_tos;
+  reg              buffer_5_br_actual_taken;
   reg  [31:0]      buffer_6_pc;
   reg  [31:0]      buffer_6_inst;
   reg              buffer_6_hasException;
@@ -113,6 +123,7 @@ module FetchBuffer(
   reg  [1:0]       buffer_6_bpu_type;
   reg  [9:0]       buffer_6_ghr;
   reg  [3:0]       buffer_6_ras_tos;
+  reg              buffer_6_br_actual_taken;
   reg  [31:0]      buffer_7_pc;
   reg  [31:0]      buffer_7_inst;
   reg              buffer_7_hasException;
@@ -122,6 +133,7 @@ module FetchBuffer(
   reg  [1:0]       buffer_7_bpu_type;
   reg  [9:0]       buffer_7_ghr;
   reg  [3:0]       buffer_7_ras_tos;
+  reg              buffer_7_br_actual_taken;
   reg  [2:0]       head;
   reg  [2:0]       tail;
   reg  [3:0]       count;
@@ -207,16 +219,57 @@ module FetchBuffer(
      {buffer_2_ras_tos},
      {buffer_1_ras_tos},
      {buffer_0_ras_tos}};
+  wire [7:0]       _GEN_8 =
+    {{buffer_7_br_actual_taken},
+     {buffer_6_br_actual_taken},
+     {buffer_5_br_actual_taken},
+     {buffer_4_br_actual_taken},
+     {buffer_3_br_actual_taken},
+     {buffer_2_br_actual_taken},
+     {buffer_1_br_actual_taken},
+     {buffer_0_br_actual_taken}};
   wire [2:0]       _io_out_inst1_sum_T = head + 3'h1;
   always @(posedge clock) begin
+    automatic logic [7:0] t0_oh;
+    automatic logic [7:0] t1_oh;
+    automatic logic       we0;
+    automatic logic       we1;
+    automatic logic       we0_1;
+    automatic logic       we1_1;
+    automatic logic       we0_2;
+    automatic logic       we1_2;
+    automatic logic       we0_3;
+    automatic logic       we1_3;
+    automatic logic       we0_4;
+    automatic logic       we1_4;
+    automatic logic       we0_5;
+    automatic logic       we1_5;
+    automatic logic       we0_6;
+    automatic logic       we1_6;
+    automatic logic       we0_7;
+    automatic logic       we1_7;
+    t0_oh = 8'h1 << tail;
+    t1_oh = 8'h1 << tail + 3'h1;
+    we0 = in_ready & t0_oh[0];
+    we1 = in_ready & t1_oh[0];
+    we0_1 = in_ready & t0_oh[1];
+    we1_1 = in_ready & t1_oh[1];
+    we0_2 = in_ready & t0_oh[2];
+    we1_2 = in_ready & t1_oh[2];
+    we0_3 = in_ready & t0_oh[3];
+    we1_3 = in_ready & t1_oh[3];
+    we0_4 = in_ready & t0_oh[4];
+    we1_4 = in_ready & t1_oh[4];
+    we0_5 = in_ready & t0_oh[5];
+    we1_5 = in_ready & t1_oh[5];
+    we0_6 = in_ready & t0_oh[6];
+    we1_6 = in_ready & t1_oh[6];
+    we0_7 = in_ready & t0_oh[7];
+    we1_7 = in_ready & t1_oh[7];
     if (io_flush) begin
     end
     else begin
-      automatic logic [7:0] t0_oh;
-      automatic logic [7:0] t1_oh;
-      t0_oh = 8'h1 << tail;
-      t1_oh = 8'h1 << tail + 3'h1;
-      if (in_ready & t0_oh[0]) begin
+      if (we0) begin
         buffer_0_pc <= io_in0_bits_pc;
         buffer_0_inst <= io_in0_bits_inst;
         buffer_0_hasException <= io_in0_bits_hasException;
@@ -227,7 +280,7 @@ module FetchBuffer(
         buffer_0_ghr <= io_in0_bits_ghr;
         buffer_0_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (in_ready & t1_oh[0]) begin
+      else if (we1) begin
         buffer_0_pc <= io_in1_bits_pc;
         buffer_0_inst <= io_in1_bits_inst;
         buffer_0_hasException <= io_in1_bits_hasException;
@@ -238,7 +291,7 @@ module FetchBuffer(
         buffer_0_ghr <= io_in1_bits_ghr;
         buffer_0_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (in_ready & t0_oh[1]) begin
+      if (we0_1) begin
         buffer_1_pc <= io_in0_bits_pc;
         buffer_1_inst <= io_in0_bits_inst;
         buffer_1_hasException <= io_in0_bits_hasException;
@@ -249,7 +302,7 @@ module FetchBuffer(
         buffer_1_ghr <= io_in0_bits_ghr;
         buffer_1_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (in_ready & t1_oh[1]) begin
+      else if (we1_1) begin
         buffer_1_pc <= io_in1_bits_pc;
         buffer_1_inst <= io_in1_bits_inst;
         buffer_1_hasException <= io_in1_bits_hasException;
@@ -260,7 +313,7 @@ module FetchBuffer(
         buffer_1_ghr <= io_in1_bits_ghr;
         buffer_1_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (in_ready & t0_oh[2]) begin
+      if (we0_2) begin
         buffer_2_pc <= io_in0_bits_pc;
         buffer_2_inst <= io_in0_bits_inst;
         buffer_2_hasException <= io_in0_bits_hasException;
@@ -271,7 +324,7 @@ module FetchBuffer(
         buffer_2_ghr <= io_in0_bits_ghr;
         buffer_2_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (in_ready & t1_oh[2]) begin
+      else if (we1_2) begin
         buffer_2_pc <= io_in1_bits_pc;
         buffer_2_inst <= io_in1_bits_inst;
         buffer_2_hasException <= io_in1_bits_hasException;
@@ -282,7 +335,7 @@ module FetchBuffer(
         buffer_2_ghr <= io_in1_bits_ghr;
         buffer_2_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (in_ready & t0_oh[3]) begin
+      if (we0_3) begin
         buffer_3_pc <= io_in0_bits_pc;
         buffer_3_inst <= io_in0_bits_inst;
         buffer_3_hasException <= io_in0_bits_hasException;
@@ -293,7 +346,7 @@ module FetchBuffer(
         buffer_3_ghr <= io_in0_bits_ghr;
         buffer_3_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (in_ready & t1_oh[3]) begin
+      else if (we1_3) begin
         buffer_3_pc <= io_in1_bits_pc;
         buffer_3_inst <= io_in1_bits_inst;
         buffer_3_hasException <= io_in1_bits_hasException;
@@ -304,7 +357,7 @@ module FetchBuffer(
         buffer_3_ghr <= io_in1_bits_ghr;
         buffer_3_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (in_ready & t0_oh[4]) begin
+      if (we0_4) begin
         buffer_4_pc <= io_in0_bits_pc;
         buffer_4_inst <= io_in0_bits_inst;
         buffer_4_hasException <= io_in0_bits_hasException;
@@ -315,7 +368,7 @@ module FetchBuffer(
         buffer_4_ghr <= io_in0_bits_ghr;
         buffer_4_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (in_ready & t1_oh[4]) begin
+      else if (we1_4) begin
         buffer_4_pc <= io_in1_bits_pc;
         buffer_4_inst <= io_in1_bits_inst;
         buffer_4_hasException <= io_in1_bits_hasException;
@@ -326,7 +379,7 @@ module FetchBuffer(
         buffer_4_ghr <= io_in1_bits_ghr;
         buffer_4_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (in_ready & t0_oh[5]) begin
+      if (we0_5) begin
         buffer_5_pc <= io_in0_bits_pc;
         buffer_5_inst <= io_in0_bits_inst;
         buffer_5_hasException <= io_in0_bits_hasException;
@@ -337,7 +390,7 @@ module FetchBuffer(
         buffer_5_ghr <= io_in0_bits_ghr;
         buffer_5_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (in_ready & t1_oh[5]) begin
+      else if (we1_5) begin
         buffer_5_pc <= io_in1_bits_pc;
         buffer_5_inst <= io_in1_bits_inst;
         buffer_5_hasException <= io_in1_bits_hasException;
@@ -348,7 +401,7 @@ module FetchBuffer(
         buffer_5_ghr <= io_in1_bits_ghr;
         buffer_5_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (in_ready & t0_oh[6]) begin
+      if (we0_6) begin
         buffer_6_pc <= io_in0_bits_pc;
         buffer_6_inst <= io_in0_bits_inst;
         buffer_6_hasException <= io_in0_bits_hasException;
@@ -359,7 +412,7 @@ module FetchBuffer(
         buffer_6_ghr <= io_in0_bits_ghr;
         buffer_6_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (in_ready & t1_oh[6]) begin
+      else if (we1_6) begin
         buffer_6_pc <= io_in1_bits_pc;
         buffer_6_inst <= io_in1_bits_inst;
         buffer_6_hasException <= io_in1_bits_hasException;
@@ -370,7 +423,7 @@ module FetchBuffer(
         buffer_6_ghr <= io_in1_bits_ghr;
         buffer_6_ras_tos <= io_in1_bits_ras_tos;
       end
-      if (in_ready & t0_oh[7]) begin
+      if (we0_7) begin
         buffer_7_pc <= io_in0_bits_pc;
         buffer_7_inst <= io_in0_bits_inst;
         buffer_7_hasException <= io_in0_bits_hasException;
@@ -381,7 +434,7 @@ module FetchBuffer(
         buffer_7_ghr <= io_in0_bits_ghr;
         buffer_7_ras_tos <= io_in0_bits_ras_tos;
       end
-      else if (in_ready & t1_oh[7]) begin
+      else if (we1_7) begin
         buffer_7_pc <= io_in1_bits_pc;
         buffer_7_inst <= io_in1_bits_inst;
         buffer_7_hasException <= io_in1_bits_hasException;
@@ -393,6 +446,14 @@ module FetchBuffer(
         buffer_7_ras_tos <= io_in1_bits_ras_tos;
       end
     end
+    buffer_0_br_actual_taken <= (io_flush | ~(we0 | we1)) & buffer_0_br_actual_taken;
+    buffer_1_br_actual_taken <= (io_flush | ~(we0_1 | we1_1)) & buffer_1_br_actual_taken;
+    buffer_2_br_actual_taken <= (io_flush | ~(we0_2 | we1_2)) & buffer_2_br_actual_taken;
+    buffer_3_br_actual_taken <= (io_flush | ~(we0_3 | we1_3)) & buffer_3_br_actual_taken;
+    buffer_4_br_actual_taken <= (io_flush | ~(we0_4 | we1_4)) & buffer_4_br_actual_taken;
+    buffer_5_br_actual_taken <= (io_flush | ~(we0_5 | we1_5)) & buffer_5_br_actual_taken;
+    buffer_6_br_actual_taken <= (io_flush | ~(we0_6 | we1_6)) & buffer_6_br_actual_taken;
+    buffer_7_br_actual_taken <= (io_flush | ~(we0_7 | we1_7)) & buffer_7_br_actual_taken;
   end // always @(posedge)
   always @(posedge clock or posedge reset) begin
     if (reset) begin
@@ -436,6 +497,8 @@ module FetchBuffer(
   assign io_out_inst0_bpu_type = _GEN_5[head];
   assign io_out_inst0_ghr = _GEN_6[head];
   assign io_out_inst0_ras_tos = _GEN_7[head];
+  assign io_out_inst0_br_actual_taken = _GEN_8[head];
+  assign io_out_inst0_br_type = 2'h0;
   assign io_out_valid1 = |(count[3:1]);
   assign io_out_inst1_pc = _GEN[_io_out_inst1_sum_T];
   assign io_out_inst1_inst = _GEN_0[_io_out_inst1_sum_T];
@@ -447,5 +510,7 @@ module FetchBuffer(
   assign io_out_inst1_bpu_type = _GEN_5[_io_out_inst1_sum_T];
   assign io_out_inst1_ghr = _GEN_6[_io_out_inst1_sum_T];
   assign io_out_inst1_ras_tos = _GEN_7[_io_out_inst1_sum_T];
+  assign io_out_inst1_br_actual_taken = _GEN_8[_io_out_inst1_sum_T];
+  assign io_out_inst1_br_type = 2'h0;
 endmodule
 

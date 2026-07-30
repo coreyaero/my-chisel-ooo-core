@@ -50,6 +50,8 @@ module IssueBuffer(
   input  [1:0]  io_enq_bits_bpu_type,
   input  [9:0]  io_enq_bits_ghr,
   input  [3:0]  io_enq_bits_ras_tos,
+  input         io_enq_bits_br_actual_taken,
+  input  [1:0]  io_enq_bits_br_type,
   input         io_deq_ready,
   output        io_deq_valid,
   output [31:0] io_deq_bits_pc,
@@ -93,7 +95,9 @@ module IssueBuffer(
   output [31:0] io_deq_bits_pred_target,
   output [1:0]  io_deq_bits_bpu_type,
   output [9:0]  io_deq_bits_ghr,
-  output [3:0]  io_deq_bits_ras_tos
+  output [3:0]  io_deq_bits_ras_tos,
+  output        io_deq_bits_br_actual_taken,
+  output [1:0]  io_deq_bits_br_type
 );
 
   reg         valid_reg;
@@ -139,6 +143,8 @@ module IssueBuffer(
   reg  [1:0]  data_reg_bpu_type;
   reg  [9:0]  data_reg_ghr;
   reg  [3:0]  data_reg_ras_tos;
+  reg         data_reg_br_actual_taken;
+  reg  [1:0]  data_reg_br_type;
   wire [6:0]  _clear_mask_T_1 = 7'h1 << io_br_resolve_tag;
   wire        current_is_killed =
     valid_reg & io_br_resolve_valid & io_br_resolve_mispredict
@@ -190,6 +196,8 @@ module IssueBuffer(
       data_reg_bpu_type <= 2'h0;
       data_reg_ghr <= 10'h0;
       data_reg_ras_tos <= 4'h0;
+      data_reg_br_actual_taken <= 1'h0;
+      data_reg_br_type <= 2'h0;
     end
     else begin
       automatic logic _data_reg_branch_mask_T;
@@ -243,6 +251,8 @@ module IssueBuffer(
         data_reg_bpu_type <= io_enq_bits_bpu_type;
         data_reg_ghr <= io_enq_bits_ghr;
         data_reg_ras_tos <= io_enq_bits_ras_tos;
+        data_reg_br_actual_taken <= io_enq_bits_br_actual_taken;
+        data_reg_br_type <= io_enq_bits_br_type;
       end
       if (_GEN)
         data_reg_branch_mask <=
@@ -301,6 +311,8 @@ module IssueBuffer(
         data_reg_bpu_type = 2'h0;
         data_reg_ghr = 10'h0;
         data_reg_ras_tos = 4'h0;
+        data_reg_br_actual_taken = 1'h0;
+        data_reg_br_type = 2'h0;
       end
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -352,5 +364,7 @@ module IssueBuffer(
   assign io_deq_bits_bpu_type = data_reg_bpu_type;
   assign io_deq_bits_ghr = data_reg_ghr;
   assign io_deq_bits_ras_tos = data_reg_ras_tos;
+  assign io_deq_bits_br_actual_taken = data_reg_br_actual_taken;
+  assign io_deq_bits_br_type = data_reg_br_type;
 endmodule
 

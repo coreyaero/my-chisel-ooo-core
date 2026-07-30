@@ -59,6 +59,10 @@ module AluUnit(
                 io_out_bits_is_cacop,
   output [4:0]  io_out_bits_rob_idx,
   output [5:0]  io_out_bits_pdest,
+  output        io_out_bits_is_branch,
+  output [9:0]  io_out_bits_ghr,
+  output        io_out_bits_br_actual_taken,
+  output [1:0]  io_out_bits_br_type,
   output        io_branch_req,
   output [31:0] io_branch_pc,
   output        io_br_resolve_valid,
@@ -329,6 +333,10 @@ module AluUnit(
   assign io_out_bits_is_cacop = data_reg_is_cacop;
   assign io_out_bits_rob_idx = data_reg_rob_idx;
   assign io_out_bits_pdest = data_reg_pdest;
+  assign io_out_bits_is_branch = data_reg_is_branch;
+  assign io_out_bits_ghr = data_reg_ghr;
+  assign io_out_bits_br_actual_taken = branch_actual_taken;
+  assign io_out_bits_br_type = btype;
   assign io_branch_req = do_br_resolve & mispredict;
   assign io_branch_pc = branch_actual_taken ? _calc_target_pc_T : data_reg_pc + 32'h4;
   assign io_br_resolve_valid = do_br_resolve;

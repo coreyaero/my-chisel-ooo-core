@@ -22,7 +22,11 @@ module MaskedQueue(
                 io_enq_bits_is_cacop,
   input  [4:0]  io_enq_bits_rob_idx,
   input  [5:0]  io_enq_bits_pdest,
+  input         io_enq_bits_is_branch,
   input  [3:0]  io_enq_bits_branch_mask,
+  input  [9:0]  io_enq_bits_ghr,
+  input         io_enq_bits_br_actual_taken,
+  input  [1:0]  io_enq_bits_br_type,
   input         io_deq_ready,
   output        io_deq_valid,
   output [31:0] io_deq_bits_pc,
@@ -43,6 +47,10 @@ module MaskedQueue(
                 io_deq_bits_is_cacop,
   output [4:0]  io_deq_bits_rob_idx,
   output [5:0]  io_deq_bits_pdest,
+  output        io_deq_bits_is_branch,
+  output [9:0]  io_deq_bits_ghr,
+  output        io_deq_bits_br_actual_taken,
+  output [1:0]  io_deq_bits_br_type,
   input         io_flush,
                 io_br_resolve_in_valid,
                 io_br_resolve_in_mispredict,
@@ -68,7 +76,11 @@ module MaskedQueue(
   reg         data_0_is_cacop;
   reg  [4:0]  data_0_rob_idx;
   reg  [5:0]  data_0_pdest;
+  reg         data_0_is_branch;
   reg  [3:0]  data_0_branch_mask;
+  reg  [9:0]  data_0_ghr;
+  reg         data_0_br_actual_taken;
+  reg  [1:0]  data_0_br_type;
   reg         valid_1;
   reg  [31:0] data_1_pc;
   reg  [31:0] data_1_src2_value;
@@ -88,7 +100,11 @@ module MaskedQueue(
   reg         data_1_is_cacop;
   reg  [4:0]  data_1_rob_idx;
   reg  [5:0]  data_1_pdest;
+  reg         data_1_is_branch;
   reg  [3:0]  data_1_branch_mask;
+  reg  [9:0]  data_1_ghr;
+  reg         data_1_br_actual_taken;
+  reg  [1:0]  data_1_br_type;
   wire        br_fail = io_br_resolve_in_valid & io_br_resolve_in_mispredict;
   wire [6:0]  br_tag_bit = 7'h1 << io_br_resolve_in_tag;
   wire        keep_0 = valid_0 & ~(br_fail & (|(br_tag_bit[3:0] & data_0_branch_mask)));
@@ -116,7 +132,11 @@ module MaskedQueue(
       data_0_is_cacop <= 1'h0;
       data_0_rob_idx <= 5'h0;
       data_0_pdest <= 6'h0;
+      data_0_is_branch <= 1'h0;
       data_0_branch_mask <= 4'h0;
+      data_0_ghr <= 10'h0;
+      data_0_br_actual_taken <= 1'h0;
+      data_0_br_type <= 2'h0;
       valid_1 <= 1'h0;
       data_1_pc <= 32'h0;
       data_1_src2_value <= 32'h0;
@@ -136,7 +156,11 @@ module MaskedQueue(
       data_1_is_cacop <= 1'h0;
       data_1_rob_idx <= 5'h0;
       data_1_pdest <= 6'h0;
+      data_1_is_branch <= 1'h0;
       data_1_branch_mask <= 4'h0;
+      data_1_ghr <= 10'h0;
+      data_1_br_actual_taken <= 1'h0;
+      data_1_br_type <= 2'h0;
     end
     else begin
       automatic logic [3:0] _GEN;
@@ -154,6 +178,7 @@ module MaskedQueue(
       automatic logic       _GEN_8;
       automatic logic       _GEN_9;
       automatic logic       _GEN_10;
+      automatic logic       _GEN_11;
       _GEN = {4{io_br_resolve_in_valid & ~io_br_resolve_in_mispredict}} & br_tag_bit[3:0];
       clean_enq_data_branch_mask = ~_GEN & io_enq_bits_branch_mask;
       clean_data_1_branch_mask = ~_GEN & data_1_branch_mask;
@@ -173,6 +198,7 @@ module MaskedQueue(
       _GEN_8 = io_flush | _GEN_0;
       _GEN_9 = _GEN_5 | _GEN_6;
       _GEN_10 = io_flush | _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3;
+      _GEN_11 = _GEN_10 | _GEN_4 | ~_GEN_9;
       valid_0 <= ~_GEN_8 & (_GEN_1 | _GEN_2 | _GEN_3 | _GEN_7 | _GEN_6);
       if (~(_GEN_8 | _GEN_1)) begin
         if (_GEN_2) begin
@@ -194,6 +220,10 @@ module MaskedQueue(
           data_0_is_cacop <= data_1_is_cacop;
           data_0_rob_idx <= data_1_rob_idx;
           data_0_pdest <= data_1_pdest;
+          data_0_is_branch <= data_1_is_branch;
+          data_0_ghr <= data_1_ghr;
+          data_0_br_actual_taken <= data_1_br_actual_taken;
+          data_0_br_type <= data_1_br_type;
         end
         else if (_GEN_3) begin
           data_0_pc <= io_enq_bits_pc;
@@ -214,6 +244,10 @@ module MaskedQueue(
           data_0_is_cacop <= io_enq_bits_is_cacop;
           data_0_rob_idx <= io_enq_bits_rob_idx;
           data_0_pdest <= io_enq_bits_pdest;
+          data_0_is_branch <= io_enq_bits_is_branch;
+          data_0_ghr <= io_enq_bits_ghr;
+          data_0_br_actual_taken <= io_enq_bits_br_actual_taken;
+          data_0_br_type <= io_enq_bits_br_type;
         end
         else if (_GEN_7 | ~_GEN_6) begin
         end
@@ -236,13 +270,17 @@ module MaskedQueue(
           data_0_is_cacop <= data_1_is_cacop;
           data_0_rob_idx <= data_1_rob_idx;
           data_0_pdest <= data_1_pdest;
+          data_0_is_branch <= data_1_is_branch;
+          data_0_ghr <= data_1_ghr;
+          data_0_br_actual_taken <= data_1_br_actual_taken;
+          data_0_br_type <= data_1_br_type;
         end
       end
       if (~_GEN_8) begin
         automatic logic [3:0]      out_data_branch_mask;
-        automatic logic [7:0][3:0] _GEN_11;
+        automatic logic [7:0][3:0] _GEN_12;
         out_data_branch_mask = ~_GEN & data_0_branch_mask;
-        _GEN_11 =
+        _GEN_12 =
           {{data_0_branch_mask},
            {clean_data_1_branch_mask},
            {out_data_branch_mask},
@@ -251,10 +289,10 @@ module MaskedQueue(
            {clean_data_1_branch_mask},
            {out_data_branch_mask},
            {data_0_branch_mask}};
-        data_0_branch_mask <= _GEN_11[v_bits];
+        data_0_branch_mask <= _GEN_12[v_bits];
       end
       valid_1 <= ~_GEN_10 & (_GEN_7 | _GEN_6);
-      if (_GEN_10 | _GEN_4 | ~_GEN_9) begin
+      if (_GEN_11) begin
       end
       else begin
         data_1_pc <= io_enq_bits_pc;
@@ -275,12 +313,20 @@ module MaskedQueue(
         data_1_is_cacop <= io_enq_bits_is_cacop;
         data_1_rob_idx <= io_enq_bits_rob_idx;
         data_1_pdest <= io_enq_bits_pdest;
+        data_1_is_branch <= io_enq_bits_is_branch;
       end
       if (~_GEN_10) begin
         if (_GEN_4)
           data_1_branch_mask <= clean_data_1_branch_mask;
         else if (_GEN_9)
           data_1_branch_mask <= clean_enq_data_branch_mask;
+      end
+      if (_GEN_11) begin
+      end
+      else begin
+        data_1_ghr <= io_enq_bits_ghr;
+        data_1_br_actual_taken <= io_enq_bits_br_actual_taken;
+        data_1_br_type <= io_enq_bits_br_type;
       end
     end
   end // always @(posedge, posedge)
@@ -309,7 +355,11 @@ module MaskedQueue(
         data_0_is_cacop = 1'h0;
         data_0_rob_idx = 5'h0;
         data_0_pdest = 6'h0;
+        data_0_is_branch = 1'h0;
         data_0_branch_mask = 4'h0;
+        data_0_ghr = 10'h0;
+        data_0_br_actual_taken = 1'h0;
+        data_0_br_type = 2'h0;
         valid_1 = 1'h0;
         data_1_pc = 32'h0;
         data_1_src2_value = 32'h0;
@@ -329,7 +379,11 @@ module MaskedQueue(
         data_1_is_cacop = 1'h0;
         data_1_rob_idx = 5'h0;
         data_1_pdest = 6'h0;
+        data_1_is_branch = 1'h0;
         data_1_branch_mask = 4'h0;
+        data_1_ghr = 10'h0;
+        data_1_br_actual_taken = 1'h0;
+        data_1_br_type = 2'h0;
       end
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -356,5 +410,9 @@ module MaskedQueue(
   assign io_deq_bits_is_cacop = data_0_is_cacop;
   assign io_deq_bits_rob_idx = data_0_rob_idx;
   assign io_deq_bits_pdest = data_0_pdest;
+  assign io_deq_bits_is_branch = data_0_is_branch;
+  assign io_deq_bits_ghr = data_0_ghr;
+  assign io_deq_bits_br_actual_taken = data_0_br_actual_taken;
+  assign io_deq_bits_br_type = data_0_br_type;
 endmodule
 

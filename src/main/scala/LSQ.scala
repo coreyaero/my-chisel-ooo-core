@@ -72,6 +72,8 @@ class LSQ extends Module {
 
         val dcache_req_id = Output(UInt(8.W)) // ★ 新增
         val dcache_ret_id = Input(UInt(8.W))  // ★ 新增
+
+        val rob_head   = Input(UInt(Config.robPtrWidth.W))
     })
     val ticket_counter = RegInit(0.U(8.W))
 
@@ -337,9 +339,13 @@ class LSQ extends Module {
         val load_ready  = e.is_load && stable_addr_valid
         val base_rdy    = store_ready || load_ready
 
-        // 幽灵读取防线：动态读取 branch_mask，当拍有效
-        val uncached_safe = !e.uncached || (e.branch_mask === 0.U)
 
+        val is_oldest = (e.rob_idx === io.rob_head)
+        // 2. 终极幽灵防线：
+        //    - 如果是普通的 Cached 指令，直接安全 (!e.uncached)
+        //    - 如果是 Store/CACOP，它们有 committed 护体，直接安全 (e.committed)
+        //    - 如果是 Uncached Load，必须等到它是最老指令，才算安全 (is_oldest)
+        val uncached_safe = !e.uncached || e.committed || is_oldest
         val e_can_issue_to_cache = is_active && base_rdy && uncached_safe && (!e.is_load || (!conflict && !can_fwd))
         actual_can_issue(i) := e_can_issue_to_cache && Mux(e.is_cacop, safe_to_issue_cacop, safe_to_issue_normal)
 

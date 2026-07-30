@@ -26,8 +26,12 @@ module AguUnit(
   input  [4:0]  io_in_bits_cacop_op,
                 io_in_bits_rob_idx,
   input  [5:0]  io_in_bits_pdest,
+  input         io_in_bits_is_branch,
   input  [3:0]  io_in_bits_branch_mask,
                 io_in_bits_lsq_idx,
+  input  [9:0]  io_in_bits_ghr,
+  input         io_in_bits_br_actual_taken,
+  input  [1:0]  io_in_bits_br_type,
   input         io_out_ready,
   output        io_out_valid,
   output [31:0] io_out_bits_pc,
@@ -48,7 +52,11 @@ module AguUnit(
                 io_out_bits_is_cacop,
   output [4:0]  io_out_bits_rob_idx,
   output [5:0]  io_out_bits_pdest,
+  output        io_out_bits_is_branch,
   output [3:0]  io_out_bits_branch_mask,
+  output [9:0]  io_out_bits_ghr,
+  output        io_out_bits_br_actual_taken,
+  output [1:0]  io_out_bits_br_type,
   output        io_to_lsq_valid,
   output [3:0]  io_to_lsq_bits_lsqIdx,
   output [31:0] io_to_lsq_bits_paddr,
@@ -119,8 +127,12 @@ module AguUnit(
   reg  [4:0]  ex1_data_cacop_op;
   reg  [4:0]  ex1_data_rob_idx;
   reg  [5:0]  ex1_data_pdest;
+  reg         ex1_data_is_branch;
   reg  [3:0]  ex1_data_branch_mask;
   reg  [3:0]  ex1_data_lsq_idx;
+  reg  [9:0]  ex1_data_ghr;
+  reg         ex1_data_br_actual_taken;
+  reg  [1:0]  ex1_data_br_type;
   reg         ex2_valid;
   reg  [31:0] ex2_data_data_pc;
   reg  [31:0] ex2_data_data_src2_value;
@@ -140,8 +152,12 @@ module AguUnit(
   reg  [4:0]  ex2_data_data_cacop_op;
   reg  [4:0]  ex2_data_data_rob_idx;
   reg  [5:0]  ex2_data_data_pdest;
+  reg         ex2_data_data_is_branch;
   reg  [3:0]  ex2_data_data_branch_mask;
   reg  [3:0]  ex2_data_data_lsq_idx;
+  reg  [9:0]  ex2_data_data_ghr;
+  reg         ex2_data_data_br_actual_taken;
+  reg  [1:0]  ex2_data_data_br_type;
   reg  [31:0] ex2_data_va;
   reg  [31:0] ex2_data_src2;
   reg         ex2_data_is_tlbsrch;
@@ -217,8 +233,12 @@ module AguUnit(
       ex1_data_cacop_op <= 5'h0;
       ex1_data_rob_idx <= 5'h0;
       ex1_data_pdest <= 6'h0;
+      ex1_data_is_branch <= 1'h0;
       ex1_data_branch_mask <= 4'h0;
       ex1_data_lsq_idx <= 4'h0;
+      ex1_data_ghr <= 10'h0;
+      ex1_data_br_actual_taken <= 1'h0;
+      ex1_data_br_type <= 2'h0;
       ex2_valid <= 1'h0;
       ex2_data_data_pc <= 32'h0;
       ex2_data_data_src2_value <= 32'h0;
@@ -238,8 +258,12 @@ module AguUnit(
       ex2_data_data_cacop_op <= 5'h0;
       ex2_data_data_rob_idx <= 5'h0;
       ex2_data_data_pdest <= 6'h0;
+      ex2_data_data_is_branch <= 1'h0;
       ex2_data_data_branch_mask <= 4'h0;
       ex2_data_data_lsq_idx <= 4'h0;
+      ex2_data_data_ghr <= 10'h0;
+      ex2_data_data_br_actual_taken <= 1'h0;
+      ex2_data_data_br_type <= 2'h0;
       ex2_data_va <= 32'h0;
       ex2_data_src2 <= 32'h0;
       ex2_data_is_tlbsrch <= 1'h0;
@@ -291,6 +315,7 @@ module AguUnit(
         ex1_data_cacop_op <= io_in_bits_cacop_op;
         ex1_data_rob_idx <= io_in_bits_rob_idx;
         ex1_data_pdest <= io_in_bits_pdest;
+        ex1_data_is_branch <= io_in_bits_is_branch;
       end
       if (io_flush) begin
       end
@@ -306,8 +331,12 @@ module AguUnit(
       end
       if (_GEN) begin
       end
-      else
+      else begin
         ex1_data_lsq_idx <= io_in_bits_lsq_idx;
+        ex1_data_ghr <= io_in_bits_ghr;
+        ex1_data_br_actual_taken <= io_in_bits_br_actual_taken;
+        ex1_data_br_type <= io_in_bits_br_type;
+      end
       ex2_valid <= ~io_flush & (ex2_ready ? ex1_active : ex2_valid);
       if (io_flush | ~ex2_ready) begin
       end
@@ -336,7 +365,11 @@ module AguUnit(
         ex2_data_data_cacop_op <= ex1_data_cacop_op;
         ex2_data_data_rob_idx <= ex1_data_rob_idx;
         ex2_data_data_pdest <= ex1_data_pdest;
+        ex2_data_data_is_branch <= ex1_data_is_branch;
         ex2_data_data_lsq_idx <= ex1_data_lsq_idx;
+        ex2_data_data_ghr <= ex1_data_ghr;
+        ex2_data_data_br_actual_taken <= ex1_data_br_actual_taken;
+        ex2_data_data_br_type <= ex1_data_br_type;
         ex2_data_va <= _ex1_va_T_1;
         ex2_data_src2 <= ex1_data_src2_value;
         ex2_data_is_tlbsrch <= is_tlbsrch;
@@ -392,8 +425,12 @@ module AguUnit(
         ex1_data_cacop_op = 5'h0;
         ex1_data_rob_idx = 5'h0;
         ex1_data_pdest = 6'h0;
+        ex1_data_is_branch = 1'h0;
         ex1_data_branch_mask = 4'h0;
         ex1_data_lsq_idx = 4'h0;
+        ex1_data_ghr = 10'h0;
+        ex1_data_br_actual_taken = 1'h0;
+        ex1_data_br_type = 2'h0;
         ex2_valid = 1'h0;
         ex2_data_data_pc = 32'h0;
         ex2_data_data_src2_value = 32'h0;
@@ -413,8 +450,12 @@ module AguUnit(
         ex2_data_data_cacop_op = 5'h0;
         ex2_data_data_rob_idx = 5'h0;
         ex2_data_data_pdest = 6'h0;
+        ex2_data_data_is_branch = 1'h0;
         ex2_data_data_branch_mask = 4'h0;
         ex2_data_data_lsq_idx = 4'h0;
+        ex2_data_data_ghr = 10'h0;
+        ex2_data_data_br_actual_taken = 1'h0;
+        ex2_data_data_br_type = 2'h0;
         ex2_data_va = 32'h0;
         ex2_data_src2 = 32'h0;
         ex2_data_is_tlbsrch = 1'h0;
@@ -461,7 +502,11 @@ module AguUnit(
   assign io_out_bits_is_cacop = ex2_data_data_is_cacop;
   assign io_out_bits_rob_idx = ex2_data_data_rob_idx;
   assign io_out_bits_pdest = ex2_data_data_pdest;
+  assign io_out_bits_is_branch = ex2_data_data_is_branch;
   assign io_out_bits_branch_mask = ex2_data_data_branch_mask;
+  assign io_out_bits_ghr = ex2_data_data_ghr;
+  assign io_out_bits_br_actual_taken = ex2_data_data_br_actual_taken;
+  assign io_out_bits_br_type = ex2_data_data_br_type;
   assign io_to_lsq_valid =
     (_is_lsq_inst_T | ex2_data_data_is_cacop) & ex2_active & ~io_flush;
   assign io_to_lsq_bits_lsqIdx = ex2_data_data_lsq_idx;

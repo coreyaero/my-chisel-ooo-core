@@ -20,6 +20,10 @@ module CdbArbiter(
                 io_reqs_0_bits_is_cacop,
   input  [4:0]  io_reqs_0_bits_rob_idx,
   input  [5:0]  io_reqs_0_bits_pdest,
+  input         io_reqs_0_bits_is_branch,
+  input  [9:0]  io_reqs_0_bits_ghr,
+  input         io_reqs_0_bits_br_actual_taken,
+  input  [1:0]  io_reqs_0_bits_br_type,
   output        io_reqs_1_ready,
   input         io_reqs_1_valid,
   input  [31:0] io_reqs_1_bits_pc,
@@ -49,6 +53,10 @@ module CdbArbiter(
                 io_reqs_2_bits_is_cacop,
   input  [4:0]  io_reqs_2_bits_rob_idx,
   input  [5:0]  io_reqs_2_bits_pdest,
+  input         io_reqs_2_bits_is_branch,
+  input  [9:0]  io_reqs_2_bits_ghr,
+  input         io_reqs_2_bits_br_actual_taken,
+  input  [1:0]  io_reqs_2_bits_br_type,
   output        io_reqs_3_ready,
   input         io_reqs_3_valid,
   input  [31:0] io_reqs_3_bits_pc,
@@ -69,6 +77,10 @@ module CdbArbiter(
                 io_reqs_3_bits_is_cacop,
   input  [4:0]  io_reqs_3_bits_rob_idx,
   input  [5:0]  io_reqs_3_bits_pdest,
+  input         io_reqs_3_bits_is_branch,
+  input  [9:0]  io_reqs_3_bits_ghr,
+  input         io_reqs_3_bits_br_actual_taken,
+  input  [1:0]  io_reqs_3_bits_br_type,
   output        io_reqs_4_ready,
   input         io_reqs_4_valid,
   input  [31:0] io_reqs_4_bits_pc,
@@ -89,6 +101,10 @@ module CdbArbiter(
                 io_reqs_4_bits_is_cacop,
   input  [4:0]  io_reqs_4_bits_rob_idx,
   input  [5:0]  io_reqs_4_bits_pdest,
+  input         io_reqs_4_bits_is_branch,
+  input  [9:0]  io_reqs_4_bits_ghr,
+  input         io_reqs_4_bits_br_actual_taken,
+  input  [1:0]  io_reqs_4_bits_br_type,
   output        io_cdb0_valid,
   output [31:0] io_cdb0_bits_pc,
                 io_cdb0_bits_src2_value,
@@ -108,6 +124,10 @@ module CdbArbiter(
                 io_cdb0_bits_is_cacop,
   output [4:0]  io_cdb0_bits_rob_idx,
   output [5:0]  io_cdb0_bits_pdest,
+  output        io_cdb0_bits_is_branch,
+  output [9:0]  io_cdb0_bits_ghr,
+  output        io_cdb0_bits_br_actual_taken,
+  output [1:0]  io_cdb0_bits_br_type,
   output        io_cdb1_valid,
   output [31:0] io_cdb1_bits_pc,
                 io_cdb1_bits_src2_value,
@@ -126,7 +146,11 @@ module CdbArbiter(
   output        io_cdb1_bits_is_refetch,
                 io_cdb1_bits_is_cacop,
   output [4:0]  io_cdb1_bits_rob_idx,
-  output [5:0]  io_cdb1_bits_pdest
+  output [5:0]  io_cdb1_bits_pdest,
+  output        io_cdb1_bits_is_branch,
+  output [9:0]  io_cdb1_bits_ghr,
+  output        io_cdb1_bits_br_actual_taken,
+  output [1:0]  io_cdb1_bits_br_type
 );
 
   wire [4:0] req_valids =
@@ -228,6 +252,21 @@ module CdbArbiter(
     | (grant0[2] ? io_reqs_2_bits_pdest : 6'h0)
     | (grant0[3] ? io_reqs_3_bits_pdest : 6'h0)
     | (grant0[4] ? io_reqs_4_bits_pdest : 6'h0);
+  assign io_cdb0_bits_is_branch =
+    grant0[0] & io_reqs_0_bits_is_branch | grant0[2] & io_reqs_2_bits_is_branch
+    | grant0[3] & io_reqs_3_bits_is_branch | grant0[4] & io_reqs_4_bits_is_branch;
+  assign io_cdb0_bits_ghr =
+    (grant0[0] ? io_reqs_0_bits_ghr : 10'h0) | (grant0[2] ? io_reqs_2_bits_ghr : 10'h0)
+    | (grant0[3] ? io_reqs_3_bits_ghr : 10'h0) | (grant0[4] ? io_reqs_4_bits_ghr : 10'h0);
+  assign io_cdb0_bits_br_actual_taken =
+    grant0[0] & io_reqs_0_bits_br_actual_taken | grant0[2]
+    & io_reqs_2_bits_br_actual_taken | grant0[3] & io_reqs_3_bits_br_actual_taken
+    | grant0[4] & io_reqs_4_bits_br_actual_taken;
+  assign io_cdb0_bits_br_type =
+    (grant0[0] ? io_reqs_0_bits_br_type : 2'h0)
+    | (grant0[2] ? io_reqs_2_bits_br_type : 2'h0)
+    | (grant0[3] ? io_reqs_3_bits_br_type : 2'h0)
+    | (grant0[4] ? io_reqs_4_bits_br_type : 2'h0);
   assign io_cdb1_valid = |_GEN;
   assign io_cdb1_bits_pc =
     (grant1[0] ? io_reqs_0_bits_pc : 32'h0) | (grant1[1] ? io_reqs_1_bits_pc : 32'h0)
@@ -305,5 +344,20 @@ module CdbArbiter(
     | (grant1[2] ? io_reqs_2_bits_pdest : 6'h0)
     | (grant1[3] ? io_reqs_3_bits_pdest : 6'h0)
     | (grant1[4] ? io_reqs_4_bits_pdest : 6'h0);
+  assign io_cdb1_bits_is_branch =
+    grant1[0] & io_reqs_0_bits_is_branch | grant1[2] & io_reqs_2_bits_is_branch
+    | grant1[3] & io_reqs_3_bits_is_branch | grant1[4] & io_reqs_4_bits_is_branch;
+  assign io_cdb1_bits_ghr =
+    (grant1[0] ? io_reqs_0_bits_ghr : 10'h0) | (grant1[2] ? io_reqs_2_bits_ghr : 10'h0)
+    | (grant1[3] ? io_reqs_3_bits_ghr : 10'h0) | (grant1[4] ? io_reqs_4_bits_ghr : 10'h0);
+  assign io_cdb1_bits_br_actual_taken =
+    grant1[0] & io_reqs_0_bits_br_actual_taken | grant1[2]
+    & io_reqs_2_bits_br_actual_taken | grant1[3] & io_reqs_3_bits_br_actual_taken
+    | grant1[4] & io_reqs_4_bits_br_actual_taken;
+  assign io_cdb1_bits_br_type =
+    (grant1[0] ? io_reqs_0_bits_br_type : 2'h0)
+    | (grant1[2] ? io_reqs_2_bits_br_type : 2'h0)
+    | (grant1[3] ? io_reqs_3_bits_br_type : 2'h0)
+    | (grant1[4] ? io_reqs_4_bits_br_type : 2'h0);
 endmodule
 

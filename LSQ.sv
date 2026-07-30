@@ -57,7 +57,8 @@ module LSQ(
   output [4:0]  io_lsq_wb_bits_rob_idx,
   output [5:0]  io_lsq_wb_bits_pdest,
   output [7:0]  io_dcache_req_id,
-  input  [7:0]  io_dcache_ret_id
+  input  [7:0]  io_dcache_ret_id,
+  input  [4:0]  io_rob_head
 );
 
   reg  [7:0]        ticket_counter;
@@ -1876,7 +1877,8 @@ module LSQ(
         _store_ready_T & stable_addr_valid & entries_0_committed | entries_0_is_load
         & stable_addr_valid;
       actual_can_issue_0 =
-        is_active & base_rdy & (~entries_0_uncached | entries_0_branch_mask == 4'h0)
+        is_active & base_rdy
+        & (~entries_0_uncached | entries_0_committed | entries_0_rob_idx == io_rob_head)
         & (~entries_0_is_load | ~pipe_conflict_0 & ~pipe_can_fwd_0)
         & (entries_0_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_0 = is_active & entries_0_is_load & base_rdy & pipe_can_fwd_0;
@@ -1887,7 +1889,8 @@ module LSQ(
         _store_ready_T_2 & stable_addr_valid_1 & entries_1_committed | entries_1_is_load
         & stable_addr_valid_1;
       actual_can_issue_1 =
-        is_active_1 & base_rdy_1 & (~entries_1_uncached | entries_1_branch_mask == 4'h0)
+        is_active_1 & base_rdy_1
+        & (~entries_1_uncached | entries_1_committed | entries_1_rob_idx == io_rob_head)
         & (~entries_1_is_load | ~pipe_conflict_1 & ~pipe_can_fwd_1)
         & (entries_1_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_1 = is_active_1 & entries_1_is_load & base_rdy_1 & pipe_can_fwd_1;
@@ -1898,7 +1901,8 @@ module LSQ(
         _store_ready_T_4 & stable_addr_valid_2 & entries_2_committed | entries_2_is_load
         & stable_addr_valid_2;
       actual_can_issue_2 =
-        is_active_2 & base_rdy_2 & (~entries_2_uncached | entries_2_branch_mask == 4'h0)
+        is_active_2 & base_rdy_2
+        & (~entries_2_uncached | entries_2_committed | entries_2_rob_idx == io_rob_head)
         & (~entries_2_is_load | ~pipe_conflict_2 & ~pipe_can_fwd_2)
         & (entries_2_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_2 = is_active_2 & entries_2_is_load & base_rdy_2 & pipe_can_fwd_2;
@@ -1909,7 +1913,8 @@ module LSQ(
         _store_ready_T_6 & stable_addr_valid_3 & entries_3_committed | entries_3_is_load
         & stable_addr_valid_3;
       actual_can_issue_3 =
-        is_active_3 & base_rdy_3 & (~entries_3_uncached | entries_3_branch_mask == 4'h0)
+        is_active_3 & base_rdy_3
+        & (~entries_3_uncached | entries_3_committed | entries_3_rob_idx == io_rob_head)
         & (~entries_3_is_load | ~pipe_conflict_3 & ~pipe_can_fwd_3)
         & (entries_3_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_3 = is_active_3 & entries_3_is_load & base_rdy_3 & pipe_can_fwd_3;
@@ -1920,7 +1925,8 @@ module LSQ(
         _store_ready_T_8 & stable_addr_valid_4 & entries_4_committed | entries_4_is_load
         & stable_addr_valid_4;
       actual_can_issue_4 =
-        is_active_4 & base_rdy_4 & (~entries_4_uncached | entries_4_branch_mask == 4'h0)
+        is_active_4 & base_rdy_4
+        & (~entries_4_uncached | entries_4_committed | entries_4_rob_idx == io_rob_head)
         & (~entries_4_is_load | ~pipe_conflict_4 & ~pipe_can_fwd_4)
         & (entries_4_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_4 = is_active_4 & entries_4_is_load & base_rdy_4 & pipe_can_fwd_4;
@@ -1931,7 +1937,8 @@ module LSQ(
         _store_ready_T_10 & stable_addr_valid_5 & entries_5_committed | entries_5_is_load
         & stable_addr_valid_5;
       actual_can_issue_5 =
-        is_active_5 & base_rdy_5 & (~entries_5_uncached | entries_5_branch_mask == 4'h0)
+        is_active_5 & base_rdy_5
+        & (~entries_5_uncached | entries_5_committed | entries_5_rob_idx == io_rob_head)
         & (~entries_5_is_load | ~pipe_conflict_5 & ~pipe_can_fwd_5)
         & (entries_5_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_5 = is_active_5 & entries_5_is_load & base_rdy_5 & pipe_can_fwd_5;
@@ -1942,7 +1949,8 @@ module LSQ(
         _store_ready_T_12 & stable_addr_valid_6 & entries_6_committed | entries_6_is_load
         & stable_addr_valid_6;
       actual_can_issue_6 =
-        is_active_6 & base_rdy_6 & (~entries_6_uncached | entries_6_branch_mask == 4'h0)
+        is_active_6 & base_rdy_6
+        & (~entries_6_uncached | entries_6_committed | entries_6_rob_idx == io_rob_head)
         & (~entries_6_is_load | ~pipe_conflict_6 & ~pipe_can_fwd_6)
         & (entries_6_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_6 = is_active_6 & entries_6_is_load & base_rdy_6 & pipe_can_fwd_6;
@@ -1953,7 +1961,8 @@ module LSQ(
         _store_ready_T_14 & stable_addr_valid_7 & entries_7_committed | entries_7_is_load
         & stable_addr_valid_7;
       actual_can_issue_7 =
-        is_active_7 & base_rdy_7 & (~entries_7_uncached | entries_7_branch_mask == 4'h0)
+        is_active_7 & base_rdy_7
+        & (~entries_7_uncached | entries_7_committed | entries_7_rob_idx == io_rob_head)
         & (~entries_7_is_load | ~pipe_conflict_7 & ~pipe_can_fwd_7)
         & (entries_7_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_7 = is_active_7 & entries_7_is_load & base_rdy_7 & pipe_can_fwd_7;
@@ -1964,7 +1973,8 @@ module LSQ(
         _store_ready_T_16 & stable_addr_valid_8 & entries_8_committed | entries_8_is_load
         & stable_addr_valid_8;
       actual_can_issue_8 =
-        is_active_8 & base_rdy_8 & (~entries_8_uncached | entries_8_branch_mask == 4'h0)
+        is_active_8 & base_rdy_8
+        & (~entries_8_uncached | entries_8_committed | entries_8_rob_idx == io_rob_head)
         & (~entries_8_is_load | ~pipe_conflict_8 & ~pipe_can_fwd_8)
         & (entries_8_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_8 = is_active_8 & entries_8_is_load & base_rdy_8 & pipe_can_fwd_8;
@@ -1975,7 +1985,8 @@ module LSQ(
         _store_ready_T_18 & stable_addr_valid_9 & entries_9_committed | entries_9_is_load
         & stable_addr_valid_9;
       actual_can_issue_9 =
-        is_active_9 & base_rdy_9 & (~entries_9_uncached | entries_9_branch_mask == 4'h0)
+        is_active_9 & base_rdy_9
+        & (~entries_9_uncached | entries_9_committed | entries_9_rob_idx == io_rob_head)
         & (~entries_9_is_load | ~pipe_conflict_9 & ~pipe_can_fwd_9)
         & (entries_9_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_9 = is_active_9 & entries_9_is_load & base_rdy_9 & pipe_can_fwd_9;
@@ -1988,7 +1999,8 @@ module LSQ(
         | entries_10_is_load & stable_addr_valid_10;
       actual_can_issue_10 =
         is_active_10 & base_rdy_10
-        & (~entries_10_uncached | entries_10_branch_mask == 4'h0)
+        & (~entries_10_uncached | entries_10_committed
+           | entries_10_rob_idx == io_rob_head)
         & (~entries_10_is_load | ~pipe_conflict_10 & ~pipe_can_fwd_10)
         & (entries_10_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_10 =
@@ -2002,7 +2014,8 @@ module LSQ(
         | entries_11_is_load & stable_addr_valid_11;
       actual_can_issue_11 =
         is_active_11 & base_rdy_11
-        & (~entries_11_uncached | entries_11_branch_mask == 4'h0)
+        & (~entries_11_uncached | entries_11_committed
+           | entries_11_rob_idx == io_rob_head)
         & (~entries_11_is_load | ~pipe_conflict_11 & ~pipe_can_fwd_11)
         & (entries_11_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_11 =
@@ -2016,7 +2029,8 @@ module LSQ(
         | entries_12_is_load & stable_addr_valid_12;
       actual_can_issue_12 =
         is_active_12 & base_rdy_12
-        & (~entries_12_uncached | entries_12_branch_mask == 4'h0)
+        & (~entries_12_uncached | entries_12_committed
+           | entries_12_rob_idx == io_rob_head)
         & (~entries_12_is_load | ~pipe_conflict_12 & ~pipe_can_fwd_12)
         & (entries_12_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_12 =
@@ -2030,7 +2044,8 @@ module LSQ(
         | entries_13_is_load & stable_addr_valid_13;
       actual_can_issue_13 =
         is_active_13 & base_rdy_13
-        & (~entries_13_uncached | entries_13_branch_mask == 4'h0)
+        & (~entries_13_uncached | entries_13_committed
+           | entries_13_rob_idx == io_rob_head)
         & (~entries_13_is_load | ~pipe_conflict_13 & ~pipe_can_fwd_13)
         & (entries_13_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_13 =
@@ -2044,7 +2059,8 @@ module LSQ(
         | entries_14_is_load & stable_addr_valid_14;
       actual_can_issue_14 =
         is_active_14 & base_rdy_14
-        & (~entries_14_uncached | entries_14_branch_mask == 4'h0)
+        & (~entries_14_uncached | entries_14_committed
+           | entries_14_rob_idx == io_rob_head)
         & (~entries_14_is_load | ~pipe_conflict_14 & ~pipe_can_fwd_14)
         & (entries_14_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_14 =
@@ -2058,7 +2074,8 @@ module LSQ(
         | entries_15_is_load & stable_addr_valid_15;
       actual_can_issue_15 =
         is_active_15 & base_rdy_15
-        & (~entries_15_uncached | entries_15_branch_mask == 4'h0)
+        & (~entries_15_uncached | entries_15_committed
+           | entries_15_rob_idx == io_rob_head)
         & (~entries_15_is_load | ~pipe_conflict_15 & ~pipe_can_fwd_15)
         & (entries_15_is_cacop ? ~normal_in_flight : ~cacop_in_flight_state);
       actual_do_stlf_15 =

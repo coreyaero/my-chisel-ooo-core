@@ -30,6 +30,12 @@ class RobEntry extends Bundle {
     val tlb_we    = Bool()
     val tlb_fill  = Bool()
     val tlbrd_we  = Bool()
+
+    val is_branch       = Bool()
+    val br_actual_taken = Bool()
+    val br_target       = UInt(32.W)
+    val br_type         = UInt(2.W)
+    val ghr             = UInt(10.W)
 }
 
 class ROB extends Module {
@@ -123,6 +129,8 @@ class ROB extends Module {
         val csr_tlbidx_out   = Input(UInt(32.W))
         val csr_tlb_out      = Input(new TlbEntry())
         val has_int          = Input(Bool())
+
+        val commit_bpu_update = Valid(new BpuUpdate())
     })
 
     // 新代码：
@@ -259,6 +267,12 @@ class ROB extends Module {
             entries(i).tlb_fill     := io.cdb0.bits.tlbOp === TlbOp.FILL
             entries(i).tlbrd_we     := io.cdb0.bits.tlbOp === TlbOp.RD
             entries(i).is_cacop     := io.cdb0.bits.is_cacop // 对于 match0
+            // ★ 新增：从 CDB 抄录分支执行结果
+            entries(i).is_branch       := io.cdb0.bits.is_branch
+            entries(i).br_actual_taken := io.cdb0.bits.br_actual_taken
+            entries(i).br_target       := io.cdb0.bits.br_target
+            entries(i).br_type         := io.cdb0.bits.br_type
+            entries(i).ghr             := io.cdb0.bits.ghr
         }
         when(match1) {
             entries(i).done         := true.B
@@ -278,6 +292,12 @@ class ROB extends Module {
             entries(i).tlb_fill     := io.cdb1.bits.tlbOp === TlbOp.FILL
             entries(i).tlbrd_we     := io.cdb1.bits.tlbOp === TlbOp.RD
             entries(i).is_cacop     := io.cdb1.bits.is_cacop // 对于 match1
+            // ★ 新增：从 CDB 抄录分支执行结果
+            entries(i).is_branch       := io.cdb1.bits.is_branch
+            entries(i).br_actual_taken := io.cdb1.bits.br_actual_taken
+            entries(i).br_target       := io.cdb1.bits.br_target
+            entries(i).br_type         := io.cdb1.bits.br_type
+            entries(i).ghr             := io.cdb1.bits.ghr
         }
     }
     when(io.lsq_violation_valid) {
@@ -349,8 +369,9 @@ class ROB extends Module {
 
     val is_ghost1   = !e1_real_valid
     val h1_serialize = e1_real_valid && (h1_raw_exc || h1_raw_csr_we || h1_raw_tlb_we || h1_raw_tlb_fill || h1_raw_tlbrd_we || h1_raw_ertn || h1_raw_refetch || h1_raw_cacop)
+    val bpu_structural_hazard = e0.is_branch && e1.is_branch
     
-    val can_commit1 = e1_real_valid && e1.done && !h0_serialize && !h1_serialize && can_commit0 && !io.flush
+    val can_commit1 = e1_real_valid && e1.done && !h0_serialize && !h1_serialize && can_commit0 && !io.flush && !bpu_structural_hazard
 
     // --- 端口 0 输出 ---
     io.commit_valid := !is_empty && can_commit0
@@ -371,6 +392,25 @@ class ROB extends Module {
     io.commit1_old_p:= e1.old_paddr
     io.commit1_we   := can_commit1 && h1_raw_we
     io.commit1_csr_we:= false.B 
+
+    // ==========================================
+    // ★ 终极修复：BPU 训练端口的智能复用 (Mux)
+    // ==========================================
+    val upd0_valid = can_commit0 && e0.is_branch && !h0_real_exc && !h0_is_replay && !io.flush
+    // 如果 e1 能走到 can_commit1 为 true，说明它本身没有异常，可以直接判定
+    val upd1_valid = can_commit1 && e1.is_branch
+
+    // 谁是分支就用谁的数据 (由于上面的 hazard 仲裁，upd0 和 upd1 绝对不可能同时为 true)
+    val bpu_src_is_e1 = !upd0_valid && upd1_valid
+
+    io.commit_bpu_update.valid := upd0_valid || upd1_valid
+    io.commit_bpu_update.bits.pc         := Mux(bpu_src_is_e1, e1.pc, e0.pc)
+    io.commit_bpu_update.bits.taken      := Mux(bpu_src_is_e1, e1.br_actual_taken, e0.br_actual_taken)
+    io.commit_bpu_update.bits.target     := Mux(bpu_src_is_e1, e1.br_target, e0.br_target)
+    io.commit_bpu_update.bits.bpu_type   := Mux(bpu_src_is_e1, e1.br_type, e0.br_type)
+    io.commit_bpu_update.bits.ghr        := Mux(bpu_src_is_e1, e1.ghr, e0.ghr)
+    io.commit_bpu_update.bits.mispredict := false.B 
+    io.commit_bpu_update.bits.ras_tos    := 0.U
 
     // --- 发给 LSQ 的双通道确认 ---
     io.commit_mem_valid0 := can_commit0 && !is_ghost0 && !h0_real_exc && !h0_is_replay

@@ -34,7 +34,8 @@ Cache.sv
 Cache_1.sv
 IssueBuffer.sv
 Queue1_AguIcacheReq.sv
-Queue1_LsqDcacheReq.sv
+ram_2x81.sv
+Queue2_LsqDcacheReq.sv
 ram_2x58.sv
 Queue2_AxiArChannel.sv
 ram_2x37.sv

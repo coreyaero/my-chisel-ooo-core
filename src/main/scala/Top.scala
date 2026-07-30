@@ -117,6 +117,7 @@ class core_top extends RawModule {
 
         // ---------------- BPU 训练大环路 ----------------
         if_module.io.bpu_update := exec_engine.io.bpu_update
+        if_module.io.commit_bpu_update := rob.io.commit_bpu_update
 
         // ==========================================
         // 全局 MMU 与中断配置
@@ -362,6 +363,7 @@ class core_top extends RawModule {
         iss_q_agu.io.deq.ready       := exec_engine.io.in_agu.ready
         
         exec_engine.io.flush    := flush_global
+        exec_engine.io.rob_head := rob.io.head_idx
 
 
 
@@ -552,7 +554,7 @@ class core_top extends RawModule {
             val cacop_op = UInt(2.W)
         }
         // flow=false, pipe=false 保证切断一切组合逻辑前馈，化身物理隔离墙！
-        val lsq_dcache_q = Module(new Queue(new LsqDcacheReq(), 1, pipe = false, flow = false))
+        val lsq_dcache_q = Module(new Queue(new LsqDcacheReq(), 2, pipe = false, flow = false))
 
         // --- 队列输入端 (接驳 ExecEngine/LSQ) ---
         val is_lsq_to_dcache = exec_engine.io.data_sram.req && !exec_engine.io.cacop_is_icache

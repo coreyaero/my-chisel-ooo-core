@@ -39,6 +39,7 @@ class Exec extends Module {
         val lsq_state     = new LsqStatePort()
         //LSQ -> ROB        (for Read-After-Write)
         val lsq_violation = new LsqViolationPort()
+        val rob_head    = Input(UInt(Config.robPtrWidth.W))
         //ROB -> LSQ        (for store inst)
         val commit_mem    = Flipped(new CommitMemPort())
 
@@ -140,6 +141,8 @@ class Exec extends Module {
 
     lsq.io.agu_in.valid := agu.io.to_lsq.valid && agu.io.out.ready
     lsq.io.agu_in.bits  := agu.io.to_lsq.bits
+
+    lsq.io.rob_head   := io.rob_head
 
     //==========================================
     // LSQ
@@ -818,6 +821,10 @@ class AluUnit extends Module {
     val out_data = WireDefault(data_reg) 
     out_data.ex_result := final_ex_result
     out_data.aux_data  := Mux(data_reg.isCsr, csr_mask, src2_val)
+
+    out_data.br_actual_taken := branch_actual_taken
+    out_data.br_target       := calc_target_pc
+    out_data.br_type         := btype
 
     io.out.bits  := out_data
 }
