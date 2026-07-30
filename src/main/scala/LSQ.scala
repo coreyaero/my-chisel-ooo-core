@@ -17,6 +17,7 @@ class LsqEntry extends Bundle {
 
     val addr_valid = Bool()
     val paddr      = UInt(32.W)
+    val vaddr      = UInt(32.W)
     val size       = UInt(2.W)
     val uncached   = Bool()
     val wdata      = UInt(32.W)
@@ -43,21 +44,10 @@ class LSQ extends Module {
         // ----------------------------------------------------
         // 接口 A：与前台 (Dispatch) 的交互
         // ----------------------------------------------------
-        val current_lsq_tail = Output(UInt(4.W)) 
-        val br_restore_tail  = Input(UInt(4.W))  
-
-        val alloc_valid = Input(Bool())
-        val alloc_type  = Input(UInt(2.W)) // 0: Load, 1: Store, 2: CACOP
-        val alloc_rob   = Input(UInt(Config.robPtrWidth.W))
-        val alloc_pc    = Input(UInt(32.W))
-        val alloc_pdest = Input(UInt(Config.prfPtrWidth.W))
-        val alloc_mask  = Input(UInt(4.W)) 
-        val alloc_cacop = Input(UInt(5.W)) 
-        
-        val alloc_ready = Output(Bool())
-        val alloc_idx   = Output(UInt(4.W))
-
-        val alloc_lsOp  = Input(UInt(8.W))
+        val alloc      = new LsqAllocIO()
+        val state      = new LsqStatePort() 
+        val violation  = new LsqViolationPort()
+        val commit_mem = Flipped(new CommitMemPort())
 
         // ----------------------------------------------------
         // 接口 B：与 AGU 的交互 (算址完成)
@@ -78,14 +68,7 @@ class LSQ extends Module {
         // ----------------------------------------------------
         val lsq_wb = Decoupled(new PipelineData())
 
-        val lsq_violation_valid = Output(Bool())
-        val lsq_violation_rob   = Output(UInt(Config.robPtrWidth.W))
-        val lsq_violation_pc    = Output(UInt(32.W))
-
-        val commit_mem_valid0 = Input(Bool())
-        val commit_mem_idx0   = Input(UInt(Config.robPtrWidth.W))
-        val commit_mem_valid1 = Input(Bool()) 
-        val commit_mem_idx1   = Input(UInt(Config.robPtrWidth.W))
+       
 
         val dcache_req_id = Output(UInt(8.W)) // ★ 新增
         val dcache_ret_id = Input(UInt(8.W))  // ★ 新增
@@ -98,10 +81,31 @@ class LSQ extends Module {
     val is_full = RegInit(false.B)
     val is_empty = (!is_full && (head === tail))
 
+    //==========================================
+    // Flush logic
+    //==========================================
+    val br_fail = io.br_resolve.valid && io.br_resolve.mispredict
+    val br_tag_bit = 1.U(4.W) << io.br_resolve.tag
+    def is_killed(mask: UInt): Bool = br_fail && ((mask & br_tag_bit) =/= 0.U)
+    val clear_mask = Mux(io.br_resolve.valid && !io.br_resolve.mispredict, ~br_tag_bit, "b1111".U(4.W))
+
+
+
+
+
+
+
+
+
+
+
     // ★ 冗余清理：彻底删除 outstanding_idx 和 outstanding_valid 及其相关的阻塞隔离带
-    io.current_lsq_tail := tail
-    io.alloc_ready := !is_full // 彻底解放 alloc，只要有空位就准进！
-    io.alloc_idx   := tail
+    io.state.current_tail := tail
+    io.alloc.req.ready    := !is_full 
+    io.alloc.idx          := tail
+
+    val alloc_bits = io.alloc.req.bits
+    val br_restore_tail = io.state.br_restore
 
     // ==========================================
     // 1. 分支爆破与尾指针回退 (Mispredict Rollback)
@@ -120,26 +124,23 @@ class LSQ extends Module {
         }
     }
 
-    // ==========================================
-    // 2. 入队逻辑 (Allocate)
-    // ==========================================
-    val real_alloc = io.alloc_valid && !is_mispredict
-    when(real_alloc && io.alloc_ready) {
+    val real_alloc = io.alloc.req.valid && !is_mispredict
+    when(real_alloc && io.alloc.req.ready) {
         entries(tail).valid      := true.B
-        entries(tail).is_load    := io.alloc_type === 0.U
-        entries(tail).is_store   := io.alloc_type === 1.U
-        entries(tail).is_cacop   := io.alloc_type === 2.U
-        entries(tail).rob_idx    := io.alloc_rob
-        entries(tail).pc         := io.alloc_pc
-        entries(tail).pdest      := io.alloc_pdest
-        entries(tail).branch_mask:= io.alloc_mask
-        entries(tail).cacop_op   := io.alloc_cacop
+        entries(tail).is_load    := alloc_bits.req_type === 0.U
+        entries(tail).is_store   := alloc_bits.req_type === 1.U
+        entries(tail).is_cacop   := alloc_bits.req_type === 2.U
+        entries(tail).rob_idx    := alloc_bits.rob
+        entries(tail).pc         := alloc_bits.pc
+        entries(tail).pdest      := alloc_bits.pdest
+        entries(tail).branch_mask:= alloc_bits.mask
+        entries(tail).cacop_op   := alloc_bits.cacop
+        entries(tail).lsOp       := alloc_bits.lsOp
         entries(tail).addr_valid := false.B
         entries(tail).req_sent   := false.B
         entries(tail).executed   := false.B
         entries(tail).has_exc    := false.B
         entries(tail).committed  := false.B
-        entries(tail).lsOp       := io.alloc_lsOp
         entries(tail).ticket     := ticket_counter
         entries(tail).wb_sent    := false.B
         ticket_counter := ticket_counter + 1.U
@@ -147,17 +148,11 @@ class LSQ extends Module {
         val next_tail = tail + 1.U
         tail := next_tail
         when(next_tail === head) { is_full := true.B }
-    // ==========================================
-    // 2. 入队逻辑 (Allocate)
-    // ==========================================
-    // ... 前面的 real_alloc 保持不变 ...
     } .elsewhen(is_mispredict) {
-        tail := io.br_restore_tail // ★ 秒杀回档！
+        tail := br_restore_tail 
         // ★ 核心修复：只有当 tail 真的发生了回退（杀死了未提交指令）时，才能解除 full 状态！
         // 如果 tail 没变，说明它原本是满的，回档后依然是满的！
-        when(tail =/= io.br_restore_tail) {
-            is_full := false.B
-        }
+        when(tail =/= br_restore_tail) { is_full := false.B }
     }
 
     // ==========================================
@@ -174,6 +169,7 @@ class LSQ extends Module {
         val idx = io.agu_in.bits.lsqIdx
         entries(idx).addr_valid := true.B
         entries(idx).paddr      := io.agu_in.bits.paddr
+        entries(idx).vaddr      := io.agu_in.bits.vaddr
         entries(idx).size       := io.agu_in.bits.size
         entries(idx).uncached   := io.agu_in.bits.uncached
         entries(idx).wdata      := io.agu_in.bits.wdata
@@ -221,9 +217,9 @@ class LSQ extends Module {
         violation_lsq := v_idx // ★ 记下肇事者的 LSQ 编号
     }
     
-    io.lsq_violation_valid := violation_reg
-    io.lsq_violation_rob   := violation_rob
-    io.lsq_violation_pc    := violation_pc
+    io.violation.valid := violation_reg
+    io.violation.rob   := violation_rob
+    io.violation.pc    := violation_pc
 
     // ★ 核心破咒逻辑：找个空白处（或者直接放在上面这段后面）加上这段代码：
     // 如果肇事者在 LSQ 里被分支预测杀死了（valid 变成了 0），立刻解除全线警报！
@@ -234,16 +230,16 @@ class LSQ extends Module {
     // ==========================================
     // 4. 接收 ROB 提交信号
     // ==========================================
-    when(io.commit_mem_valid0) {
+    when(io.commit_mem.valid0) {
         for (i <- 0 until 16) {
-            when(entries(i).valid && entries(i).rob_idx === io.commit_mem_idx0) {
+            when(entries(i).valid && entries(i).rob_idx === io.commit_mem.idx0) {
                 entries(i).committed := true.B
             }
         }
     }
-    when(io.commit_mem_valid1) {
+    when(io.commit_mem.valid1) {
         for (i <- 0 until 16) {
-            when(entries(i).valid && entries(i).rob_idx === io.commit_mem_idx1) {
+            when(entries(i).valid && entries(i).rob_idx === io.commit_mem.idx1) {
                 entries(i).committed := true.B
             }
         }
@@ -453,7 +449,7 @@ class LSQ extends Module {
     wb_data.pdest      := wb_e.pdest
     // ★ 核心修复：如果是异常，必须把 paddr（里面存着 AGU 传来的坏虚拟地址）作为 ex_result 报给 ROB！
     // 否则 ROB 会把残留的垃圾数据（wdata）当成坏地址写进 CSR badv！
-    wb_data.ex_result  := Mux(wb_e.has_exc, wb_e.paddr, formatted_result)
+    wb_data.ex_result  := Mux(wb_e.has_exc, wb_e.vaddr, formatted_result)
     wb_data.regWriteEn := true.B
     // ★ 核心大改 2：写回 CDB 时，必须把异常信息原封不动地带上！
     wb_data.hasException := wb_e.has_exc

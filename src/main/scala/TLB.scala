@@ -52,6 +52,11 @@ class tlb extends Module {
         val r_dat   = Output(new TlbEntry())
     })
     val tlb_table = Reg(Vec(16, new TlbEntry()))
+    when(reset.asBool) {
+        for (i <- 0 until 16) {
+            tlb_table(i).e := false.B
+        }
+    }
     //Write a PTE
     when(io.we) { tlb_table(io.w_index) := io.w_dat }
     //Read a PTE

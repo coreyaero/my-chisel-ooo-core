@@ -3,19 +3,176 @@ package mycpu
 import chisel3._
 import chisel3.util._
 
+class Exec extends Module {
+    val io = IO(new Bundle {
+        //IQ
+        val in_alu0     = Flipped(Decoupled(new PipelineData()))
+        val in_alu1     = Flipped(Decoupled(new PipelineData()))
+        val in_mdu      = Flipped(Decoupled(new PipelineData()))
+        val in_agu      = Flipped(Decoupled(new PipelineData()))
+        //
+        val timer_in    = Input(UInt(64.W))
+        val csr_raddr   = Output(UInt(14.W))
+        val csr_rdata   = Input(UInt(32.W))
+        //
+        val mmu_config    = Input(new MmuConfig())
+
+        //CDB to PRF, IQ, ROB
+        val cdb0        = Valid(new PipelineData())
+        val cdb1        = Valid(new PipelineData())
+
+        //Flush and Branch Prediction
+        val flush       = Input(Bool())
+        val br_resolve  = Output(new BranchResolve())
+        val branch_req  = Output(Bool())
+        val branch_pc   = Output(UInt(32.W))
+        val bpu_update  = Valid(new BpuUpdate())
+    
+        //AGU <-> TLB
+        val tlb_port        = new TlbSearchPort()
+        val invtlb_valid    = Output(Bool())
+        val invtlb_op       = Output(UInt(5.W))
+
+        //Dispatch <-> LSQ
+        val lsq_alloc     = new LsqAllocIO()
+        //LSQ <-> Rename    (for recovery)
+        val lsq_state     = new LsqStatePort()
+        //LSQ -> ROB        (for Read-After-Write)
+        val lsq_violation = new LsqViolationPort()
+        //ROB -> LSQ        (for store inst)
+        val commit_mem    = Flipped(new CommitMemPort())
+
+        //LSQ -> DCache
+        val lsq_req_id = Output(UInt(8.W))
+        val lsq_ret_id = Input(UInt(8.W))
+        val data_sram     = new SramIo()
+        val data_uncached = Output(Bool())
+        val cacop_en = Output(Bool())
+        val cacop_op = Output(UInt(2.W))
+        val cacop_is_icache = Output(Bool())
+
+        val debug_cdb0_pc = Output(UInt(32.W))
+        val debug_cdb1_pc = Output(UInt(32.W))
+    })
+
+    //==========================================
+    // Execution (From IQ)
+    //==========================================
+    val alu0    = Module(new AluUnit())
+    val alu1    = Module(new AluSimpleUnit())
+    val mdu     = Module(new MduUnit())
+    val agu     = Module(new AguUnit())
+    val lsq     = Module(new LSQ())
+    val arbiter = Module(new CdbArbiter())
+    
+    alu0.io.in <> io.in_alu0
+    alu1.io.in <> io.in_alu1
+    mdu.io.in  <> io.in_mdu
+    agu.io.in  <> io.in_agu
+
+    alu0.io.timer_in    := io.timer_in
+    io.csr_raddr        := alu0.io.csr_raddr
+    alu0.io.csr_rdata   := io.csr_rdata
+
+    alu0.io.flush       := io.flush
+    alu1.io.flush       := io.flush
+    mdu.io.flush        := io.flush
+    agu.io.flush        := io.flush
+    lsq.io.flush      := io.flush
+    
+    //==========================================
+    // Branch Resolve
+    //==========================================
+    val global_br_resolve = alu0.io.br_resolve
+    
+    alu0.io.br_resolve_in := global_br_resolve
+    alu1.io.br_resolve_in := global_br_resolve
+    mdu.io.br_resolve_in  := global_br_resolve
+    agu.io.br_resolve_in  := global_br_resolve
+    lsq.io.br_resolve     := global_br_resolve
+    io.br_resolve := global_br_resolve
+    io.branch_req := alu0.io.branch_req
+    io.branch_pc  := alu0.io.branch_pc
+    io.bpu_update := alu0.io.bpu_update
+
+    // ==========================================
+    // AGU Bundle
+    // ==========================================
+    agu.io.mmu_config   := io.mmu_config
+    io.tlb_port <> agu.io.tlb_port
+    io.invtlb_valid     := agu.io.invtlb_valid
+    io.invtlb_op        := agu.io.invtlb_op
+
+    //==========================================
+    // AGU to CDB Queue
+    //==========================================
+    val agu_cdb_q = Module(new MaskedQueue())
+    agu_cdb_q.io.flush := io.flush
+    agu_cdb_q.io.br_resolve_in := global_br_resolve
+
+    val is_load = agu.io.out.bits.resFromMem
+    val agu_needs_cdb = !is_load
+    
+    agu_cdb_q.io.enq.valid := agu.io.out.valid && agu_needs_cdb
+    agu_cdb_q.io.enq.bits  := agu.io.out.bits
+
+    agu.io.out.ready := Mux(agu_needs_cdb, agu_cdb_q.io.enq.ready, true.B)
+
+    //==========================================
+    // CDB
+    //==========================================
+    arbiter.io.reqs(0) <> mdu.io.out
+    arbiter.io.reqs(1) <> lsq.io.lsq_wb
+    arbiter.io.reqs(2) <> agu_cdb_q.io.deq
+    arbiter.io.reqs(3) <> alu0.io.out
+    arbiter.io.reqs(4) <> alu1.io.out
+
+    io.cdb0 := arbiter.io.cdb0
+    io.cdb1 := arbiter.io.cdb1
+
+    //==========================================
+    // AGU -> LSQ
+    //==========================================
+    lsq.io.alloc      <> io.lsq_alloc
+    lsq.io.state      <> io.lsq_state
+    lsq.io.violation  <> io.lsq_violation
+    lsq.io.commit_mem <> io.commit_mem
+
+    lsq.io.agu_in.valid := agu.io.to_lsq.valid && agu.io.out.ready
+    lsq.io.agu_in.bits  := agu.io.to_lsq.bits
+
+    //==========================================
+    // LSQ
+    //==========================================
+    io.lsq_req_id := lsq.io.dcache_req_id
+    lsq.io.dcache_ret_id := io.lsq_ret_id
+
+    io.data_sram       <> lsq.io.dcache
+    io.data_uncached   := lsq.io.dcache_uncached
+    io.cacop_en        := lsq.io.cacop_en
+    io.cacop_op        := lsq.io.cacop_op
+    io.cacop_is_icache := lsq.io.cacop_is_icache
+
+    //==========================================
+    // Debug
+    //==========================================
+    io.debug_cdb0_pc := arbiter.io.cdb0.bits.pc
+    io.debug_cdb1_pc := arbiter.io.cdb1.bits.pc
+}
+
 class CdbArbiter extends Module {
     val io = IO(new Bundle {
-        // ★ 扩容为 5 个输入请求 (0: MDU, 1: LSQ, 2: AGU, 3: ALU0, 4: ALU1)
+        //0: MDU, 1: LSQ, 2: AGU, 3: ALU0, 4: ALU1
         val reqs = Vec(5, Flipped(Decoupled(new PipelineData())))
         
         val cdb0 = Valid(new PipelineData())
         val cdb1 = Valid(new PipelineData())
     })
-
-    // 把 5 个 valid 拼接成一个 5 bit 向量
+    //==========================================
+    // Module Selection
+    //==========================================
     val req_valids = Cat(io.reqs(4).valid, io.reqs(3).valid, io.reqs(2).valid, io.reqs(1).valid, io.reqs(0).valid)
     val has_any_req = req_valids.orR
-
     val sel0 = PriorityEncoder(req_valids)
     val grant0 = Mux(has_any_req, UIntToOH(sel0), 0.U(5.W))
 
@@ -24,9 +181,7 @@ class CdbArbiter extends Module {
     val sel1 = PriorityEncoder(req_valids1)
     val grant1 = Mux(has_any_req1, UIntToOH(sel1), 0.U(5.W))
 
-    for (i <- 0 until 5) {
-        io.reqs(i).ready := grant0(i) || grant1(i)
-    }
+    for (i <- 0 until 5) { io.reqs(i).ready := grant0(i) || grant1(i)}
 
     io.cdb0.valid := has_any_req
     io.cdb0.bits  := Mux1H(grant0, io.reqs.map(_.bits))
@@ -34,216 +189,97 @@ class CdbArbiter extends Module {
     io.cdb1.valid := has_any_req1
     io.cdb1.bits  := Mux1H(grant1, io.reqs.map(_.bits))
 }
-
-
-
-
-class ExecutionEngine extends Module {
+class MaskedQueue extends Module {
     val io = IO(new Bundle {
-        // ---------------- 1. 独立发射通道 (来自 IQ) ----------------
-        val in_alu0 = Flipped(Decoupled(new PipelineData()))
-        val in_alu1 = Flipped(Decoupled(new PipelineData()))
-        val in_mdu  = Flipped(Decoupled(new PipelineData()))
-        val in_agu  = Flipped(Decoupled(new PipelineData()))
-
-        // ---------------- 2. 双发射 CDB 总线 (去往 PRF, IQ, ROB) ----------------
-        val cdb0 = Valid(new PipelineData())
-        val cdb1 = Valid(new PipelineData())
-
-        // ---------------- 3. 分支与全局控制 (去往 Front-end) ----------------
-        val flush = Input(Bool())
-        val br_resolve = Output(new BranchResolve())
-        val branch_req = Output(Bool())
-        val branch_pc  = Output(UInt(32.W))
-        val timer_in   = Input(UInt(64.W))
-
-        // ---------------- 4. 访存与 TLB 透传接口 (来自 AGU) ----------------
-        val lsq_req_id = Output(UInt(8.W))
-        val lsq_ret_id = Input(UInt(8.W))
-
-
-        val data_sram     = new SramIo()
-        val data_uncached = Output(Bool())
-        val mmu_config    = Input(new MmuConfig())
+        val enq = Flipped(Decoupled(new PipelineData()))
+        val deq = Decoupled(new PipelineData())
         
-        //AGU <-> TLB
-        val tlb_port        = new TlbSearchPort()
-        val invtlb_valid    = Output(Bool())
-        val invtlb_op       = Output(UInt(5.W))
-
-        // ---------------- 5. LSQ 透传接口 ----------------
-        val lsq_current_tail = Output(UInt(4.W)) 
-        val lsq_br_restore   = Input(UInt(4.W))  
-        val lsq_alloc_valid  = Input(Bool())
-        val lsq_alloc_type   = Input(UInt(2.W))
-        val lsq_alloc_rob    = Input(UInt(Config.robPtrWidth.W))
-        val lsq_alloc_pc     = Input(UInt(32.W))
-        val lsq_alloc_pdest  = Input(UInt(6.W))
-        val lsq_alloc_mask   = Input(UInt(4.W))
-        val lsq_alloc_cacop  = Input(UInt(5.W))
-        val lsq_alloc_ready  = Output(Bool())
-        val lsq_alloc_idx    = Output(UInt(4.W))
-        val lsq_violation_valid = Output(Bool())
-        val lsq_violation_rob   = Output(UInt(Config.robPtrWidth.W))
-        val lsq_violation_pc    = Output(UInt(32.W))
-        val commit_mem_valid0 = Input(Bool())
-        val commit_mem_idx0   = Input(UInt(Config.robPtrWidth.W))
-        val commit_mem_valid1 = Input(Bool())
-        val commit_mem_idx1   = Input(UInt(Config.robPtrWidth.W))
-
-
-        val csr_raddr = Output(UInt(14.W))
-        val csr_rdata = Input(UInt(32.W))
-
-        val cacop_en = Output(Bool())
-        val cacop_op = Output(UInt(2.W))
-        val cacop_is_icache = Output(Bool())
-
-        val lsq_alloc_lsOp   = Input(UInt(8.W))
-
-        val bpu_update = Valid(new BpuUpdate())
-
-        // ★ 强制防优化的 Debug 端口
-        val debug_cdb0_pc = Output(UInt(32.W))
-        val debug_cdb1_pc = Output(UInt(32.W))
+        val flush = Input(Bool())
+        val br_resolve_in = Input(new BranchResolve())
     })
 
-    // ==========================================
-    // 实例化四大天王与仲裁器
-    // ==========================================
-    val alu0 = Module(new AluUnit())       // 全能 (处理分支)
-    val alu1 = Module(new AluSimpleUnit()) // 打手 (纯算术)
-    val mdu  = Module(new MduUnit())       // 算筹 (乘除法)
-    val agu  = Module(new AguUnit())       // 镖局 (访存与TLB)
+    val valid_0 = RegInit(false.B)
+    val data_0  = RegInit(0.U.asTypeOf(new PipelineData()))
     
-    val arbiter = Module(new CdbArbiter())
-    val lsq = Module(new LSQ())
+    val valid_1 = RegInit(false.B)
+    val data_1  = RegInit(0.U.asTypeOf(new PipelineData()))
+
+    //==========================================
+    // 击杀与净化逻辑
+    //==========================================
+    val br_fail = io.br_resolve_in.valid && io.br_resolve_in.mispredict
+    val br_tag_bit = 1.U(4.W) << io.br_resolve_in.tag
+    def is_killed(mask: UInt): Bool = br_fail && ((mask & br_tag_bit) =/= 0.U)
+    val clear_mask = Mux(io.br_resolve_in.valid && !io.br_resolve_in.mispredict, ~br_tag_bit, "b1111".U(4.W))
+
+    // 检查当前槽位里的数据，如果遭遇击杀，直接判死刑 (keep = false)
+    val keep_0 = valid_0 && !is_killed(data_0.branch_mask)
+    val keep_1 = valid_1 && !is_killed(data_1.branch_mask)
+    val enq_kept = io.enq.valid && !is_killed(io.enq.bits.branch_mask)
+
+    val do_deq = io.deq.ready && keep_0
 
     // ==========================================
-    // 输入通道接驳
+    // 队列握手信号
     // ==========================================
-    alu0.io.in <> io.in_alu0
-    alu1.io.in <> io.in_alu1
-    mdu.io.in  <> io.in_mdu
-    agu.io.in  <> io.in_agu
+    // 能不能进水？取决于本周期结束后，还剩下多少个数据。
+    val slots_used = Cat(0.U(1.W), keep_0 && !do_deq) + Cat(0.U(1.W), keep_1)
+    io.enq.ready := (slots_used < 2.U)
 
-    alu0.io.flush := io.flush
-    alu1.io.flush := io.flush
-    mdu.io.flush  := io.flush
-    agu.io.flush  := io.flush
+    // 出水永远看 0 号槽 (坍缩逻辑保证了数据总是向 0 号挤)
+    io.deq.valid := keep_0
+    val out_data = WireDefault(data_0)
+    out_data.branch_mask := data_0.branch_mask & clear_mask
+    io.deq.bits  := out_data
 
-    // ==========================================
-    // 广播网接驳 (ALU0 的分支结果通报全军)
-    // ==========================================
-    val global_br_resolve = alu0.io.br_resolve
-    
-    alu0.io.br_resolve_in := global_br_resolve
-    alu1.io.br_resolve_in := global_br_resolve
-    mdu.io.br_resolve_in  := global_br_resolve
-    agu.io.br_resolve_in  := global_br_resolve
-    
-    io.br_resolve := global_br_resolve
-    io.branch_req := alu0.io.branch_req
-    io.branch_pc  := alu0.io.branch_pc
-    io.bpu_update := alu0.io.bpu_update  // ★ 接这根线出来
-
-    alu0.io.timer_in := io.timer_in
+    // 准备好要写入的洗白数据
+    val clean_enq_data = WireDefault(io.enq.bits)
+    clean_enq_data.branch_mask := io.enq.bits.branch_mask & clear_mask
+    val clean_data_1 = WireDefault(data_1)
+    clean_data_1.branch_mask := data_1.branch_mask & clear_mask
 
     // ==========================================
-    // 访存与 TLB 专线 (AGU 独占)
+    // 核心：瞬间坍缩状态机
     // ==========================================
-    agu.io.mmu_config := io.mmu_config
-
-    io.tlb_port <> agu.io.tlb_port
-    io.invtlb_valid := agu.io.invtlb_valid
-    io.invtlb_op    := agu.io.invtlb_op
-
-
-
-    // ==========================================
-    // 仲裁器接驳 (扩容为 5 车道)
-    // ==========================================
-    arbiter.io.reqs(0) <> mdu.io.out
-    arbiter.io.reqs(1) <> lsq.io.lsq_wb    // LSQ 抢占 1 号道 (Load 数据回写)
-    // ★ AGU 王者归来 2 号道！(广播 Store/异常)
-    // ★ 终极拦截：AGU 的“静音面罩”
-    // Load 哪怕发生异常，AGU 也保持静音，扔给 LSQ，由 LSQ 负责写回 CDB 报错！
-    val agu_needs_cdb = agu.io.out.bits.memWe || agu.io.out.bits.is_cacop || (agu.io.out.bits.tlbOp =/= 0.U)
-
-    // =====================================================================
-    // ★ 核心时序切割：给 AGU 单独配一个写回队列，斩断 TLB -> Arbiter -> ROB 的 22 级死亡连线！
-    // 深度设置为 2，保证背靠背 Store 指令的满血吞吐率，同时构筑绝对的物理隔离墙！
-    // =====================================================================
-    val agu_cdb_q = withReset(reset.asBool || io.flush) { Module(new Queue(new PipelineData(), 2)) }
-    
-    agu_cdb_q.io.enq.valid := agu.io.out.valid && agu_needs_cdb
-    agu_cdb_q.io.enq.bits  := agu.io.out.bits
-    
-    arbiter.io.reqs(2) <> agu_cdb_q.io.deq
-    
-    // AGU 的 ready 信号处理：如果是需要写回 CDB 的，看队列是否能收；否则直接无脑 true (扔给 LSQ 就跑)
-    agu.io.out.ready := Mux(agu_needs_cdb, agu_cdb_q.io.enq.ready, true.B)
-    arbiter.io.reqs(3) <> alu0.io.out
-    arbiter.io.reqs(4) <> alu1.io.out
-
-    // 输出最终的 CDB！
-    io.cdb0 := arbiter.io.cdb0
-    io.cdb1 := arbiter.io.cdb1
-
-    io.csr_raddr := alu0.io.csr_raddr
-    alu0.io.csr_rdata := io.csr_rdata
-    
-
-    // ==========================================
-    // 终极连线：AGU -> LSQ -> Top
-    // ==========================================
-    //这几部分同理，你不能改改lsq他们的接口，让他可以一键连过来吗？
-    lsq.io.flush      := io.flush
-    lsq.io.br_resolve := global_br_resolve
-
-    io.lsq_req_id := lsq.io.dcache_req_id
-    lsq.io.dcache_ret_id := io.lsq_ret_id
-
-    lsq.io.alloc_valid := io.lsq_alloc_valid
-    lsq.io.alloc_type  := io.lsq_alloc_type
-    lsq.io.alloc_rob   := io.lsq_alloc_rob
-    lsq.io.alloc_pc    := io.lsq_alloc_pc
-    lsq.io.alloc_pdest := io.lsq_alloc_pdest
-    lsq.io.alloc_mask  := io.lsq_alloc_mask
-    lsq.io.alloc_cacop := io.lsq_alloc_cacop
-    io.lsq_alloc_ready := lsq.io.alloc_ready
-    io.lsq_alloc_idx   := lsq.io.alloc_idx
-    io.lsq_current_tail:= lsq.io.current_lsq_tail
-    lsq.io.br_restore_tail := io.lsq_br_restore
-
-    lsq.io.agu_in.valid := agu.io.to_lsq.valid && agu.io.out.ready
-    lsq.io.agu_in.bits  := agu.io.to_lsq.bits
-
-    // Cache 透传完全交给 LSQ 控制 (AGU 成功隐退)
-    io.data_sram       <> lsq.io.dcache
-    io.data_uncached   := lsq.io.dcache_uncached
-    io.cacop_en        := lsq.io.cacop_en
-    io.cacop_op        := lsq.io.cacop_op
-    io.cacop_is_icache := lsq.io.cacop_is_icache
-
-    io.lsq_violation_valid := lsq.io.lsq_violation_valid
-    io.lsq_violation_rob   := lsq.io.lsq_violation_rob
-    io.lsq_violation_pc    := lsq.io.lsq_violation_pc
-
-    lsq.io.commit_mem_valid0 := io.commit_mem_valid0
-    lsq.io.commit_mem_idx0   := io.commit_mem_idx0
-    lsq.io.commit_mem_valid1 := io.commit_mem_valid1
-    lsq.io.commit_mem_idx1   := io.commit_mem_idx1
-
-    lsq.io.alloc_lsOp := io.lsq_alloc_lsOp
-
-
-    ///////////
-    io.debug_cdb0_pc := arbiter.io.cdb0.bits.pc
-    io.debug_cdb1_pc := arbiter.io.cdb1.bits.pc
+    when(io.flush) {
+        valid_0 := false.B
+        valid_1 := false.B
+    } .otherwise {
+        // 提取这三个数据源的存活状态
+        val item_0_v = keep_0 && !do_deq
+        val item_1_v = keep_1
+        val item_2_v = io.enq.ready && enq_kept
+        
+        // 拼成一个 3bit 的存活向量 (新来的, 槽1的, 槽0的)
+        val v_bits = Cat(item_2_v, item_1_v, item_0_v)
+        
+        // ★ 像俄罗斯方块一样，把存活的数据紧凑地往 0 号槽位掉落 (坍缩)
+        when(v_bits === "b000".U) {
+            valid_0 := false.B; valid_1 := false.B
+        } .elsewhen(v_bits === "b001".U) {
+            valid_0 := true.B;  data_0 := out_data
+            valid_1 := false.B
+        } .elsewhen(v_bits === "b010".U) {
+            valid_0 := true.B;  data_0 := clean_data_1
+            valid_1 := false.B
+        } .elsewhen(v_bits === "b100".U) {
+            valid_0 := true.B;  data_0 := clean_enq_data
+            valid_1 := false.B
+        } .elsewhen(v_bits === "b011".U) {
+            valid_0 := true.B;  data_0 := out_data
+            valid_1 := true.B;  data_1 := clean_data_1
+        } .elsewhen(v_bits === "b101".U) {
+            valid_0 := true.B;  data_0 := out_data
+            valid_1 := true.B;  data_1 := clean_enq_data
+        } .elsewhen(v_bits === "b110".U) {
+            valid_0 := true.B;  data_0 := clean_data_1
+            valid_1 := true.B;  data_1 := clean_enq_data
+        } .otherwise { 
+            // b111 是绝对不可能发生的，因为 slots_used < 2 时才会拉高 enq_ready
+            valid_0 := false.B; valid_1 := false.B
+        }
+    }
 }
-
-
 
 class AguEx2Data extends Bundle {
     val data            = new PipelineData()
@@ -277,6 +313,7 @@ class Agu2Lsq extends Bundle {
     val wstrb    = UInt(4.W)
     val has_exc  = Bool()
     val ecode    = UInt(6.W)
+    val vaddr    = UInt(32.W)
 }
 
 
@@ -339,7 +376,7 @@ class AguUnit extends Module {
         when(ex2_ready) {
             ex2_data  := next_ex2
             ex2_valid := ex1_active
-            //branch cleared in next_ex2
+            //branch has been cleared in next_ex2, no need to clear again
         } .otherwise {
             ex2_data.data.branch_mask := ex2_data.data.branch_mask & clear_mask
         }
@@ -411,10 +448,16 @@ class AguUnit extends Module {
     val isWord = ex2_d.lsOp === LsOp.LD_W || ex2_d.lsOp === LsOp.ST_W
     val isHalf = ex2_d.lsOp === LsOp.LD_H || ex2_d.lsOp === LsOp.LD_HU || ex2_d.lsOp === LsOp.ST_H
 
-    val is_load  = ex2_d.resFromMem
-    val is_store = ex2_d.memWe
+
+    //防止X态
+    val is_load  = ex2_d.resFromMem && ex2_active
+    val is_store = ex2_d.memWe && ex2_active
+    val is_hit_inv = ex2_d.is_cacop && (ex2_d.cacop_op(4, 3) === 2.U) && ex2_active
+
+    //val is_load  = ex2_d.resFromMem
+    //val is_store = ex2_d.memWe
     //cacop
-    val is_hit_inv = ex2_d.is_cacop && (ex2_d.cacop_op(4, 3) === 2.U)
+    //val is_hit_inv = ex2_d.is_cacop && (ex2_d.cacop_op(4, 3) === 2.U)
 
     val ale = (is_load || is_store) && ((isWord && ex2_va(1, 0) =/= 0.U) || (isHalf && ex2_va(0) === 1.U))
     val is_mapped = ex2_data.is_paged_mode && !ex2_data.dmw_hit
@@ -448,6 +491,7 @@ class AguUnit extends Module {
     io.to_lsq.valid         := is_lsq_inst && !io.flush
 
     io.to_lsq.bits.lsqIdx   := ex2_d.lsq_idx
+    io.to_lsq.bits.vaddr    := ex2_va
     io.to_lsq.bits.paddr    := Cat(Mux(ex2_d.is_cacop && (ex2_d.cacop_op(4, 3) =/= 2.U), ex2_va(31,12), pa(31,12)), ex2_va(11, 0))
     io.to_lsq.bits.size     := Mux(isWord, 2.U, Mux(isHalf, 1.U, 0.U))
     io.to_lsq.bits.uncached := uncached
@@ -716,9 +760,18 @@ class AluUnit extends Module {
     val branch_base_pc = Mux(data_reg.brType === BrType.JIRL, src1_val, data_reg.pc)
     val calc_target_pc = branch_base_pc + data_reg.imm
 
+    val op = data_reg.inst(31, 26)
+    val rd = data_reg.inst(4, 0)
+    val rj = data_reg.inst(9, 5)
+    val is_call   = (op === "b010101".U) || ((op === "b010011".U) && (rd === 1.U))
+    val is_ret    = (op === "b010011".U) && (rj === 1.U) && (rd === 0.U)
+    val is_uncond = (op === "b010100".U) || is_call || is_ret || (op === "b010011".U)
+    val btype     = Mux(is_ret, BpuType.RET, Mux(is_call, BpuType.CALL, Mux(is_uncond, BpuType.UNCOND, BpuType.COND)))
+
+    val type_wrong = data_reg.is_branch && (data_reg.bpu_type =/= btype)
     val dir_wrong = (branch_actual_taken =/= data_reg.pred_taken)
     val addr_wrong = branch_actual_taken && (calc_target_pc =/= data_reg.pred_target)
-    val mispredict = dir_wrong || addr_wrong
+    val mispredict = dir_wrong || addr_wrong || type_wrong
 
     val correct_next_pc = Mux(branch_actual_taken, calc_target_pc, data_reg.pc + 4.U)
 
@@ -733,13 +786,6 @@ class AluUnit extends Module {
     io.branch_req := do_br_resolve && mispredict
     io.branch_pc  := correct_next_pc
 
-    val op = data_reg.inst(31, 26)
-    val rd = data_reg.inst(4, 0)
-    val rj = data_reg.inst(9, 5)
-    val is_call   = (op === "b010101".U) || ((op === "b010011".U) && (rd === 1.U))
-    val is_ret    = (op === "b010011".U) && (rj === 1.U) && (rd === 0.U)
-    val is_uncond = (op === "b010100".U) || is_call || is_ret || (op === "b010011".U)
-    val btype     = Mux(is_ret, BpuType.RET, Mux(is_call, BpuType.CALL, Mux(is_uncond, BpuType.UNCOND, BpuType.COND)))
 
     io.bpu_update.valid := do_br_resolve
     io.bpu_update.bits.pc         := data_reg.pc

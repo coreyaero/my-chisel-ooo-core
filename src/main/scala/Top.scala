@@ -66,6 +66,9 @@ class core_top extends RawModule {
     val probe_cdb0_pc = IO(Output(UInt(32.W)))
     val probe_cdb1_pc = IO(Output(UInt(32.W)))
 
+    val debug0_wb_valid = IO(Output(Bool()))
+    val debug1_wb_valid = IO(Output(Bool()))
+
     
     val reset_high = (!aresetn).asAsyncReset
 
@@ -90,7 +93,7 @@ class core_top extends RawModule {
         
         
         // ★ 核心替换：双发射乱序大心脏登场！
-        val exec_engine = Module(new ExecutionEngine())
+        val exec_engine = Module(new Exec())
 
         //==========================================
         // Flush logic
@@ -119,7 +122,7 @@ class core_top extends RawModule {
         // 全局 MMU 与中断配置
         // ==========================================
         if_module.io.mmu_config     := csr.io.mmu_config
-        exec_engine.io.mmu_config   := csr.io.mmu_config
+        
         csr.io.hw_int_in            := 0.U(8.W)
 
         // ---------------- TLB 连线 ----------------
@@ -155,7 +158,7 @@ class core_top extends RawModule {
         // 否则新指令的重命名记录会被延迟的快照瞬间抹杀，引发严重的寄存器错位！
         // =================================================================
         val is_mispredict = exec_engine.io.br_resolve.valid && exec_engine.io.br_resolve.mispredict
-        val delayed_mispredict = RegNext(is_mispredict, false.B) // 手动抓取一拍延迟
+        val delayed_mispredict = RegNext(is_mispredict && !flush_frontend, false.B)
         
         // ★ 将 delayed_mispredict 加入阻塞条件，关门打狗！
         val dispatch_block = flush_frontend || is_mispredict || delayed_mispredict
@@ -190,9 +193,9 @@ class core_top extends RawModule {
         rename.io.flush      := flush_global
         rename.io.br_resolve := exec_engine.io.br_resolve
 
-        // ★ 分配时必须同时看 LSQ 和所有模块是否有空位
-        val can_disp0 = rob.io.alloc_ready && iq.io.disp_ready && rename.io.dec0_ready && (!need_lsq0 || exec_engine.io.lsq_alloc_ready)
-        val can_disp1 = can_disp0 && rob.io.alloc1_ready && iq.io.disp1_ready && rename.io.dec1_ready && (!need_lsq1 || exec_engine.io.lsq_alloc_ready) && !lsq_conflict
+       // ★ 分配时必须同时看 LSQ 和所有模块是否有空位
+        val can_disp0 = rob.io.alloc_ready && iq.io.disp_ready && rename.io.dec0_ready && (!need_lsq0 || exec_engine.io.lsq_alloc.req.ready)
+        val can_disp1 = can_disp0 && rob.io.alloc1_ready && iq.io.disp1_ready && rename.io.dec1_ready && (!need_lsq1 || exec_engine.io.lsq_alloc.req.ready) && !lsq_conflict
 
         // ★ 反向握手：告诉 DispatchBuffer 可以弹出几个
         //这么改没屁用，没屁用！我禁止你这么改！
@@ -214,18 +217,17 @@ class core_top extends RawModule {
         val real_need_lsq0 = d0_valid && need_lsq0 && can_disp0
         val real_need_lsq1 = d1_valid && need_lsq1 && can_disp1
         
-        exec_engine.io.lsq_alloc_valid := real_need_lsq0 || real_need_lsq1
+        exec_engine.io.lsq_alloc.req.valid := real_need_lsq0 || real_need_lsq1
         
-        exec_engine.io.lsq_alloc_type  := Mux(real_need_lsq0, Mux(d0.resFromMem, 0.U, Mux(d0.memWe, 1.U, 2.U)), Mux(d1.resFromMem, 0.U, Mux(d1.memWe, 1.U, 2.U)))
-        exec_engine.io.lsq_alloc_rob   := Mux(real_need_lsq0, rob.io.alloc_idx, rob.io.alloc1_idx)
-        exec_engine.io.lsq_alloc_pc    := Mux(real_need_lsq0, d0.pc, d1.pc)
-        exec_engine.io.lsq_alloc_pdest := Mux(real_need_lsq0, rename.io.dec0_pdest, rename.io.dec1_pdest)
+        exec_engine.io.lsq_alloc.req.bits.req_type := Mux(real_need_lsq0, Mux(d0.resFromMem, 0.U, Mux(d0.memWe, 1.U, 2.U)), Mux(d1.resFromMem, 0.U, Mux(d1.memWe, 1.U, 2.U)))
+        exec_engine.io.lsq_alloc.req.bits.rob      := Mux(real_need_lsq0, rob.io.alloc_idx, rob.io.alloc1_idx)
+        exec_engine.io.lsq_alloc.req.bits.pc       := Mux(real_need_lsq0, d0.pc, d1.pc)
+        exec_engine.io.lsq_alloc.req.bits.pdest    := Mux(real_need_lsq0, rename.io.dec0_pdest, rename.io.dec1_pdest)
         
         // ★ 修复：给送进 LSQ 的 mask 洗净！
-        exec_engine.io.lsq_alloc_mask  := Mux(real_need_lsq0, rename.io.dec0_br_mask, rename.io.dec1_br_mask) & current_br_clear
-        
-        exec_engine.io.lsq_alloc_cacop := Mux(real_need_lsq0, d0.cacop_op, d1.cacop_op)
-        exec_engine.io.lsq_alloc_lsOp  := Mux(real_need_lsq0, d0.lsOp, d1.lsOp)
+        exec_engine.io.lsq_alloc.req.bits.mask     := Mux(real_need_lsq0, rename.io.dec0_br_mask, rename.io.dec1_br_mask) & current_br_clear
+        exec_engine.io.lsq_alloc.req.bits.cacop    := Mux(real_need_lsq0, d0.cacop_op, d1.cacop_op)
+        exec_engine.io.lsq_alloc.req.bits.lsOp     := Mux(real_need_lsq0, d0.lsOp, d1.lsOp)
 
         // ★ 组装 Rename 后的数据
         val renamed_d0 = WireDefault(d0)
@@ -237,7 +239,8 @@ class core_top extends RawModule {
         // ★ 修复：给送进 IQ 的 mask 洗净！
         renamed_d0.branch_mask := rename.io.dec0_br_mask & current_br_clear 
         renamed_d0.branch_tag := rename.io.dec0_br_tag
-        renamed_d0.lsq_idx := exec_engine.io.lsq_alloc_idx
+        renamed_d0.lsq_idx := exec_engine.io.lsq_alloc.idx
+        
 
         val renamed_d1 = WireDefault(d1)
         renamed_d1.psrc1 := rename.io.dec1_psrc1
@@ -248,7 +251,7 @@ class core_top extends RawModule {
         // ★ 修复：给送进 IQ 的 mask 洗净！
         renamed_d1.branch_mask := rename.io.dec1_br_mask & current_br_clear 
         renamed_d1.branch_tag := rename.io.dec1_br_tag
-        renamed_d1.lsq_idx := exec_engine.io.lsq_alloc_idx
+        renamed_d1.lsq_idx := exec_engine.io.lsq_alloc.idx
 
         // ================= IQ 连线 =================
         iq.io.flush      := flush_global
@@ -359,7 +362,21 @@ class core_top extends RawModule {
         iss_q_agu.io.deq.ready       := exec_engine.io.in_agu.ready
         
         exec_engine.io.flush    := flush_global
+
+
+
+
+
+
+
         exec_engine.io.timer_in := timer.io.timer_out
+        exec_engine.io.mmu_config   := csr.io.mmu_config
+
+
+
+
+
+
 
         // ★ 核心连线：CSR 读路径 (ALU0 发起)
         csr.io.raddr := exec_engine.io.csr_raddr
@@ -391,19 +408,19 @@ class core_top extends RawModule {
         // ★ 修复：LSQ 跨模块核心连线补丁
         // ==========================================
         // 1. Rename <-> ExecEngine(LSQ) 的快照与回档连线
-        rename.io.current_lsq_tail      := exec_engine.io.lsq_current_tail
-        exec_engine.io.lsq_br_restore   := rename.io.br_restore_tail
+        rename.io.current_lsq_tail          := exec_engine.io.lsq_state.current_tail
+        exec_engine.io.lsq_state.br_restore := rename.io.br_restore_tail
 
         // 2. ExecEngine(LSQ) -> ROB 的内存违例报警连线
-        rob.io.lsq_violation_valid      := exec_engine.io.lsq_violation_valid
-        rob.io.lsq_violation_rob        := exec_engine.io.lsq_violation_rob
-        rob.io.lsq_violation_pc         := exec_engine.io.lsq_violation_pc
+        rob.io.lsq_violation_valid          := exec_engine.io.lsq_violation.valid
+        rob.io.lsq_violation_rob            := exec_engine.io.lsq_violation.rob
+        rob.io.lsq_violation_pc             := exec_engine.io.lsq_violation.pc
 
         // 3. ROB -> ExecEngine(LSQ) 的提交通知连线
-        exec_engine.io.commit_mem_valid0 := rob.io.commit_mem_valid0
-        exec_engine.io.commit_mem_idx0   := rob.io.commit_mem_idx0
-        exec_engine.io.commit_mem_valid1 := rob.io.commit_mem_valid1
-        exec_engine.io.commit_mem_idx1   := rob.io.commit_mem_idx1
+        exec_engine.io.commit_mem.valid0    := rob.io.commit_mem_valid0
+        exec_engine.io.commit_mem.idx0      := rob.io.commit_mem_idx0
+        exec_engine.io.commit_mem.valid1    := rob.io.commit_mem_valid1
+        exec_engine.io.commit_mem.idx1      := rob.io.commit_mem_idx1
 
         // ---------------- Commit 提交与系统状态 ----------------
         rob.io.has_int          := csr.io.hasInt
@@ -783,5 +800,41 @@ class core_top extends RawModule {
 
         probe_cdb0_pc := exec_engine.io.debug_cdb0_pc
         probe_cdb1_pc := exec_engine.io.debug_cdb1_pc
+
+        debug0_wb_valid := rob.io.commit_valid
+        debug1_wb_valid := rob.io.commit1_valid
     }
+}
+
+class LsqAllocReq extends Bundle {
+    val req_type = UInt(2.W) // 0: Load, 1: Store, 2: CACOP
+    val rob      = UInt(Config.robPtrWidth.W)
+    val pc       = UInt(32.W)
+    val pdest    = UInt(Config.prfPtrWidth.W)
+    val mask     = UInt(4.W)
+    val cacop    = UInt(5.W)
+    val lsOp     = UInt(8.W)
+}
+
+class LsqAllocIO extends Bundle {
+    val req = Flipped(Decoupled(new LsqAllocReq()))
+    val idx = Output(UInt(4.W)) 
+}
+
+class LsqStatePort extends Bundle {
+    val current_tail = Output(UInt(4.W))
+    val br_restore   = Input(UInt(4.W))
+}
+
+class LsqViolationPort extends Bundle {
+    val valid = Output(Bool())
+    val rob   = Output(UInt(Config.robPtrWidth.W))
+    val pc    = Output(UInt(32.W))
+}
+
+class CommitMemPort extends Bundle {
+    val valid0 = Output(Bool())
+    val idx0   = Output(UInt(Config.robPtrWidth.W))
+    val valid1 = Output(Bool())
+    val idx1   = Output(UInt(Config.robPtrWidth.W))
 }

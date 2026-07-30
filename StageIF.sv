@@ -3211,21 +3211,13 @@ module StageIF(
      {btb_valid_0}};
   wire               hit0 =
     _GEN_2[pc_reg[10:2]] & _btb_payload_ext_R1_data[54:34] == pc_reg[31:11];
-  wire               hit1 =
-    _GEN_2[_idx1_T_1] & _btb_payload_ext_R0_data[54:34] == pc_reg[31:11] & ~is_cross_line;
+  wire [3:0]         _tos_after_0_T_2 = tos - 4'h1;
+  wire [31:0]        _call_ret_pc0_T = pc_reg + 32'h4;
   wire [9:0]         hash0 = pc_reg[11:2] ^ ghr;
-  wire [9:0]         hash1 = pc_reg[11:2] + 10'h1 ^ ghr;
   wire               is_cond0 = hit0 & _btb_payload_ext_R1_data[1:0] == 2'h0;
-  wire               is_cond1 = hit1 & _btb_payload_ext_R0_data[1:0] == 2'h0;
   wire               is_call0 = hit0 & _btb_payload_ext_R1_data[1:0] == 2'h2;
   wire               is_ret0 = hit0 & (&(_btb_payload_ext_R1_data[1:0]));
   wire               pred_taken0 = is_cond0 ? _GEN_1[hash0] & _bht_ext_R2_data[1] : hit0;
-  wire               is_ret1 = hit1 & (&(_btb_payload_ext_R0_data[1:0])) & ~pred_taken0;
-  wire [3:0]         _tos_after_0_T = tos + 4'h1;
-  wire [3:0]         _ras_val_tos_minus_1_T = tos - 4'h1;
-  wire [3:0]         tos_after_0 =
-    is_call0 ? _tos_after_0_T : is_ret0 ? _ras_val_tos_minus_1_T : tos;
-  wire [31:0]        _call_ret_pc0_T = pc_reg + 32'h4;
   wire [15:0][31:0]  _GEN_3 =
     {{ras_15},
      {ras_14},
@@ -3244,17 +3236,24 @@ module StageIF(
      {ras_1},
      {ras_0}};
   wire [31:0]        pred_target0 =
-    hit0
-      ? (is_ret0 ? _GEN_3[_ras_val_tos_minus_1_T] : _btb_payload_ext_R1_data[33:2])
-      : 32'h0;
-  wire               pred_taken1 =
-    (is_cond1 ? _GEN_1[hash1] & _bht_ext_R1_data[1] : hit1) & ~pred_taken0;
+    hit0 ? (is_ret0 ? _GEN_3[_tos_after_0_T_2] : _btb_payload_ext_R1_data[33:2]) : 32'h0;
+  wire [3:0]         _tos_after_0_T = tos + 4'h1;
+  wire [3:0]         tos_after_0 =
+    is_call0 ? _tos_after_0_T : is_ret0 ? _tos_after_0_T_2 : tos;
+  wire               hit1 =
+    _GEN_2[_idx1_T_1] & _btb_payload_ext_R0_data[54:34] == pc_reg[31:11] & ~is_cross_line
+    & ~pred_taken0;
+  wire [9:0]         hash1 =
+    pc_reg[11:2] + 10'h1 ^ (is_cond0 ? {ghr[8:0], pred_taken0} : ghr);
+  wire               is_cond1 = hit1 & _btb_payload_ext_R0_data[1:0] == 2'h0;
+  wire               is_ret1 = hit1 & (&(_btb_payload_ext_R0_data[1:0]));
+  wire               pred_taken1 = is_cond1 ? _GEN_1[hash1] & _bht_ext_R1_data[1] : hit1;
   wire [31:0]        pred_target1 =
     hit1
       ? (is_ret1
            ? (is_call0
                 ? _call_ret_pc0_T
-                : is_ret0 ? _GEN_3[tos - 4'h2] : _GEN_3[_ras_val_tos_minus_1_T])
+                : is_ret0 ? _GEN_3[tos - 4'h2] : _GEN_3[_tos_after_0_T_2])
            : _btb_payload_ext_R0_data[33:2])
       : 32'h0;
   reg  [63:0]        rdata_table_0;
@@ -8934,1541 +8933,1029 @@ module StageIF(
             ? pred_target0
             : pred_taken1 ? pred_target1 : pc_reg + {28'h0, is_cross_line ? 4'h4 : 4'h8};
       btb_valid_0 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h0 | btb_valid_0;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h0 | btb_valid_0;
       btb_valid_1 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1 | btb_valid_1;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1 | btb_valid_1;
       btb_valid_2 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h2 | btb_valid_2;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h2 | btb_valid_2;
       btb_valid_3 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h3 | btb_valid_3;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h3 | btb_valid_3;
       btb_valid_4 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h4 | btb_valid_4;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h4 | btb_valid_4;
       btb_valid_5 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h5 | btb_valid_5;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h5 | btb_valid_5;
       btb_valid_6 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h6 | btb_valid_6;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h6 | btb_valid_6;
       btb_valid_7 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h7 | btb_valid_7;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h7 | btb_valid_7;
       btb_valid_8 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h8 | btb_valid_8;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h8 | btb_valid_8;
       btb_valid_9 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h9 | btb_valid_9;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h9 | btb_valid_9;
       btb_valid_10 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA | btb_valid_10;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA | btb_valid_10;
       btb_valid_11 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB | btb_valid_11;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB | btb_valid_11;
       btb_valid_12 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC | btb_valid_12;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC | btb_valid_12;
       btb_valid_13 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD | btb_valid_13;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD | btb_valid_13;
       btb_valid_14 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE | btb_valid_14;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE | btb_valid_14;
       btb_valid_15 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF | btb_valid_15;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF | btb_valid_15;
       btb_valid_16 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h10 | btb_valid_16;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h10 | btb_valid_16;
       btb_valid_17 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h11 | btb_valid_17;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h11 | btb_valid_17;
       btb_valid_18 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h12 | btb_valid_18;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h12 | btb_valid_18;
       btb_valid_19 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h13 | btb_valid_19;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h13 | btb_valid_19;
       btb_valid_20 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h14 | btb_valid_20;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h14 | btb_valid_20;
       btb_valid_21 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h15 | btb_valid_21;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h15 | btb_valid_21;
       btb_valid_22 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h16 | btb_valid_22;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h16 | btb_valid_22;
       btb_valid_23 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h17 | btb_valid_23;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h17 | btb_valid_23;
       btb_valid_24 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h18 | btb_valid_24;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h18 | btb_valid_24;
       btb_valid_25 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h19 | btb_valid_25;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h19 | btb_valid_25;
       btb_valid_26 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A | btb_valid_26;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A | btb_valid_26;
       btb_valid_27 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B | btb_valid_27;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B | btb_valid_27;
       btb_valid_28 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C | btb_valid_28;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C | btb_valid_28;
       btb_valid_29 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D | btb_valid_29;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D | btb_valid_29;
       btb_valid_30 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E | btb_valid_30;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E | btb_valid_30;
       btb_valid_31 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F | btb_valid_31;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F | btb_valid_31;
       btb_valid_32 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h20 | btb_valid_32;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h20 | btb_valid_32;
       btb_valid_33 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h21 | btb_valid_33;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h21 | btb_valid_33;
       btb_valid_34 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h22 | btb_valid_34;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h22 | btb_valid_34;
       btb_valid_35 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h23 | btb_valid_35;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h23 | btb_valid_35;
       btb_valid_36 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h24 | btb_valid_36;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h24 | btb_valid_36;
       btb_valid_37 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h25 | btb_valid_37;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h25 | btb_valid_37;
       btb_valid_38 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h26 | btb_valid_38;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h26 | btb_valid_38;
       btb_valid_39 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h27 | btb_valid_39;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h27 | btb_valid_39;
       btb_valid_40 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h28 | btb_valid_40;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h28 | btb_valid_40;
       btb_valid_41 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h29 | btb_valid_41;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h29 | btb_valid_41;
       btb_valid_42 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h2A | btb_valid_42;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h2A | btb_valid_42;
       btb_valid_43 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h2B | btb_valid_43;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h2B | btb_valid_43;
       btb_valid_44 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h2C | btb_valid_44;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h2C | btb_valid_44;
       btb_valid_45 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h2D | btb_valid_45;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h2D | btb_valid_45;
       btb_valid_46 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h2E | btb_valid_46;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h2E | btb_valid_46;
       btb_valid_47 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h2F | btb_valid_47;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h2F | btb_valid_47;
       btb_valid_48 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h30 | btb_valid_48;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h30 | btb_valid_48;
       btb_valid_49 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h31 | btb_valid_49;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h31 | btb_valid_49;
       btb_valid_50 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h32 | btb_valid_50;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h32 | btb_valid_50;
       btb_valid_51 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h33 | btb_valid_51;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h33 | btb_valid_51;
       btb_valid_52 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h34 | btb_valid_52;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h34 | btb_valid_52;
       btb_valid_53 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h35 | btb_valid_53;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h35 | btb_valid_53;
       btb_valid_54 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h36 | btb_valid_54;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h36 | btb_valid_54;
       btb_valid_55 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h37 | btb_valid_55;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h37 | btb_valid_55;
       btb_valid_56 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h38 | btb_valid_56;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h38 | btb_valid_56;
       btb_valid_57 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h39 | btb_valid_57;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h39 | btb_valid_57;
       btb_valid_58 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h3A | btb_valid_58;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h3A | btb_valid_58;
       btb_valid_59 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h3B | btb_valid_59;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h3B | btb_valid_59;
       btb_valid_60 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h3C | btb_valid_60;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h3C | btb_valid_60;
       btb_valid_61 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h3D | btb_valid_61;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h3D | btb_valid_61;
       btb_valid_62 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h3E | btb_valid_62;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h3E | btb_valid_62;
       btb_valid_63 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h3F | btb_valid_63;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h3F | btb_valid_63;
       btb_valid_64 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h40 | btb_valid_64;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h40 | btb_valid_64;
       btb_valid_65 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h41 | btb_valid_65;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h41 | btb_valid_65;
       btb_valid_66 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h42 | btb_valid_66;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h42 | btb_valid_66;
       btb_valid_67 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h43 | btb_valid_67;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h43 | btb_valid_67;
       btb_valid_68 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h44 | btb_valid_68;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h44 | btb_valid_68;
       btb_valid_69 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h45 | btb_valid_69;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h45 | btb_valid_69;
       btb_valid_70 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h46 | btb_valid_70;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h46 | btb_valid_70;
       btb_valid_71 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h47 | btb_valid_71;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h47 | btb_valid_71;
       btb_valid_72 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h48 | btb_valid_72;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h48 | btb_valid_72;
       btb_valid_73 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h49 | btb_valid_73;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h49 | btb_valid_73;
       btb_valid_74 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h4A | btb_valid_74;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h4A | btb_valid_74;
       btb_valid_75 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h4B | btb_valid_75;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h4B | btb_valid_75;
       btb_valid_76 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h4C | btb_valid_76;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h4C | btb_valid_76;
       btb_valid_77 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h4D | btb_valid_77;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h4D | btb_valid_77;
       btb_valid_78 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h4E | btb_valid_78;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h4E | btb_valid_78;
       btb_valid_79 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h4F | btb_valid_79;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h4F | btb_valid_79;
       btb_valid_80 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h50 | btb_valid_80;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h50 | btb_valid_80;
       btb_valid_81 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h51 | btb_valid_81;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h51 | btb_valid_81;
       btb_valid_82 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h52 | btb_valid_82;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h52 | btb_valid_82;
       btb_valid_83 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h53 | btb_valid_83;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h53 | btb_valid_83;
       btb_valid_84 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h54 | btb_valid_84;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h54 | btb_valid_84;
       btb_valid_85 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h55 | btb_valid_85;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h55 | btb_valid_85;
       btb_valid_86 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h56 | btb_valid_86;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h56 | btb_valid_86;
       btb_valid_87 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h57 | btb_valid_87;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h57 | btb_valid_87;
       btb_valid_88 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h58 | btb_valid_88;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h58 | btb_valid_88;
       btb_valid_89 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h59 | btb_valid_89;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h59 | btb_valid_89;
       btb_valid_90 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h5A | btb_valid_90;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h5A | btb_valid_90;
       btb_valid_91 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h5B | btb_valid_91;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h5B | btb_valid_91;
       btb_valid_92 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h5C | btb_valid_92;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h5C | btb_valid_92;
       btb_valid_93 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h5D | btb_valid_93;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h5D | btb_valid_93;
       btb_valid_94 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h5E | btb_valid_94;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h5E | btb_valid_94;
       btb_valid_95 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h5F | btb_valid_95;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h5F | btb_valid_95;
       btb_valid_96 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h60 | btb_valid_96;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h60 | btb_valid_96;
       btb_valid_97 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h61 | btb_valid_97;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h61 | btb_valid_97;
       btb_valid_98 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h62 | btb_valid_98;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h62 | btb_valid_98;
       btb_valid_99 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h63 | btb_valid_99;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h63 | btb_valid_99;
       btb_valid_100 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h64 | btb_valid_100;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h64 | btb_valid_100;
       btb_valid_101 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h65 | btb_valid_101;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h65 | btb_valid_101;
       btb_valid_102 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h66 | btb_valid_102;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h66 | btb_valid_102;
       btb_valid_103 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h67 | btb_valid_103;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h67 | btb_valid_103;
       btb_valid_104 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h68 | btb_valid_104;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h68 | btb_valid_104;
       btb_valid_105 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h69 | btb_valid_105;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h69 | btb_valid_105;
       btb_valid_106 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h6A | btb_valid_106;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h6A | btb_valid_106;
       btb_valid_107 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h6B | btb_valid_107;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h6B | btb_valid_107;
       btb_valid_108 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h6C | btb_valid_108;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h6C | btb_valid_108;
       btb_valid_109 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h6D | btb_valid_109;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h6D | btb_valid_109;
       btb_valid_110 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h6E | btb_valid_110;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h6E | btb_valid_110;
       btb_valid_111 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h6F | btb_valid_111;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h6F | btb_valid_111;
       btb_valid_112 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h70 | btb_valid_112;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h70 | btb_valid_112;
       btb_valid_113 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h71 | btb_valid_113;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h71 | btb_valid_113;
       btb_valid_114 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h72 | btb_valid_114;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h72 | btb_valid_114;
       btb_valid_115 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h73 | btb_valid_115;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h73 | btb_valid_115;
       btb_valid_116 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h74 | btb_valid_116;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h74 | btb_valid_116;
       btb_valid_117 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h75 | btb_valid_117;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h75 | btb_valid_117;
       btb_valid_118 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h76 | btb_valid_118;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h76 | btb_valid_118;
       btb_valid_119 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h77 | btb_valid_119;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h77 | btb_valid_119;
       btb_valid_120 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h78 | btb_valid_120;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h78 | btb_valid_120;
       btb_valid_121 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h79 | btb_valid_121;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h79 | btb_valid_121;
       btb_valid_122 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h7A | btb_valid_122;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h7A | btb_valid_122;
       btb_valid_123 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h7B | btb_valid_123;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h7B | btb_valid_123;
       btb_valid_124 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h7C | btb_valid_124;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h7C | btb_valid_124;
       btb_valid_125 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h7D | btb_valid_125;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h7D | btb_valid_125;
       btb_valid_126 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h7E | btb_valid_126;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h7E | btb_valid_126;
       btb_valid_127 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h7F | btb_valid_127;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h7F | btb_valid_127;
       btb_valid_128 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h80 | btb_valid_128;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h80 | btb_valid_128;
       btb_valid_129 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h81 | btb_valid_129;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h81 | btb_valid_129;
       btb_valid_130 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h82 | btb_valid_130;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h82 | btb_valid_130;
       btb_valid_131 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h83 | btb_valid_131;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h83 | btb_valid_131;
       btb_valid_132 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h84 | btb_valid_132;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h84 | btb_valid_132;
       btb_valid_133 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h85 | btb_valid_133;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h85 | btb_valid_133;
       btb_valid_134 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h86 | btb_valid_134;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h86 | btb_valid_134;
       btb_valid_135 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h87 | btb_valid_135;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h87 | btb_valid_135;
       btb_valid_136 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h88 | btb_valid_136;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h88 | btb_valid_136;
       btb_valid_137 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h89 | btb_valid_137;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h89 | btb_valid_137;
       btb_valid_138 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h8A | btb_valid_138;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h8A | btb_valid_138;
       btb_valid_139 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h8B | btb_valid_139;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h8B | btb_valid_139;
       btb_valid_140 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h8C | btb_valid_140;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h8C | btb_valid_140;
       btb_valid_141 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h8D | btb_valid_141;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h8D | btb_valid_141;
       btb_valid_142 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h8E | btb_valid_142;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h8E | btb_valid_142;
       btb_valid_143 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h8F | btb_valid_143;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h8F | btb_valid_143;
       btb_valid_144 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h90 | btb_valid_144;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h90 | btb_valid_144;
       btb_valid_145 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h91 | btb_valid_145;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h91 | btb_valid_145;
       btb_valid_146 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h92 | btb_valid_146;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h92 | btb_valid_146;
       btb_valid_147 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h93 | btb_valid_147;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h93 | btb_valid_147;
       btb_valid_148 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h94 | btb_valid_148;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h94 | btb_valid_148;
       btb_valid_149 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h95 | btb_valid_149;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h95 | btb_valid_149;
       btb_valid_150 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h96 | btb_valid_150;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h96 | btb_valid_150;
       btb_valid_151 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h97 | btb_valid_151;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h97 | btb_valid_151;
       btb_valid_152 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h98 | btb_valid_152;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h98 | btb_valid_152;
       btb_valid_153 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h99 | btb_valid_153;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h99 | btb_valid_153;
       btb_valid_154 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h9A | btb_valid_154;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h9A | btb_valid_154;
       btb_valid_155 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h9B | btb_valid_155;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h9B | btb_valid_155;
       btb_valid_156 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h9C | btb_valid_156;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h9C | btb_valid_156;
       btb_valid_157 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h9D | btb_valid_157;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h9D | btb_valid_157;
       btb_valid_158 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h9E | btb_valid_158;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h9E | btb_valid_158;
       btb_valid_159 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h9F | btb_valid_159;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h9F | btb_valid_159;
       btb_valid_160 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA0 | btb_valid_160;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA0 | btb_valid_160;
       btb_valid_161 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA1 | btb_valid_161;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA1 | btb_valid_161;
       btb_valid_162 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA2 | btb_valid_162;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA2 | btb_valid_162;
       btb_valid_163 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA3 | btb_valid_163;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA3 | btb_valid_163;
       btb_valid_164 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA4 | btb_valid_164;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA4 | btb_valid_164;
       btb_valid_165 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA5 | btb_valid_165;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA5 | btb_valid_165;
       btb_valid_166 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA6 | btb_valid_166;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA6 | btb_valid_166;
       btb_valid_167 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA7 | btb_valid_167;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA7 | btb_valid_167;
       btb_valid_168 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA8 | btb_valid_168;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA8 | btb_valid_168;
       btb_valid_169 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hA9 | btb_valid_169;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hA9 | btb_valid_169;
       btb_valid_170 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hAA | btb_valid_170;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hAA | btb_valid_170;
       btb_valid_171 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hAB | btb_valid_171;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hAB | btb_valid_171;
       btb_valid_172 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hAC | btb_valid_172;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hAC | btb_valid_172;
       btb_valid_173 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hAD | btb_valid_173;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hAD | btb_valid_173;
       btb_valid_174 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hAE | btb_valid_174;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hAE | btb_valid_174;
       btb_valid_175 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hAF | btb_valid_175;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hAF | btb_valid_175;
       btb_valid_176 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB0 | btb_valid_176;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB0 | btb_valid_176;
       btb_valid_177 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB1 | btb_valid_177;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB1 | btb_valid_177;
       btb_valid_178 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB2 | btb_valid_178;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB2 | btb_valid_178;
       btb_valid_179 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB3 | btb_valid_179;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB3 | btb_valid_179;
       btb_valid_180 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB4 | btb_valid_180;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB4 | btb_valid_180;
       btb_valid_181 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB5 | btb_valid_181;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB5 | btb_valid_181;
       btb_valid_182 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB6 | btb_valid_182;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB6 | btb_valid_182;
       btb_valid_183 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB7 | btb_valid_183;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB7 | btb_valid_183;
       btb_valid_184 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB8 | btb_valid_184;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB8 | btb_valid_184;
       btb_valid_185 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hB9 | btb_valid_185;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hB9 | btb_valid_185;
       btb_valid_186 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hBA | btb_valid_186;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hBA | btb_valid_186;
       btb_valid_187 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hBB | btb_valid_187;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hBB | btb_valid_187;
       btb_valid_188 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hBC | btb_valid_188;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hBC | btb_valid_188;
       btb_valid_189 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hBD | btb_valid_189;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hBD | btb_valid_189;
       btb_valid_190 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hBE | btb_valid_190;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hBE | btb_valid_190;
       btb_valid_191 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hBF | btb_valid_191;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hBF | btb_valid_191;
       btb_valid_192 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC0 | btb_valid_192;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC0 | btb_valid_192;
       btb_valid_193 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC1 | btb_valid_193;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC1 | btb_valid_193;
       btb_valid_194 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC2 | btb_valid_194;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC2 | btb_valid_194;
       btb_valid_195 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC3 | btb_valid_195;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC3 | btb_valid_195;
       btb_valid_196 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC4 | btb_valid_196;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC4 | btb_valid_196;
       btb_valid_197 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC5 | btb_valid_197;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC5 | btb_valid_197;
       btb_valid_198 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC6 | btb_valid_198;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC6 | btb_valid_198;
       btb_valid_199 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC7 | btb_valid_199;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC7 | btb_valid_199;
       btb_valid_200 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC8 | btb_valid_200;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC8 | btb_valid_200;
       btb_valid_201 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hC9 | btb_valid_201;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hC9 | btb_valid_201;
       btb_valid_202 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hCA | btb_valid_202;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hCA | btb_valid_202;
       btb_valid_203 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hCB | btb_valid_203;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hCB | btb_valid_203;
       btb_valid_204 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hCC | btb_valid_204;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hCC | btb_valid_204;
       btb_valid_205 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hCD | btb_valid_205;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hCD | btb_valid_205;
       btb_valid_206 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hCE | btb_valid_206;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hCE | btb_valid_206;
       btb_valid_207 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hCF | btb_valid_207;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hCF | btb_valid_207;
       btb_valid_208 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD0 | btb_valid_208;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD0 | btb_valid_208;
       btb_valid_209 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD1 | btb_valid_209;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD1 | btb_valid_209;
       btb_valid_210 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD2 | btb_valid_210;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD2 | btb_valid_210;
       btb_valid_211 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD3 | btb_valid_211;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD3 | btb_valid_211;
       btb_valid_212 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD4 | btb_valid_212;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD4 | btb_valid_212;
       btb_valid_213 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD5 | btb_valid_213;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD5 | btb_valid_213;
       btb_valid_214 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD6 | btb_valid_214;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD6 | btb_valid_214;
       btb_valid_215 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD7 | btb_valid_215;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD7 | btb_valid_215;
       btb_valid_216 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD8 | btb_valid_216;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD8 | btb_valid_216;
       btb_valid_217 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hD9 | btb_valid_217;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hD9 | btb_valid_217;
       btb_valid_218 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hDA | btb_valid_218;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hDA | btb_valid_218;
       btb_valid_219 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hDB | btb_valid_219;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hDB | btb_valid_219;
       btb_valid_220 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hDC | btb_valid_220;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hDC | btb_valid_220;
       btb_valid_221 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hDD | btb_valid_221;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hDD | btb_valid_221;
       btb_valid_222 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hDE | btb_valid_222;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hDE | btb_valid_222;
       btb_valid_223 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hDF | btb_valid_223;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hDF | btb_valid_223;
       btb_valid_224 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE0 | btb_valid_224;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE0 | btb_valid_224;
       btb_valid_225 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE1 | btb_valid_225;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE1 | btb_valid_225;
       btb_valid_226 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE2 | btb_valid_226;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE2 | btb_valid_226;
       btb_valid_227 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE3 | btb_valid_227;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE3 | btb_valid_227;
       btb_valid_228 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE4 | btb_valid_228;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE4 | btb_valid_228;
       btb_valid_229 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE5 | btb_valid_229;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE5 | btb_valid_229;
       btb_valid_230 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE6 | btb_valid_230;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE6 | btb_valid_230;
       btb_valid_231 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE7 | btb_valid_231;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE7 | btb_valid_231;
       btb_valid_232 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE8 | btb_valid_232;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE8 | btb_valid_232;
       btb_valid_233 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hE9 | btb_valid_233;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hE9 | btb_valid_233;
       btb_valid_234 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hEA | btb_valid_234;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hEA | btb_valid_234;
       btb_valid_235 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hEB | btb_valid_235;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hEB | btb_valid_235;
       btb_valid_236 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hEC | btb_valid_236;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hEC | btb_valid_236;
       btb_valid_237 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hED | btb_valid_237;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hED | btb_valid_237;
       btb_valid_238 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hEE | btb_valid_238;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hEE | btb_valid_238;
       btb_valid_239 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hEF | btb_valid_239;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hEF | btb_valid_239;
       btb_valid_240 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF0 | btb_valid_240;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF0 | btb_valid_240;
       btb_valid_241 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF1 | btb_valid_241;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF1 | btb_valid_241;
       btb_valid_242 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF2 | btb_valid_242;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF2 | btb_valid_242;
       btb_valid_243 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF3 | btb_valid_243;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF3 | btb_valid_243;
       btb_valid_244 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF4 | btb_valid_244;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF4 | btb_valid_244;
       btb_valid_245 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF5 | btb_valid_245;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF5 | btb_valid_245;
       btb_valid_246 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF6 | btb_valid_246;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF6 | btb_valid_246;
       btb_valid_247 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF7 | btb_valid_247;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF7 | btb_valid_247;
       btb_valid_248 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF8 | btb_valid_248;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF8 | btb_valid_248;
       btb_valid_249 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hF9 | btb_valid_249;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hF9 | btb_valid_249;
       btb_valid_250 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hFA | btb_valid_250;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hFA | btb_valid_250;
       btb_valid_251 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hFB | btb_valid_251;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hFB | btb_valid_251;
       btb_valid_252 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hFC | btb_valid_252;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hFC | btb_valid_252;
       btb_valid_253 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hFD | btb_valid_253;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hFD | btb_valid_253;
       btb_valid_254 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hFE | btb_valid_254;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hFE | btb_valid_254;
       btb_valid_255 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'hFF | btb_valid_255;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'hFF | btb_valid_255;
       btb_valid_256 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h100 | btb_valid_256;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h100 | btb_valid_256;
       btb_valid_257 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h101 | btb_valid_257;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h101 | btb_valid_257;
       btb_valid_258 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h102 | btb_valid_258;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h102 | btb_valid_258;
       btb_valid_259 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h103 | btb_valid_259;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h103 | btb_valid_259;
       btb_valid_260 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h104 | btb_valid_260;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h104 | btb_valid_260;
       btb_valid_261 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h105 | btb_valid_261;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h105 | btb_valid_261;
       btb_valid_262 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h106 | btb_valid_262;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h106 | btb_valid_262;
       btb_valid_263 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h107 | btb_valid_263;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h107 | btb_valid_263;
       btb_valid_264 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h108 | btb_valid_264;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h108 | btb_valid_264;
       btb_valid_265 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h109 | btb_valid_265;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h109 | btb_valid_265;
       btb_valid_266 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h10A | btb_valid_266;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h10A | btb_valid_266;
       btb_valid_267 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h10B | btb_valid_267;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h10B | btb_valid_267;
       btb_valid_268 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h10C | btb_valid_268;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h10C | btb_valid_268;
       btb_valid_269 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h10D | btb_valid_269;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h10D | btb_valid_269;
       btb_valid_270 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h10E | btb_valid_270;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h10E | btb_valid_270;
       btb_valid_271 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h10F | btb_valid_271;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h10F | btb_valid_271;
       btb_valid_272 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h110 | btb_valid_272;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h110 | btb_valid_272;
       btb_valid_273 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h111 | btb_valid_273;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h111 | btb_valid_273;
       btb_valid_274 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h112 | btb_valid_274;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h112 | btb_valid_274;
       btb_valid_275 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h113 | btb_valid_275;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h113 | btb_valid_275;
       btb_valid_276 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h114 | btb_valid_276;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h114 | btb_valid_276;
       btb_valid_277 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h115 | btb_valid_277;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h115 | btb_valid_277;
       btb_valid_278 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h116 | btb_valid_278;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h116 | btb_valid_278;
       btb_valid_279 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h117 | btb_valid_279;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h117 | btb_valid_279;
       btb_valid_280 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h118 | btb_valid_280;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h118 | btb_valid_280;
       btb_valid_281 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h119 | btb_valid_281;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h119 | btb_valid_281;
       btb_valid_282 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h11A | btb_valid_282;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h11A | btb_valid_282;
       btb_valid_283 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h11B | btb_valid_283;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h11B | btb_valid_283;
       btb_valid_284 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h11C | btb_valid_284;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h11C | btb_valid_284;
       btb_valid_285 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h11D | btb_valid_285;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h11D | btb_valid_285;
       btb_valid_286 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h11E | btb_valid_286;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h11E | btb_valid_286;
       btb_valid_287 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h11F | btb_valid_287;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h11F | btb_valid_287;
       btb_valid_288 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h120 | btb_valid_288;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h120 | btb_valid_288;
       btb_valid_289 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h121 | btb_valid_289;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h121 | btb_valid_289;
       btb_valid_290 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h122 | btb_valid_290;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h122 | btb_valid_290;
       btb_valid_291 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h123 | btb_valid_291;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h123 | btb_valid_291;
       btb_valid_292 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h124 | btb_valid_292;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h124 | btb_valid_292;
       btb_valid_293 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h125 | btb_valid_293;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h125 | btb_valid_293;
       btb_valid_294 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h126 | btb_valid_294;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h126 | btb_valid_294;
       btb_valid_295 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h127 | btb_valid_295;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h127 | btb_valid_295;
       btb_valid_296 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h128 | btb_valid_296;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h128 | btb_valid_296;
       btb_valid_297 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h129 | btb_valid_297;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h129 | btb_valid_297;
       btb_valid_298 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h12A | btb_valid_298;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h12A | btb_valid_298;
       btb_valid_299 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h12B | btb_valid_299;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h12B | btb_valid_299;
       btb_valid_300 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h12C | btb_valid_300;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h12C | btb_valid_300;
       btb_valid_301 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h12D | btb_valid_301;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h12D | btb_valid_301;
       btb_valid_302 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h12E | btb_valid_302;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h12E | btb_valid_302;
       btb_valid_303 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h12F | btb_valid_303;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h12F | btb_valid_303;
       btb_valid_304 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h130 | btb_valid_304;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h130 | btb_valid_304;
       btb_valid_305 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h131 | btb_valid_305;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h131 | btb_valid_305;
       btb_valid_306 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h132 | btb_valid_306;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h132 | btb_valid_306;
       btb_valid_307 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h133 | btb_valid_307;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h133 | btb_valid_307;
       btb_valid_308 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h134 | btb_valid_308;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h134 | btb_valid_308;
       btb_valid_309 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h135 | btb_valid_309;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h135 | btb_valid_309;
       btb_valid_310 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h136 | btb_valid_310;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h136 | btb_valid_310;
       btb_valid_311 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h137 | btb_valid_311;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h137 | btb_valid_311;
       btb_valid_312 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h138 | btb_valid_312;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h138 | btb_valid_312;
       btb_valid_313 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h139 | btb_valid_313;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h139 | btb_valid_313;
       btb_valid_314 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h13A | btb_valid_314;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h13A | btb_valid_314;
       btb_valid_315 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h13B | btb_valid_315;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h13B | btb_valid_315;
       btb_valid_316 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h13C | btb_valid_316;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h13C | btb_valid_316;
       btb_valid_317 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h13D | btb_valid_317;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h13D | btb_valid_317;
       btb_valid_318 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h13E | btb_valid_318;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h13E | btb_valid_318;
       btb_valid_319 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h13F | btb_valid_319;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h13F | btb_valid_319;
       btb_valid_320 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h140 | btb_valid_320;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h140 | btb_valid_320;
       btb_valid_321 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h141 | btb_valid_321;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h141 | btb_valid_321;
       btb_valid_322 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h142 | btb_valid_322;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h142 | btb_valid_322;
       btb_valid_323 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h143 | btb_valid_323;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h143 | btb_valid_323;
       btb_valid_324 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h144 | btb_valid_324;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h144 | btb_valid_324;
       btb_valid_325 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h145 | btb_valid_325;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h145 | btb_valid_325;
       btb_valid_326 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h146 | btb_valid_326;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h146 | btb_valid_326;
       btb_valid_327 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h147 | btb_valid_327;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h147 | btb_valid_327;
       btb_valid_328 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h148 | btb_valid_328;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h148 | btb_valid_328;
       btb_valid_329 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h149 | btb_valid_329;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h149 | btb_valid_329;
       btb_valid_330 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h14A | btb_valid_330;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h14A | btb_valid_330;
       btb_valid_331 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h14B | btb_valid_331;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h14B | btb_valid_331;
       btb_valid_332 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h14C | btb_valid_332;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h14C | btb_valid_332;
       btb_valid_333 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h14D | btb_valid_333;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h14D | btb_valid_333;
       btb_valid_334 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h14E | btb_valid_334;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h14E | btb_valid_334;
       btb_valid_335 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h14F | btb_valid_335;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h14F | btb_valid_335;
       btb_valid_336 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h150 | btb_valid_336;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h150 | btb_valid_336;
       btb_valid_337 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h151 | btb_valid_337;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h151 | btb_valid_337;
       btb_valid_338 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h152 | btb_valid_338;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h152 | btb_valid_338;
       btb_valid_339 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h153 | btb_valid_339;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h153 | btb_valid_339;
       btb_valid_340 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h154 | btb_valid_340;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h154 | btb_valid_340;
       btb_valid_341 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h155 | btb_valid_341;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h155 | btb_valid_341;
       btb_valid_342 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h156 | btb_valid_342;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h156 | btb_valid_342;
       btb_valid_343 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h157 | btb_valid_343;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h157 | btb_valid_343;
       btb_valid_344 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h158 | btb_valid_344;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h158 | btb_valid_344;
       btb_valid_345 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h159 | btb_valid_345;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h159 | btb_valid_345;
       btb_valid_346 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h15A | btb_valid_346;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h15A | btb_valid_346;
       btb_valid_347 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h15B | btb_valid_347;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h15B | btb_valid_347;
       btb_valid_348 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h15C | btb_valid_348;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h15C | btb_valid_348;
       btb_valid_349 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h15D | btb_valid_349;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h15D | btb_valid_349;
       btb_valid_350 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h15E | btb_valid_350;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h15E | btb_valid_350;
       btb_valid_351 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h15F | btb_valid_351;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h15F | btb_valid_351;
       btb_valid_352 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h160 | btb_valid_352;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h160 | btb_valid_352;
       btb_valid_353 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h161 | btb_valid_353;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h161 | btb_valid_353;
       btb_valid_354 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h162 | btb_valid_354;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h162 | btb_valid_354;
       btb_valid_355 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h163 | btb_valid_355;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h163 | btb_valid_355;
       btb_valid_356 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h164 | btb_valid_356;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h164 | btb_valid_356;
       btb_valid_357 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h165 | btb_valid_357;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h165 | btb_valid_357;
       btb_valid_358 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h166 | btb_valid_358;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h166 | btb_valid_358;
       btb_valid_359 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h167 | btb_valid_359;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h167 | btb_valid_359;
       btb_valid_360 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h168 | btb_valid_360;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h168 | btb_valid_360;
       btb_valid_361 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h169 | btb_valid_361;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h169 | btb_valid_361;
       btb_valid_362 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h16A | btb_valid_362;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h16A | btb_valid_362;
       btb_valid_363 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h16B | btb_valid_363;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h16B | btb_valid_363;
       btb_valid_364 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h16C | btb_valid_364;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h16C | btb_valid_364;
       btb_valid_365 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h16D | btb_valid_365;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h16D | btb_valid_365;
       btb_valid_366 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h16E | btb_valid_366;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h16E | btb_valid_366;
       btb_valid_367 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h16F | btb_valid_367;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h16F | btb_valid_367;
       btb_valid_368 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h170 | btb_valid_368;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h170 | btb_valid_368;
       btb_valid_369 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h171 | btb_valid_369;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h171 | btb_valid_369;
       btb_valid_370 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h172 | btb_valid_370;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h172 | btb_valid_370;
       btb_valid_371 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h173 | btb_valid_371;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h173 | btb_valid_371;
       btb_valid_372 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h174 | btb_valid_372;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h174 | btb_valid_372;
       btb_valid_373 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h175 | btb_valid_373;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h175 | btb_valid_373;
       btb_valid_374 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h176 | btb_valid_374;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h176 | btb_valid_374;
       btb_valid_375 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h177 | btb_valid_375;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h177 | btb_valid_375;
       btb_valid_376 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h178 | btb_valid_376;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h178 | btb_valid_376;
       btb_valid_377 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h179 | btb_valid_377;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h179 | btb_valid_377;
       btb_valid_378 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h17A | btb_valid_378;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h17A | btb_valid_378;
       btb_valid_379 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h17B | btb_valid_379;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h17B | btb_valid_379;
       btb_valid_380 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h17C | btb_valid_380;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h17C | btb_valid_380;
       btb_valid_381 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h17D | btb_valid_381;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h17D | btb_valid_381;
       btb_valid_382 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h17E | btb_valid_382;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h17E | btb_valid_382;
       btb_valid_383 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h17F | btb_valid_383;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h17F | btb_valid_383;
       btb_valid_384 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h180 | btb_valid_384;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h180 | btb_valid_384;
       btb_valid_385 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h181 | btb_valid_385;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h181 | btb_valid_385;
       btb_valid_386 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h182 | btb_valid_386;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h182 | btb_valid_386;
       btb_valid_387 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h183 | btb_valid_387;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h183 | btb_valid_387;
       btb_valid_388 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h184 | btb_valid_388;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h184 | btb_valid_388;
       btb_valid_389 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h185 | btb_valid_389;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h185 | btb_valid_389;
       btb_valid_390 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h186 | btb_valid_390;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h186 | btb_valid_390;
       btb_valid_391 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h187 | btb_valid_391;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h187 | btb_valid_391;
       btb_valid_392 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h188 | btb_valid_392;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h188 | btb_valid_392;
       btb_valid_393 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h189 | btb_valid_393;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h189 | btb_valid_393;
       btb_valid_394 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h18A | btb_valid_394;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h18A | btb_valid_394;
       btb_valid_395 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h18B | btb_valid_395;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h18B | btb_valid_395;
       btb_valid_396 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h18C | btb_valid_396;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h18C | btb_valid_396;
       btb_valid_397 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h18D | btb_valid_397;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h18D | btb_valid_397;
       btb_valid_398 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h18E | btb_valid_398;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h18E | btb_valid_398;
       btb_valid_399 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h18F | btb_valid_399;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h18F | btb_valid_399;
       btb_valid_400 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h190 | btb_valid_400;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h190 | btb_valid_400;
       btb_valid_401 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h191 | btb_valid_401;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h191 | btb_valid_401;
       btb_valid_402 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h192 | btb_valid_402;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h192 | btb_valid_402;
       btb_valid_403 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h193 | btb_valid_403;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h193 | btb_valid_403;
       btb_valid_404 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h194 | btb_valid_404;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h194 | btb_valid_404;
       btb_valid_405 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h195 | btb_valid_405;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h195 | btb_valid_405;
       btb_valid_406 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h196 | btb_valid_406;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h196 | btb_valid_406;
       btb_valid_407 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h197 | btb_valid_407;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h197 | btb_valid_407;
       btb_valid_408 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h198 | btb_valid_408;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h198 | btb_valid_408;
       btb_valid_409 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h199 | btb_valid_409;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h199 | btb_valid_409;
       btb_valid_410 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h19A | btb_valid_410;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h19A | btb_valid_410;
       btb_valid_411 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h19B | btb_valid_411;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h19B | btb_valid_411;
       btb_valid_412 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h19C | btb_valid_412;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h19C | btb_valid_412;
       btb_valid_413 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h19D | btb_valid_413;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h19D | btb_valid_413;
       btb_valid_414 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h19E | btb_valid_414;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h19E | btb_valid_414;
       btb_valid_415 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h19F | btb_valid_415;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h19F | btb_valid_415;
       btb_valid_416 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A0 | btb_valid_416;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A0 | btb_valid_416;
       btb_valid_417 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A1 | btb_valid_417;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A1 | btb_valid_417;
       btb_valid_418 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A2 | btb_valid_418;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A2 | btb_valid_418;
       btb_valid_419 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A3 | btb_valid_419;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A3 | btb_valid_419;
       btb_valid_420 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A4 | btb_valid_420;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A4 | btb_valid_420;
       btb_valid_421 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A5 | btb_valid_421;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A5 | btb_valid_421;
       btb_valid_422 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A6 | btb_valid_422;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A6 | btb_valid_422;
       btb_valid_423 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A7 | btb_valid_423;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A7 | btb_valid_423;
       btb_valid_424 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A8 | btb_valid_424;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A8 | btb_valid_424;
       btb_valid_425 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1A9 | btb_valid_425;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1A9 | btb_valid_425;
       btb_valid_426 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1AA | btb_valid_426;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1AA | btb_valid_426;
       btb_valid_427 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1AB | btb_valid_427;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1AB | btb_valid_427;
       btb_valid_428 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1AC | btb_valid_428;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1AC | btb_valid_428;
       btb_valid_429 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1AD | btb_valid_429;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1AD | btb_valid_429;
       btb_valid_430 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1AE | btb_valid_430;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1AE | btb_valid_430;
       btb_valid_431 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1AF | btb_valid_431;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1AF | btb_valid_431;
       btb_valid_432 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B0 | btb_valid_432;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B0 | btb_valid_432;
       btb_valid_433 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B1 | btb_valid_433;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B1 | btb_valid_433;
       btb_valid_434 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B2 | btb_valid_434;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B2 | btb_valid_434;
       btb_valid_435 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B3 | btb_valid_435;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B3 | btb_valid_435;
       btb_valid_436 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B4 | btb_valid_436;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B4 | btb_valid_436;
       btb_valid_437 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B5 | btb_valid_437;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B5 | btb_valid_437;
       btb_valid_438 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B6 | btb_valid_438;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B6 | btb_valid_438;
       btb_valid_439 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B7 | btb_valid_439;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B7 | btb_valid_439;
       btb_valid_440 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B8 | btb_valid_440;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B8 | btb_valid_440;
       btb_valid_441 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1B9 | btb_valid_441;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1B9 | btb_valid_441;
       btb_valid_442 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1BA | btb_valid_442;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1BA | btb_valid_442;
       btb_valid_443 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1BB | btb_valid_443;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1BB | btb_valid_443;
       btb_valid_444 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1BC | btb_valid_444;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1BC | btb_valid_444;
       btb_valid_445 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1BD | btb_valid_445;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1BD | btb_valid_445;
       btb_valid_446 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1BE | btb_valid_446;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1BE | btb_valid_446;
       btb_valid_447 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1BF | btb_valid_447;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1BF | btb_valid_447;
       btb_valid_448 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C0 | btb_valid_448;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C0 | btb_valid_448;
       btb_valid_449 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C1 | btb_valid_449;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C1 | btb_valid_449;
       btb_valid_450 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C2 | btb_valid_450;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C2 | btb_valid_450;
       btb_valid_451 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C3 | btb_valid_451;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C3 | btb_valid_451;
       btb_valid_452 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C4 | btb_valid_452;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C4 | btb_valid_452;
       btb_valid_453 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C5 | btb_valid_453;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C5 | btb_valid_453;
       btb_valid_454 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C6 | btb_valid_454;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C6 | btb_valid_454;
       btb_valid_455 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C7 | btb_valid_455;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C7 | btb_valid_455;
       btb_valid_456 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C8 | btb_valid_456;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C8 | btb_valid_456;
       btb_valid_457 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1C9 | btb_valid_457;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1C9 | btb_valid_457;
       btb_valid_458 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1CA | btb_valid_458;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1CA | btb_valid_458;
       btb_valid_459 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1CB | btb_valid_459;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1CB | btb_valid_459;
       btb_valid_460 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1CC | btb_valid_460;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1CC | btb_valid_460;
       btb_valid_461 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1CD | btb_valid_461;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1CD | btb_valid_461;
       btb_valid_462 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1CE | btb_valid_462;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1CE | btb_valid_462;
       btb_valid_463 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1CF | btb_valid_463;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1CF | btb_valid_463;
       btb_valid_464 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D0 | btb_valid_464;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D0 | btb_valid_464;
       btb_valid_465 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D1 | btb_valid_465;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D1 | btb_valid_465;
       btb_valid_466 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D2 | btb_valid_466;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D2 | btb_valid_466;
       btb_valid_467 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D3 | btb_valid_467;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D3 | btb_valid_467;
       btb_valid_468 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D4 | btb_valid_468;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D4 | btb_valid_468;
       btb_valid_469 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D5 | btb_valid_469;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D5 | btb_valid_469;
       btb_valid_470 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D6 | btb_valid_470;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D6 | btb_valid_470;
       btb_valid_471 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D7 | btb_valid_471;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D7 | btb_valid_471;
       btb_valid_472 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D8 | btb_valid_472;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D8 | btb_valid_472;
       btb_valid_473 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1D9 | btb_valid_473;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1D9 | btb_valid_473;
       btb_valid_474 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1DA | btb_valid_474;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1DA | btb_valid_474;
       btb_valid_475 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1DB | btb_valid_475;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1DB | btb_valid_475;
       btb_valid_476 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1DC | btb_valid_476;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1DC | btb_valid_476;
       btb_valid_477 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1DD | btb_valid_477;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1DD | btb_valid_477;
       btb_valid_478 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1DE | btb_valid_478;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1DE | btb_valid_478;
       btb_valid_479 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1DF | btb_valid_479;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1DF | btb_valid_479;
       btb_valid_480 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E0 | btb_valid_480;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E0 | btb_valid_480;
       btb_valid_481 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E1 | btb_valid_481;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E1 | btb_valid_481;
       btb_valid_482 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E2 | btb_valid_482;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E2 | btb_valid_482;
       btb_valid_483 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E3 | btb_valid_483;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E3 | btb_valid_483;
       btb_valid_484 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E4 | btb_valid_484;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E4 | btb_valid_484;
       btb_valid_485 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E5 | btb_valid_485;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E5 | btb_valid_485;
       btb_valid_486 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E6 | btb_valid_486;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E6 | btb_valid_486;
       btb_valid_487 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E7 | btb_valid_487;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E7 | btb_valid_487;
       btb_valid_488 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E8 | btb_valid_488;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E8 | btb_valid_488;
       btb_valid_489 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1E9 | btb_valid_489;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1E9 | btb_valid_489;
       btb_valid_490 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1EA | btb_valid_490;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1EA | btb_valid_490;
       btb_valid_491 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1EB | btb_valid_491;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1EB | btb_valid_491;
       btb_valid_492 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1EC | btb_valid_492;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1EC | btb_valid_492;
       btb_valid_493 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1ED | btb_valid_493;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1ED | btb_valid_493;
       btb_valid_494 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1EE | btb_valid_494;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1EE | btb_valid_494;
       btb_valid_495 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1EF | btb_valid_495;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1EF | btb_valid_495;
       btb_valid_496 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F0 | btb_valid_496;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F0 | btb_valid_496;
       btb_valid_497 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F1 | btb_valid_497;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F1 | btb_valid_497;
       btb_valid_498 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F2 | btb_valid_498;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F2 | btb_valid_498;
       btb_valid_499 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F3 | btb_valid_499;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F3 | btb_valid_499;
       btb_valid_500 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F4 | btb_valid_500;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F4 | btb_valid_500;
       btb_valid_501 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F5 | btb_valid_501;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F5 | btb_valid_501;
       btb_valid_502 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F6 | btb_valid_502;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F6 | btb_valid_502;
       btb_valid_503 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F7 | btb_valid_503;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F7 | btb_valid_503;
       btb_valid_504 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F8 | btb_valid_504;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F8 | btb_valid_504;
       btb_valid_505 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1F9 | btb_valid_505;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1F9 | btb_valid_505;
       btb_valid_506 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1FA | btb_valid_506;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1FA | btb_valid_506;
       btb_valid_507 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1FB | btb_valid_507;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1FB | btb_valid_507;
       btb_valid_508 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1FC | btb_valid_508;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1FC | btb_valid_508;
       btb_valid_509 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1FD | btb_valid_509;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1FD | btb_valid_509;
       btb_valid_510 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken
-        & io_bpu_update_bits_pc[10:2] == 9'h1FE | btb_valid_510;
+        io_bpu_update_valid & io_bpu_update_bits_pc[10:2] == 9'h1FE | btb_valid_510;
       btb_valid_511 <=
-        io_bpu_update_valid & io_bpu_update_bits_taken & (&(io_bpu_update_bits_pc[10:2]))
-        | btb_valid_511;
+        io_bpu_update_valid & (&(io_bpu_update_bits_pc[10:2])) | btb_valid_511;
       if (io_bpu_update_valid & io_bpu_update_bits_mispredict) begin
         automatic logic        _final_tos_T = io_bpu_update_bits_bpu_type == 2'h2;
         automatic logic [31:0] _ras_T;
@@ -10534,8 +10021,7 @@ module StageIF(
         automatic logic        _GEN_1044;
         automatic logic        _GEN_1045;
         automatic logic        _GEN_1046;
-        automatic logic        shift_1;
-        is_call1 = hit1 & _btb_payload_ext_R0_data[1:0] == 2'h2 & ~pred_taken0;
+        is_call1 = hit1 & _btb_payload_ext_R0_data[1:0] == 2'h2;
         _call_ret_pc1_T = pc_reg + 32'h8;
         _GEN_1032 = tos == 4'h0;
         _GEN_1033 = tos == 4'h1;
@@ -10552,7 +10038,6 @@ module StageIF(
         _GEN_1044 = tos == 4'hC;
         _GEN_1045 = tos == 4'hD;
         _GEN_1046 = tos == 4'hE;
-        shift_1 = is_cond1 & ~pred_taken0;
         if (is_call0 & is_call1) begin
           if (_tos_after_0_T == 4'h0)
             ras_0 <= _call_ret_pc1_T;
@@ -10694,12 +10179,12 @@ module StageIF(
         else if (is_call0)
           tos <= _tos_after_0_T;
         else if (is_ret0)
-          tos <= _ras_val_tos_minus_1_T;
-        if (is_cond0 & shift_1)
+          tos <= _tos_after_0_T_2;
+        if (is_cond0 & is_cond1)
           ghr <= {ghr[7:0], pred_taken0, pred_taken1};
         else if (is_cond0)
           ghr <= {ghr[8:0], pred_taken0};
-        else if (shift_1)
+        else if (is_cond1)
           ghr <= {ghr[8:0], pred_taken1};
       end
       bht_valid_0 <= _GEN_0 & update_hash == 10'h0 | bht_valid_0;
@@ -15870,7 +15355,7 @@ module StageIF(
     .R1_clk  (clock),
     .R1_data (_btb_payload_ext_R1_data),
     .W0_addr (io_bpu_update_bits_pc[10:2]),
-    .W0_en   (io_bpu_update_valid & io_bpu_update_bits_taken),
+    .W0_en   (io_bpu_update_valid),
     .W0_clk  (clock),
     .W0_data ({write_data_tag, io_bpu_update_bits_target, io_bpu_update_bits_bpu_type})
   );

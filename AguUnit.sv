@@ -5,107 +5,50 @@ module AguUnit(
   output        io_in_ready,
   input         io_in_valid,
   input  [31:0] io_in_bits_pc,
-                io_in_bits_inst,
-  input  [12:0] io_in_bits_aluOp,
-  input  [6:0]  io_in_bits_mduOp,
-  input  [8:0]  io_in_bits_brType,
-  input  [31:0] io_in_bits_imm,
-  input         io_in_bits_src1IsPC,
-                io_in_bits_src2IsImm,
-                io_in_bits_src2IsFour,
-  input  [4:0]  io_in_bits_src1_addr,
-                io_in_bits_src2_addr,
+                io_in_bits_imm,
+  input         io_in_bits_src2IsImm,
   input  [31:0] io_in_bits_src1_value,
                 io_in_bits_src2_value,
-  input         io_in_bits_resFromMulDiv,
-                io_in_bits_memWe,
+  input         io_in_bits_memWe,
   input  [7:0]  io_in_bits_lsOp,
   input         io_in_bits_resFromMem,
                 io_in_bits_regWriteEn,
-  input  [4:0]  io_in_bits_destReg,
-  input         io_in_bits_hasException,
+                io_in_bits_hasException,
   input  [5:0]  io_in_bits_ecode,
-  input  [8:0]  io_in_bits_esubcode,
   input         io_in_bits_isCsr,
                 io_in_bits_csrWe,
   input  [13:0] io_in_bits_csrNum,
   input         io_in_bits_inst_ertn,
-                io_in_bits_rdtimel,
-                io_in_bits_rdtimeh,
   input  [4:0]  io_in_bits_tlbOp,
                 io_in_bits_invtlb_op,
   input         io_in_bits_is_refetch,
                 io_in_bits_is_cacop,
   input  [4:0]  io_in_bits_cacop_op,
                 io_in_bits_rob_idx,
-  input         io_in_bits_src1_read,
-                io_in_bits_src2_read,
   input  [5:0]  io_in_bits_pdest,
-                io_in_bits_old_pdest,
-                io_in_bits_psrc1,
-                io_in_bits_psrc2,
-  input         io_in_bits_is_branch,
-  input  [1:0]  io_in_bits_branch_tag,
   input  [3:0]  io_in_bits_branch_mask,
                 io_in_bits_lsq_idx,
-  input         io_in_bits_pred_taken,
-  input  [31:0] io_in_bits_pred_target,
-  input  [1:0]  io_in_bits_bpu_type,
-  input  [9:0]  io_in_bits_ghr,
-  input  [3:0]  io_in_bits_ras_tos,
   input         io_out_ready,
   output        io_out_valid,
   output [31:0] io_out_bits_pc,
-                io_out_bits_inst,
-  output [12:0] io_out_bits_aluOp,
-  output [6:0]  io_out_bits_mduOp,
-  output [8:0]  io_out_bits_brType,
-  output [31:0] io_out_bits_imm,
-  output        io_out_bits_src1IsPC,
-                io_out_bits_src2IsImm,
-                io_out_bits_src2IsFour,
-  output [4:0]  io_out_bits_src1_addr,
-                io_out_bits_src2_addr,
-  output [31:0] io_out_bits_src1_value,
                 io_out_bits_src2_value,
-  output        io_out_bits_resFromMulDiv,
-                io_out_bits_memWe,
-  output [7:0]  io_out_bits_lsOp,
-  output        io_out_bits_resFromMem,
+  output        io_out_bits_memWe,
+                io_out_bits_resFromMem,
                 io_out_bits_regWriteEn,
-  output [4:0]  io_out_bits_destReg,
   output [31:0] io_out_bits_ex_result,
                 io_out_bits_aux_data,
   output        io_out_bits_hasException,
   output [5:0]  io_out_bits_ecode,
-  output [8:0]  io_out_bits_esubcode,
   output        io_out_bits_isCsr,
                 io_out_bits_csrWe,
   output [13:0] io_out_bits_csrNum,
   output        io_out_bits_inst_ertn,
-                io_out_bits_rdtimel,
-                io_out_bits_rdtimeh,
   output [4:0]  io_out_bits_tlbOp,
-                io_out_bits_invtlb_op,
   output        io_out_bits_is_refetch,
                 io_out_bits_is_cacop,
-  output [4:0]  io_out_bits_cacop_op,
-                io_out_bits_rob_idx,
-  output        io_out_bits_src1_read,
-                io_out_bits_src2_read,
+  output [4:0]  io_out_bits_rob_idx,
   output [5:0]  io_out_bits_pdest,
-                io_out_bits_old_pdest,
-                io_out_bits_psrc1,
-                io_out_bits_psrc2,
-  output        io_out_bits_is_branch,
-  output [1:0]  io_out_bits_branch_tag,
   output [3:0]  io_out_bits_branch_mask,
-                io_out_bits_lsq_idx,
-  output        io_out_bits_pred_taken,
-  output [31:0] io_out_bits_pred_target,
-  output [1:0]  io_out_bits_bpu_type,
-  output [9:0]  io_out_bits_ghr,
-  output [3:0]  io_out_bits_ras_tos,
   output        io_to_lsq_valid,
   output [3:0]  io_to_lsq_bits_lsqIdx,
   output [31:0] io_to_lsq_bits_paddr,
@@ -115,6 +58,7 @@ module AguUnit(
   output [3:0]  io_to_lsq_bits_wstrb,
   output        io_to_lsq_bits_has_exc,
   output [5:0]  io_to_lsq_bits_ecode,
+  output [31:0] io_to_lsq_bits_vaddr,
   input         io_flush,
                 io_br_resolve_in_valid,
                 io_br_resolve_in_mispredict,
@@ -154,104 +98,50 @@ module AguUnit(
   wire [6:0]  br_tag_bit = 7'h1 << io_br_resolve_in_tag;
   reg         ex1_valid;
   reg  [31:0] ex1_data_pc;
-  reg  [31:0] ex1_data_inst;
-  reg  [12:0] ex1_data_aluOp;
-  reg  [6:0]  ex1_data_mduOp;
-  reg  [8:0]  ex1_data_brType;
   reg  [31:0] ex1_data_imm;
-  reg         ex1_data_src1IsPC;
   reg         ex1_data_src2IsImm;
-  reg         ex1_data_src2IsFour;
-  reg  [4:0]  ex1_data_src1_addr;
-  reg  [4:0]  ex1_data_src2_addr;
   reg  [31:0] ex1_data_src1_value;
   reg  [31:0] ex1_data_src2_value;
-  reg         ex1_data_resFromMulDiv;
   reg         ex1_data_memWe;
   reg  [7:0]  ex1_data_lsOp;
   reg         ex1_data_resFromMem;
   reg         ex1_data_regWriteEn;
-  reg  [4:0]  ex1_data_destReg;
   reg         ex1_data_hasException;
   reg  [5:0]  ex1_data_ecode;
-  reg  [8:0]  ex1_data_esubcode;
   reg         ex1_data_isCsr;
   reg         ex1_data_csrWe;
   reg  [13:0] ex1_data_csrNum;
   reg         ex1_data_inst_ertn;
-  reg         ex1_data_rdtimel;
-  reg         ex1_data_rdtimeh;
   reg  [4:0]  ex1_data_tlbOp;
   reg  [4:0]  ex1_data_invtlb_op;
   reg         ex1_data_is_refetch;
   reg         ex1_data_is_cacop;
   reg  [4:0]  ex1_data_cacop_op;
   reg  [4:0]  ex1_data_rob_idx;
-  reg         ex1_data_src1_read;
-  reg         ex1_data_src2_read;
   reg  [5:0]  ex1_data_pdest;
-  reg  [5:0]  ex1_data_old_pdest;
-  reg  [5:0]  ex1_data_psrc1;
-  reg  [5:0]  ex1_data_psrc2;
-  reg         ex1_data_is_branch;
-  reg  [1:0]  ex1_data_branch_tag;
   reg  [3:0]  ex1_data_branch_mask;
   reg  [3:0]  ex1_data_lsq_idx;
-  reg         ex1_data_pred_taken;
-  reg  [31:0] ex1_data_pred_target;
-  reg  [1:0]  ex1_data_bpu_type;
-  reg  [9:0]  ex1_data_ghr;
-  reg  [3:0]  ex1_data_ras_tos;
   reg         ex2_valid;
   reg  [31:0] ex2_data_data_pc;
-  reg  [31:0] ex2_data_data_inst;
-  reg  [12:0] ex2_data_data_aluOp;
-  reg  [6:0]  ex2_data_data_mduOp;
-  reg  [8:0]  ex2_data_data_brType;
-  reg  [31:0] ex2_data_data_imm;
-  reg         ex2_data_data_src1IsPC;
-  reg         ex2_data_data_src2IsImm;
-  reg         ex2_data_data_src2IsFour;
-  reg  [4:0]  ex2_data_data_src1_addr;
-  reg  [4:0]  ex2_data_data_src2_addr;
-  reg  [31:0] ex2_data_data_src1_value;
   reg  [31:0] ex2_data_data_src2_value;
-  reg         ex2_data_data_resFromMulDiv;
   reg         ex2_data_data_memWe;
   reg  [7:0]  ex2_data_data_lsOp;
   reg         ex2_data_data_resFromMem;
   reg         ex2_data_data_regWriteEn;
-  reg  [4:0]  ex2_data_data_destReg;
   reg         ex2_data_data_hasException;
   reg  [5:0]  ex2_data_data_ecode;
-  reg  [8:0]  ex2_data_data_esubcode;
   reg         ex2_data_data_isCsr;
   reg         ex2_data_data_csrWe;
   reg  [13:0] ex2_data_data_csrNum;
   reg         ex2_data_data_inst_ertn;
-  reg         ex2_data_data_rdtimel;
-  reg         ex2_data_data_rdtimeh;
   reg  [4:0]  ex2_data_data_tlbOp;
-  reg  [4:0]  ex2_data_data_invtlb_op;
   reg         ex2_data_data_is_refetch;
   reg         ex2_data_data_is_cacop;
   reg  [4:0]  ex2_data_data_cacop_op;
   reg  [4:0]  ex2_data_data_rob_idx;
-  reg         ex2_data_data_src1_read;
-  reg         ex2_data_data_src2_read;
   reg  [5:0]  ex2_data_data_pdest;
-  reg  [5:0]  ex2_data_data_old_pdest;
-  reg  [5:0]  ex2_data_data_psrc1;
-  reg  [5:0]  ex2_data_data_psrc2;
-  reg         ex2_data_data_is_branch;
-  reg  [1:0]  ex2_data_data_branch_tag;
   reg  [3:0]  ex2_data_data_branch_mask;
   reg  [3:0]  ex2_data_data_lsq_idx;
-  reg         ex2_data_data_pred_taken;
-  reg  [31:0] ex2_data_data_pred_target;
-  reg  [1:0]  ex2_data_data_bpu_type;
-  reg  [9:0]  ex2_data_data_ghr;
-  reg  [3:0]  ex2_data_data_ras_tos;
   reg  [31:0] ex2_data_va;
   reg  [31:0] ex2_data_src2;
   reg         ex2_data_is_tlbsrch;
@@ -284,8 +174,11 @@ module AguUnit(
   wire        isHalf =
     ex2_data_data_lsOp == 8'h2 | ex2_data_data_lsOp == 8'h10
     | ex2_data_data_lsOp == 8'h40;
-  wire        is_hit_inv = ex2_data_data_is_cacop & ex2_data_data_cacop_op[4:3] == 2'h2;
-  wire        _is_lsq_inst_T = ex2_data_data_resFromMem | ex2_data_data_memWe;
+  wire        is_load = ex2_data_data_resFromMem & ex2_active;
+  wire        is_store = ex2_data_data_memWe & ex2_active;
+  wire        is_hit_inv =
+    ex2_data_data_is_cacop & ex2_data_data_cacop_op[4:3] == 2'h2 & ex2_active;
+  wire        _is_lsq_inst_T = is_load | is_store;
   wire        priv_fault = (&ex2_data_crmd_plv) & ex2_data_tlb_plv == 2'h0;
   wire        _tlb_ecode_T_17 = ex2_data_tlb_found & ex2_data_tlb_v;
   wire [5:0]  agu_ecode =
@@ -293,13 +186,9 @@ module AguUnit(
       ? 6'h9
       : ex2_data_is_paged_mode & ~ex2_data_dmw_hit & (_is_lsq_inst_T | is_hit_inv)
           ? {6{~ex2_data_tlb_found}} | (_tlb_ecode_T_17 & priv_fault ? 6'h7 : 6'h0)
-            | {5'h0,
-               ex2_data_tlb_found & ~ex2_data_tlb_v
-                 & (ex2_data_data_resFromMem | is_hit_inv)}
-            | {4'h0, ex2_data_tlb_found & ~ex2_data_tlb_v & ex2_data_data_memWe, 1'h0}
-            | {3'h0,
-               _tlb_ecode_T_17 & ~priv_fault & ~ex2_data_tlb_d & ex2_data_data_memWe,
-               2'h0}
+            | {5'h0, ex2_data_tlb_found & ~ex2_data_tlb_v & (is_load | is_hit_inv)}
+            | {4'h0, ex2_data_tlb_found & ~ex2_data_tlb_v & is_store, 1'h0}
+            | {3'h0, _tlb_ecode_T_17 & ~priv_fault & ~ex2_data_tlb_d & is_store, 2'h0}
           : 6'h0;
   wire        has_exc = ex2_data_data_hasException | ex2_active & (|agu_ecode);
   wire [6:0]  stMaskB = 7'h1 << ex2_data_va[1:0];
@@ -307,104 +196,50 @@ module AguUnit(
     if (reset) begin
       ex1_valid <= 1'h0;
       ex1_data_pc <= 32'h0;
-      ex1_data_inst <= 32'h0;
-      ex1_data_aluOp <= 13'h0;
-      ex1_data_mduOp <= 7'h0;
-      ex1_data_brType <= 9'h0;
       ex1_data_imm <= 32'h0;
-      ex1_data_src1IsPC <= 1'h0;
       ex1_data_src2IsImm <= 1'h0;
-      ex1_data_src2IsFour <= 1'h0;
-      ex1_data_src1_addr <= 5'h0;
-      ex1_data_src2_addr <= 5'h0;
       ex1_data_src1_value <= 32'h0;
       ex1_data_src2_value <= 32'h0;
-      ex1_data_resFromMulDiv <= 1'h0;
       ex1_data_memWe <= 1'h0;
       ex1_data_lsOp <= 8'h0;
       ex1_data_resFromMem <= 1'h0;
       ex1_data_regWriteEn <= 1'h0;
-      ex1_data_destReg <= 5'h0;
       ex1_data_hasException <= 1'h0;
       ex1_data_ecode <= 6'h0;
-      ex1_data_esubcode <= 9'h0;
       ex1_data_isCsr <= 1'h0;
       ex1_data_csrWe <= 1'h0;
       ex1_data_csrNum <= 14'h0;
       ex1_data_inst_ertn <= 1'h0;
-      ex1_data_rdtimel <= 1'h0;
-      ex1_data_rdtimeh <= 1'h0;
       ex1_data_tlbOp <= 5'h0;
       ex1_data_invtlb_op <= 5'h0;
       ex1_data_is_refetch <= 1'h0;
       ex1_data_is_cacop <= 1'h0;
       ex1_data_cacop_op <= 5'h0;
       ex1_data_rob_idx <= 5'h0;
-      ex1_data_src1_read <= 1'h0;
-      ex1_data_src2_read <= 1'h0;
       ex1_data_pdest <= 6'h0;
-      ex1_data_old_pdest <= 6'h0;
-      ex1_data_psrc1 <= 6'h0;
-      ex1_data_psrc2 <= 6'h0;
-      ex1_data_is_branch <= 1'h0;
-      ex1_data_branch_tag <= 2'h0;
       ex1_data_branch_mask <= 4'h0;
       ex1_data_lsq_idx <= 4'h0;
-      ex1_data_pred_taken <= 1'h0;
-      ex1_data_pred_target <= 32'h0;
-      ex1_data_bpu_type <= 2'h0;
-      ex1_data_ghr <= 10'h0;
-      ex1_data_ras_tos <= 4'h0;
       ex2_valid <= 1'h0;
       ex2_data_data_pc <= 32'h0;
-      ex2_data_data_inst <= 32'h0;
-      ex2_data_data_aluOp <= 13'h0;
-      ex2_data_data_mduOp <= 7'h0;
-      ex2_data_data_brType <= 9'h0;
-      ex2_data_data_imm <= 32'h0;
-      ex2_data_data_src1IsPC <= 1'h0;
-      ex2_data_data_src2IsImm <= 1'h0;
-      ex2_data_data_src2IsFour <= 1'h0;
-      ex2_data_data_src1_addr <= 5'h0;
-      ex2_data_data_src2_addr <= 5'h0;
-      ex2_data_data_src1_value <= 32'h0;
       ex2_data_data_src2_value <= 32'h0;
-      ex2_data_data_resFromMulDiv <= 1'h0;
       ex2_data_data_memWe <= 1'h0;
       ex2_data_data_lsOp <= 8'h0;
       ex2_data_data_resFromMem <= 1'h0;
       ex2_data_data_regWriteEn <= 1'h0;
-      ex2_data_data_destReg <= 5'h0;
       ex2_data_data_hasException <= 1'h0;
       ex2_data_data_ecode <= 6'h0;
-      ex2_data_data_esubcode <= 9'h0;
       ex2_data_data_isCsr <= 1'h0;
       ex2_data_data_csrWe <= 1'h0;
       ex2_data_data_csrNum <= 14'h0;
       ex2_data_data_inst_ertn <= 1'h0;
-      ex2_data_data_rdtimel <= 1'h0;
-      ex2_data_data_rdtimeh <= 1'h0;
       ex2_data_data_tlbOp <= 5'h0;
-      ex2_data_data_invtlb_op <= 5'h0;
       ex2_data_data_is_refetch <= 1'h0;
       ex2_data_data_is_cacop <= 1'h0;
       ex2_data_data_cacop_op <= 5'h0;
       ex2_data_data_rob_idx <= 5'h0;
-      ex2_data_data_src1_read <= 1'h0;
-      ex2_data_data_src2_read <= 1'h0;
       ex2_data_data_pdest <= 6'h0;
-      ex2_data_data_old_pdest <= 6'h0;
-      ex2_data_data_psrc1 <= 6'h0;
-      ex2_data_data_psrc2 <= 6'h0;
-      ex2_data_data_is_branch <= 1'h0;
-      ex2_data_data_branch_tag <= 2'h0;
       ex2_data_data_branch_mask <= 4'h0;
       ex2_data_data_lsq_idx <= 4'h0;
-      ex2_data_data_pred_taken <= 1'h0;
-      ex2_data_data_pred_target <= 32'h0;
-      ex2_data_data_bpu_type <= 2'h0;
-      ex2_data_data_ghr <= 10'h0;
-      ex2_data_data_ras_tos <= 4'h0;
       ex2_data_va <= 32'h0;
       ex2_data_src2 <= 32'h0;
       ex2_data_is_tlbsrch <= 1'h0;
@@ -435,47 +270,27 @@ module AguUnit(
       end
       else begin
         ex1_data_pc <= io_in_bits_pc;
-        ex1_data_inst <= io_in_bits_inst;
-        ex1_data_aluOp <= io_in_bits_aluOp;
-        ex1_data_mduOp <= io_in_bits_mduOp;
-        ex1_data_brType <= io_in_bits_brType;
         ex1_data_imm <= io_in_bits_imm;
-        ex1_data_src1IsPC <= io_in_bits_src1IsPC;
         ex1_data_src2IsImm <= io_in_bits_src2IsImm;
-        ex1_data_src2IsFour <= io_in_bits_src2IsFour;
-        ex1_data_src1_addr <= io_in_bits_src1_addr;
-        ex1_data_src2_addr <= io_in_bits_src2_addr;
         ex1_data_src1_value <= io_in_bits_src1_value;
         ex1_data_src2_value <= io_in_bits_src2_value;
-        ex1_data_resFromMulDiv <= io_in_bits_resFromMulDiv;
         ex1_data_memWe <= io_in_bits_memWe;
         ex1_data_lsOp <= io_in_bits_lsOp;
         ex1_data_resFromMem <= io_in_bits_resFromMem;
         ex1_data_regWriteEn <= io_in_bits_regWriteEn;
-        ex1_data_destReg <= io_in_bits_destReg;
         ex1_data_hasException <= io_in_bits_hasException;
         ex1_data_ecode <= io_in_bits_ecode;
-        ex1_data_esubcode <= io_in_bits_esubcode;
         ex1_data_isCsr <= io_in_bits_isCsr;
         ex1_data_csrWe <= io_in_bits_csrWe;
         ex1_data_csrNum <= io_in_bits_csrNum;
         ex1_data_inst_ertn <= io_in_bits_inst_ertn;
-        ex1_data_rdtimel <= io_in_bits_rdtimel;
-        ex1_data_rdtimeh <= io_in_bits_rdtimeh;
         ex1_data_tlbOp <= io_in_bits_tlbOp;
         ex1_data_invtlb_op <= io_in_bits_invtlb_op;
         ex1_data_is_refetch <= io_in_bits_is_refetch;
         ex1_data_is_cacop <= io_in_bits_is_cacop;
         ex1_data_cacop_op <= io_in_bits_cacop_op;
         ex1_data_rob_idx <= io_in_bits_rob_idx;
-        ex1_data_src1_read <= io_in_bits_src1_read;
-        ex1_data_src2_read <= io_in_bits_src2_read;
         ex1_data_pdest <= io_in_bits_pdest;
-        ex1_data_old_pdest <= io_in_bits_old_pdest;
-        ex1_data_psrc1 <= io_in_bits_psrc1;
-        ex1_data_psrc2 <= io_in_bits_psrc2;
-        ex1_data_is_branch <= io_in_bits_is_branch;
-        ex1_data_branch_tag <= io_in_bits_branch_tag;
       end
       if (io_flush) begin
       end
@@ -491,14 +306,8 @@ module AguUnit(
       end
       if (_GEN) begin
       end
-      else begin
+      else
         ex1_data_lsq_idx <= io_in_bits_lsq_idx;
-        ex1_data_pred_taken <= io_in_bits_pred_taken;
-        ex1_data_pred_target <= io_in_bits_pred_target;
-        ex1_data_bpu_type <= io_in_bits_bpu_type;
-        ex1_data_ghr <= io_in_bits_ghr;
-        ex1_data_ras_tos <= io_in_bits_ras_tos;
-      end
       ex2_valid <= ~io_flush & (ex2_ready ? ex1_active : ex2_valid);
       if (io_flush | ~ex2_ready) begin
       end
@@ -510,53 +319,24 @@ module AguUnit(
           & (_dmw1_hit_T_3 & io_mmu_config_dmw0_plv0 | (&io_mmu_config_crmd_plv)
              & io_mmu_config_dmw0_plv3);
         ex2_data_data_pc <= ex1_data_pc;
-        ex2_data_data_inst <= ex1_data_inst;
-        ex2_data_data_aluOp <= ex1_data_aluOp;
-        ex2_data_data_mduOp <= ex1_data_mduOp;
-        ex2_data_data_brType <= ex1_data_brType;
-        ex2_data_data_imm <= ex1_data_imm;
-        ex2_data_data_src1IsPC <= ex1_data_src1IsPC;
-        ex2_data_data_src2IsImm <= ex1_data_src2IsImm;
-        ex2_data_data_src2IsFour <= ex1_data_src2IsFour;
-        ex2_data_data_src1_addr <= ex1_data_src1_addr;
-        ex2_data_data_src2_addr <= ex1_data_src2_addr;
-        ex2_data_data_src1_value <= ex1_data_src1_value;
         ex2_data_data_src2_value <= ex1_data_src2_value;
-        ex2_data_data_resFromMulDiv <= ex1_data_resFromMulDiv;
         ex2_data_data_memWe <= ex1_data_memWe;
         ex2_data_data_lsOp <= ex1_data_lsOp;
         ex2_data_data_resFromMem <= ex1_data_resFromMem;
         ex2_data_data_regWriteEn <= ex1_data_regWriteEn;
-        ex2_data_data_destReg <= ex1_data_destReg;
         ex2_data_data_hasException <= ex1_data_hasException;
         ex2_data_data_ecode <= ex1_data_ecode;
-        ex2_data_data_esubcode <= ex1_data_esubcode;
         ex2_data_data_isCsr <= ex1_data_isCsr;
         ex2_data_data_csrWe <= ex1_data_csrWe;
         ex2_data_data_csrNum <= ex1_data_csrNum;
         ex2_data_data_inst_ertn <= ex1_data_inst_ertn;
-        ex2_data_data_rdtimel <= ex1_data_rdtimel;
-        ex2_data_data_rdtimeh <= ex1_data_rdtimeh;
         ex2_data_data_tlbOp <= ex1_data_tlbOp;
-        ex2_data_data_invtlb_op <= ex1_data_invtlb_op;
         ex2_data_data_is_refetch <= ex1_data_is_refetch;
         ex2_data_data_is_cacop <= ex1_data_is_cacop;
         ex2_data_data_cacop_op <= ex1_data_cacop_op;
         ex2_data_data_rob_idx <= ex1_data_rob_idx;
-        ex2_data_data_src1_read <= ex1_data_src1_read;
-        ex2_data_data_src2_read <= ex1_data_src2_read;
         ex2_data_data_pdest <= ex1_data_pdest;
-        ex2_data_data_old_pdest <= ex1_data_old_pdest;
-        ex2_data_data_psrc1 <= ex1_data_psrc1;
-        ex2_data_data_psrc2 <= ex1_data_psrc2;
-        ex2_data_data_is_branch <= ex1_data_is_branch;
-        ex2_data_data_branch_tag <= ex1_data_branch_tag;
         ex2_data_data_lsq_idx <= ex1_data_lsq_idx;
-        ex2_data_data_pred_taken <= ex1_data_pred_taken;
-        ex2_data_data_pred_target <= ex1_data_pred_target;
-        ex2_data_data_bpu_type <= ex1_data_bpu_type;
-        ex2_data_data_ghr <= ex1_data_ghr;
-        ex2_data_data_ras_tos <= ex1_data_ras_tos;
         ex2_data_va <= _ex1_va_T_1;
         ex2_data_src2 <= ex1_data_src2_value;
         ex2_data_is_tlbsrch <= is_tlbsrch;
@@ -591,104 +371,50 @@ module AguUnit(
       if (reset) begin
         ex1_valid = 1'h0;
         ex1_data_pc = 32'h0;
-        ex1_data_inst = 32'h0;
-        ex1_data_aluOp = 13'h0;
-        ex1_data_mduOp = 7'h0;
-        ex1_data_brType = 9'h0;
         ex1_data_imm = 32'h0;
-        ex1_data_src1IsPC = 1'h0;
         ex1_data_src2IsImm = 1'h0;
-        ex1_data_src2IsFour = 1'h0;
-        ex1_data_src1_addr = 5'h0;
-        ex1_data_src2_addr = 5'h0;
         ex1_data_src1_value = 32'h0;
         ex1_data_src2_value = 32'h0;
-        ex1_data_resFromMulDiv = 1'h0;
         ex1_data_memWe = 1'h0;
         ex1_data_lsOp = 8'h0;
         ex1_data_resFromMem = 1'h0;
         ex1_data_regWriteEn = 1'h0;
-        ex1_data_destReg = 5'h0;
         ex1_data_hasException = 1'h0;
         ex1_data_ecode = 6'h0;
-        ex1_data_esubcode = 9'h0;
         ex1_data_isCsr = 1'h0;
         ex1_data_csrWe = 1'h0;
         ex1_data_csrNum = 14'h0;
         ex1_data_inst_ertn = 1'h0;
-        ex1_data_rdtimel = 1'h0;
-        ex1_data_rdtimeh = 1'h0;
         ex1_data_tlbOp = 5'h0;
         ex1_data_invtlb_op = 5'h0;
         ex1_data_is_refetch = 1'h0;
         ex1_data_is_cacop = 1'h0;
         ex1_data_cacop_op = 5'h0;
         ex1_data_rob_idx = 5'h0;
-        ex1_data_src1_read = 1'h0;
-        ex1_data_src2_read = 1'h0;
         ex1_data_pdest = 6'h0;
-        ex1_data_old_pdest = 6'h0;
-        ex1_data_psrc1 = 6'h0;
-        ex1_data_psrc2 = 6'h0;
-        ex1_data_is_branch = 1'h0;
-        ex1_data_branch_tag = 2'h0;
         ex1_data_branch_mask = 4'h0;
         ex1_data_lsq_idx = 4'h0;
-        ex1_data_pred_taken = 1'h0;
-        ex1_data_pred_target = 32'h0;
-        ex1_data_bpu_type = 2'h0;
-        ex1_data_ghr = 10'h0;
-        ex1_data_ras_tos = 4'h0;
         ex2_valid = 1'h0;
         ex2_data_data_pc = 32'h0;
-        ex2_data_data_inst = 32'h0;
-        ex2_data_data_aluOp = 13'h0;
-        ex2_data_data_mduOp = 7'h0;
-        ex2_data_data_brType = 9'h0;
-        ex2_data_data_imm = 32'h0;
-        ex2_data_data_src1IsPC = 1'h0;
-        ex2_data_data_src2IsImm = 1'h0;
-        ex2_data_data_src2IsFour = 1'h0;
-        ex2_data_data_src1_addr = 5'h0;
-        ex2_data_data_src2_addr = 5'h0;
-        ex2_data_data_src1_value = 32'h0;
         ex2_data_data_src2_value = 32'h0;
-        ex2_data_data_resFromMulDiv = 1'h0;
         ex2_data_data_memWe = 1'h0;
         ex2_data_data_lsOp = 8'h0;
         ex2_data_data_resFromMem = 1'h0;
         ex2_data_data_regWriteEn = 1'h0;
-        ex2_data_data_destReg = 5'h0;
         ex2_data_data_hasException = 1'h0;
         ex2_data_data_ecode = 6'h0;
-        ex2_data_data_esubcode = 9'h0;
         ex2_data_data_isCsr = 1'h0;
         ex2_data_data_csrWe = 1'h0;
         ex2_data_data_csrNum = 14'h0;
         ex2_data_data_inst_ertn = 1'h0;
-        ex2_data_data_rdtimel = 1'h0;
-        ex2_data_data_rdtimeh = 1'h0;
         ex2_data_data_tlbOp = 5'h0;
-        ex2_data_data_invtlb_op = 5'h0;
         ex2_data_data_is_refetch = 1'h0;
         ex2_data_data_is_cacop = 1'h0;
         ex2_data_data_cacop_op = 5'h0;
         ex2_data_data_rob_idx = 5'h0;
-        ex2_data_data_src1_read = 1'h0;
-        ex2_data_data_src2_read = 1'h0;
         ex2_data_data_pdest = 6'h0;
-        ex2_data_data_old_pdest = 6'h0;
-        ex2_data_data_psrc1 = 6'h0;
-        ex2_data_data_psrc2 = 6'h0;
-        ex2_data_data_is_branch = 1'h0;
-        ex2_data_data_branch_tag = 2'h0;
         ex2_data_data_branch_mask = 4'h0;
         ex2_data_data_lsq_idx = 4'h0;
-        ex2_data_data_pred_taken = 1'h0;
-        ex2_data_data_pred_target = 32'h0;
-        ex2_data_data_bpu_type = 2'h0;
-        ex2_data_data_ghr = 10'h0;
-        ex2_data_data_ras_tos = 4'h0;
         ex2_data_va = 32'h0;
         ex2_data_src2 = 32'h0;
         ex2_data_is_tlbsrch = 1'h0;
@@ -716,58 +442,26 @@ module AguUnit(
   assign io_in_ready = ex1_ready;
   assign io_out_valid = ex2_active;
   assign io_out_bits_pc = ex2_data_data_pc;
-  assign io_out_bits_inst = ex2_data_data_inst;
-  assign io_out_bits_aluOp = ex2_data_data_aluOp;
-  assign io_out_bits_mduOp = ex2_data_data_mduOp;
-  assign io_out_bits_brType = ex2_data_data_brType;
-  assign io_out_bits_imm = ex2_data_data_imm;
-  assign io_out_bits_src1IsPC = ex2_data_data_src1IsPC;
-  assign io_out_bits_src2IsImm = ex2_data_data_src2IsImm;
-  assign io_out_bits_src2IsFour = ex2_data_data_src2IsFour;
-  assign io_out_bits_src1_addr = ex2_data_data_src1_addr;
-  assign io_out_bits_src2_addr = ex2_data_data_src2_addr;
-  assign io_out_bits_src1_value = ex2_data_data_src1_value;
   assign io_out_bits_src2_value = ex2_data_data_src2_value;
-  assign io_out_bits_resFromMulDiv = ex2_data_data_resFromMulDiv;
   assign io_out_bits_memWe = ex2_data_data_memWe;
-  assign io_out_bits_lsOp = ex2_data_data_lsOp;
   assign io_out_bits_resFromMem = ex2_data_data_resFromMem;
   assign io_out_bits_regWriteEn = ex2_data_data_regWriteEn;
-  assign io_out_bits_destReg = ex2_data_data_destReg;
   assign io_out_bits_ex_result =
     ex2_data_is_tlbsrch ? {~ex2_data_tlb_found, 27'h0, ex2_data_tlb_index} : ex2_data_va;
   assign io_out_bits_aux_data =
     ex2_data_is_tlbsrch ? (ex2_data_tlb_found ? 32'h8000000F : 32'h80000000) : 32'h0;
   assign io_out_bits_hasException = has_exc;
   assign io_out_bits_ecode = ex2_data_data_hasException ? ex2_data_data_ecode : agu_ecode;
-  assign io_out_bits_esubcode = ex2_data_data_esubcode;
   assign io_out_bits_isCsr = ex2_data_data_isCsr;
   assign io_out_bits_csrWe = ex2_data_data_csrWe;
   assign io_out_bits_csrNum = ex2_data_data_csrNum;
   assign io_out_bits_inst_ertn = ex2_data_data_inst_ertn;
-  assign io_out_bits_rdtimel = ex2_data_data_rdtimel;
-  assign io_out_bits_rdtimeh = ex2_data_data_rdtimeh;
   assign io_out_bits_tlbOp = ex2_data_data_tlbOp;
-  assign io_out_bits_invtlb_op = ex2_data_data_invtlb_op;
   assign io_out_bits_is_refetch = ex2_data_data_is_refetch;
   assign io_out_bits_is_cacop = ex2_data_data_is_cacop;
-  assign io_out_bits_cacop_op = ex2_data_data_cacop_op;
   assign io_out_bits_rob_idx = ex2_data_data_rob_idx;
-  assign io_out_bits_src1_read = ex2_data_data_src1_read;
-  assign io_out_bits_src2_read = ex2_data_data_src2_read;
   assign io_out_bits_pdest = ex2_data_data_pdest;
-  assign io_out_bits_old_pdest = ex2_data_data_old_pdest;
-  assign io_out_bits_psrc1 = ex2_data_data_psrc1;
-  assign io_out_bits_psrc2 = ex2_data_data_psrc2;
-  assign io_out_bits_is_branch = ex2_data_data_is_branch;
-  assign io_out_bits_branch_tag = ex2_data_data_branch_tag;
   assign io_out_bits_branch_mask = ex2_data_data_branch_mask;
-  assign io_out_bits_lsq_idx = ex2_data_data_lsq_idx;
-  assign io_out_bits_pred_taken = ex2_data_data_pred_taken;
-  assign io_out_bits_pred_target = ex2_data_data_pred_target;
-  assign io_out_bits_bpu_type = ex2_data_data_bpu_type;
-  assign io_out_bits_ghr = ex2_data_data_ghr;
-  assign io_out_bits_ras_tos = ex2_data_data_ras_tos;
   assign io_to_lsq_valid =
     (_is_lsq_inst_T | ex2_data_data_is_cacop) & ex2_active & ~io_flush;
   assign io_to_lsq_bits_lsqIdx = ex2_data_data_lsq_idx;
@@ -795,6 +489,7 @@ module AguUnit(
       : 4'h0;
   assign io_to_lsq_bits_has_exc = has_exc;
   assign io_to_lsq_bits_ecode = agu_ecode;
+  assign io_to_lsq_bits_vaddr = ex2_data_va;
   assign io_tlb_port_vppn =
     is_invtlb
       ? ex1_data_src2_value[31:13]

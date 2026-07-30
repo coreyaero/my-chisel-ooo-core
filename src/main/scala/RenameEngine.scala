@@ -121,9 +121,9 @@ class RenameEngine extends Module {
     val has_req_tag0 = !io.dec0_is_br || has_tag0
     val has_req_tag1 = !io.dec1_is_br || Mux(io.dec0_is_br, has_tag1, has_tag0)
 
-    // ★ 直接无视物理寄存器的余量，秒出 Ready！
-    io.dec0_ready := has_req_tag0
-    io.dec1_ready := io.dec0_ready && has_req_tag1
+    // ★ 修复：必须同时检查分支快照 Tag 和 物理寄存器 是否双双有空位！
+    io.dec0_ready := has_req_tag0 && has_req_reg0
+    io.dec1_ready := io.dec0_ready && has_req_tag1 && has_req_reg1
 
     // ==========================================
     // ★ 组内依赖解析 (RAW 旁路神级短接)
@@ -224,7 +224,7 @@ class RenameEngine extends Module {
     // =========================================================================
     // ★ 终极逻辑隔离：直接抓取纯寄存器 (snap_free)，彻底避开 ALU 与分配逻辑的纠缠！
     // =========================================================================
-    val delayed_is_mispredict = RegNext(is_mispredict, false.B)
+    val delayed_is_mispredict = RegNext(is_mispredict && !io.flush, false.B)
     
     // 手动组合纯寄存器 (snap_free) 和 极快的提交信号 (combined_commit_mask)
     // 综合工具会立刻发现它跟 ALU 没有半毛钱关系，18级逻辑链瞬间斩断！

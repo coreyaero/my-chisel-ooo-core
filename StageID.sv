@@ -6,7 +6,6 @@ module StageID(
                 io_in_inst0_aux_data,
   input         io_in_inst0_hasException,
   input  [5:0]  io_in_inst0_ecode,
-  input  [8:0]  io_in_inst0_esubcode,
   input         io_in_inst0_pred_taken,
   input  [31:0] io_in_inst0_pred_target,
   input  [1:0]  io_in_inst0_bpu_type,
@@ -18,7 +17,6 @@ module StageID(
                 io_in_inst1_aux_data,
   input         io_in_inst1_hasException,
   input  [5:0]  io_in_inst1_ecode,
-  input  [8:0]  io_in_inst1_esubcode,
   input         io_in_inst1_pred_taken,
   input  [31:0] io_in_inst1_pred_target,
   input  [1:0]  io_in_inst1_bpu_type,
@@ -47,7 +45,6 @@ module StageID(
   output [31:0] io_out0_bits_aux_data,
   output        io_out0_bits_hasException,
   output [5:0]  io_out0_bits_ecode,
-  output [8:0]  io_out0_bits_esubcode,
   output        io_out0_bits_isCsr,
                 io_out0_bits_csrWe,
   output [13:0] io_out0_bits_csrNum,
@@ -89,7 +86,6 @@ module StageID(
   output [31:0] io_out1_bits_aux_data,
   output        io_out1_bits_hasException,
   output [5:0]  io_out1_bits_ecode,
-  output [8:0]  io_out1_bits_esubcode,
   output        io_out1_bits_isCsr,
                 io_out1_bits_csrWe,
   output [13:0] io_out1_bits_csrNum,
@@ -221,7 +217,6 @@ module StageID(
     safe_inst0_data_hasException | _dec0_io_out_hasException;
   assign io_out0_bits_ecode =
     safe_inst0_data_hasException ? io_in_inst0_ecode : _dec0_io_out_ecode;
-  assign io_out0_bits_esubcode = io_in_inst0_esubcode;
   assign io_out0_bits_isCsr = _dec0_io_out_isCsr;
   assign io_out0_bits_inst_ertn = _dec0_io_out_inst_ertn;
   assign io_out0_bits_tlbOp = _dec0_io_out_tlbOp;
@@ -248,7 +243,6 @@ module StageID(
     safe_inst1_data_hasException | _dec1_io_out_hasException;
   assign io_out1_bits_ecode =
     safe_inst1_data_hasException ? io_in_inst1_ecode : _dec1_io_out_ecode;
-  assign io_out1_bits_esubcode = io_in_inst1_esubcode;
   assign io_out1_bits_isCsr = _dec1_io_out_isCsr;
   assign io_out1_bits_inst_ertn = _dec1_io_out_inst_ertn;
   assign io_out1_bits_tlbOp = _dec1_io_out_tlbOp;

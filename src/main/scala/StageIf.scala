@@ -137,19 +137,19 @@ class StageIF extends Module {
     // ------------------------------------------
     when(io.bpu_update.valid) {
         val w_idx = io.bpu_update.bits.pc(10, 2)
-        when(io.bpu_update.bits.taken) {
-            btb_valid(w_idx) := true.B
-            val write_data = Wire(new BtbPayload())
-            write_data.tag      := io.bpu_update.bits.pc(31, 11)
-            write_data.target   := io.bpu_update.bits.target
-            write_data.bpu_type := io.bpu_update.bits.bpu_type
-            btb_payload(w_idx) := write_data
-        }
+        btb_valid(w_idx) := true.B
+        val write_data = Wire(new BtbPayload())
+        write_data.tag      := io.bpu_update.bits.pc(31, 11)
+        write_data.target   := io.bpu_update.bits.target
+        write_data.bpu_type := io.bpu_update.bits.bpu_type
+        btb_payload(w_idx)  := write_data
     }
 
     // ==========================================
     // 预测逻辑：双通道同拍查表 (0 气泡)
     // ==========================================
+
+    // --- 阶段一：纯组合逻辑查表 (BTB & RAS) ---
     val idx0 = pc_reg(10, 2)
     val idx1 = (pc_reg(10, 2) + 1.U)(8, 0)
     val tag_match = pc_reg(31, 11)
@@ -157,48 +157,49 @@ class StageIF extends Module {
     val payload0 = btb_payload(idx0)
     val payload1 = btb_payload(idx1)
     val hit0 = btb_valid(idx0) && (payload0.tag === tag_match)
-    val hit1 = btb_valid(idx1) && (payload1.tag === tag_match) && !is_cross_line
-
-    val hash0 = pc_reg(11, 2) ^ ghr
-    val hash1 = (pc_reg(11, 2) + 1.U)(9, 0) ^ ghr
-    val raw_bht_out0 = bht(hash0)
-    val raw_bht_out1 = bht(hash1)
     
-    // ★ 拦截 X 态读取
+
+    val ras_val_tos_minus_1 = ras((tos - 1.U)(3, 0)) 
+    val ras_val_tos_minus_2 = ras((tos - 2.U)(3, 0)) 
+    val call_ret_pc0 = pc_reg + 4.U
+
+    // --- 阶段二：Inst0 预测决策 ---
+    val hash0 = pc_reg(11, 2) ^ ghr
+    val raw_bht_out0 = bht(hash0)
     val bht_out0 = Mux(bht_valid(hash0), raw_bht_out0, 1.U(2.W))
-    val bht_out1 = Mux(bht_valid(hash1), raw_bht_out1, 1.U(2.W))
 
     val is_cond0 = hit0 && (payload0.bpu_type === BpuType.COND)
-    val is_cond1 = hit1 && (payload1.bpu_type === BpuType.COND)
     val is_call0 = hit0 && (payload0.bpu_type === BpuType.CALL)
     val is_ret0  = hit0 && (payload0.bpu_type === BpuType.RET)
 
     val pred_taken0  = Mux(is_cond0, bht_out0(1), hit0)
-    
-    val is_call1 = hit1 && (payload1.bpu_type === BpuType.CALL) && !pred_taken0
-    val is_ret1  = hit1 && (payload1.bpu_type === BpuType.RET) && !pred_taken0
-
-    val tos_after_0 = Mux(is_call0, tos + 1.U, Mux(is_ret0, tos - 1.U, tos))(3, 0)
-    val tos_after_1 = Mux(is_call1, tos_after_0 + 1.U, Mux(is_ret1, tos_after_0 - 1.U, tos_after_0))(3, 0)
-
-    val call_ret_pc0 = pc_reg + 4.U 
-    
-    // ★ RAS 超前并行计算 (斩断串行依赖)
-    val ras_val_tos_minus_1 = ras((tos - 1.U)(3, 0)) 
-    val ras_val_tos_minus_2 = ras((tos - 2.U)(3, 0)) 
+    val pred_type0   = Mux(hit0, payload0.bpu_type, BpuType.UNCOND) // 未命中当做非条件分支，绝不触发 GHR 移位
 
     val ras_pop_addr0 = ras_val_tos_minus_1
+    val pred_target0  = Mux(hit0, Mux(is_ret0, ras_pop_addr0, payload0.target), 0.U(32.W))
+    val tos_after_0   = Mux(is_call0, tos + 1.U, Mux(is_ret0, tos - 1.U, tos))(3, 0)
+
+    // --- 阶段三：Inst1 预测决策 (强依赖 Inst0 结果) ---
+    val hit1 = btb_valid(idx1) && (payload1.tag === tag_match) && !is_cross_line && !pred_taken0
+    // 1. GHR 级联推测
+    val ghr_for_hash1 = Mux(is_cond0, Cat(ghr(8, 0), pred_taken0), ghr)
+    val hash1 = (pc_reg(11, 2) + 1.U)(9, 0) ^ ghr_for_hash1
+    val raw_bht_out1 = bht(hash1)
+    val bht_out1 = Mux(bht_valid(hash1), raw_bht_out1, 1.U(2.W))
+
+    // 2. 类型与动作推测 (前提：Inst0 没跳)
+    val is_cond1 = hit1 && (payload1.bpu_type === BpuType.COND)
+    val is_call1 = hit1 && (payload1.bpu_type === BpuType.CALL)
+    val is_ret1  = hit1 && (payload1.bpu_type === BpuType.RET)
+
+    val pred_taken1  = Mux(is_cond1, bht_out1(1), hit1)
+    val pred_type1   = Mux(hit1, payload1.bpu_type, BpuType.UNCOND)
+
     val ras_pop_addr1 = Mux(is_call0, call_ret_pc0, 
                         Mux(is_ret0,  ras_val_tos_minus_2, 
                                       ras_val_tos_minus_1))
-
-    // ★ 防毒面具：未命中时强制清零，绝不让 Mem 的 X 态流出！
-    val pred_target0 = Mux(hit0, Mux(is_ret0, ras_pop_addr0, payload0.target), 0.U(32.W))
-    val pred_type0   = Mux(hit0, payload0.bpu_type, BpuType.UNCOND) // 未命中当做非条件分支，绝不触发 GHR 移位
-
-    val pred_taken1  = Mux(is_cond1, bht_out1(1), hit1) && !pred_taken0
     val pred_target1 = Mux(hit1, Mux(is_ret1, ras_pop_addr1, payload1.target), 0.U(32.W))
-    val pred_type1   = Mux(hit1, payload1.bpu_type, BpuType.UNCOND)
+    val tos_after_1 = Mux(is_call1, tos_after_0 + 1.U, Mux(is_ret1, tos_after_0 - 1.U, tos_after_0))(3, 0)
 
     val next_pc_base = pc_reg + pc_step
     val btb_target_pc = Mux(pred_taken0, pred_target0, Mux(pred_taken1, pred_target1, next_pc_base))
@@ -264,7 +265,7 @@ class StageIF extends Module {
 
         // 【2. GShare 推测更新】
         val shift_0 = is_cond0
-        val shift_1 = is_cond1 && !pred_taken0 
+        val shift_1 = is_cond1
 
         when(shift_0 && shift_1) {
             ghr := Cat(ghr(7, 0), pred_taken0, pred_taken1)

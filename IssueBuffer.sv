@@ -18,17 +18,14 @@ module IssueBuffer(
                 io_enq_bits_src2IsImm,
                 io_enq_bits_src2IsFour,
   input  [4:0]  io_enq_bits_src1_addr,
-                io_enq_bits_src2_addr,
   input         io_enq_bits_resFromMulDiv,
                 io_enq_bits_memWe,
   input  [7:0]  io_enq_bits_lsOp,
   input         io_enq_bits_resFromMem,
                 io_enq_bits_regWriteEn,
-  input  [4:0]  io_enq_bits_destReg,
   input  [31:0] io_enq_bits_aux_data,
   input         io_enq_bits_hasException,
   input  [5:0]  io_enq_bits_ecode,
-  input  [8:0]  io_enq_bits_esubcode,
   input         io_enq_bits_isCsr,
                 io_enq_bits_csrWe,
   input  [13:0] io_enq_bits_csrNum,
@@ -41,10 +38,7 @@ module IssueBuffer(
                 io_enq_bits_is_cacop,
   input  [4:0]  io_enq_bits_cacop_op,
                 io_enq_bits_rob_idx,
-  input         io_enq_bits_src1_read,
-                io_enq_bits_src2_read,
   input  [5:0]  io_enq_bits_pdest,
-                io_enq_bits_old_pdest,
                 io_enq_bits_psrc1,
                 io_enq_bits_psrc2,
   input         io_enq_bits_is_branch,
@@ -68,17 +62,14 @@ module IssueBuffer(
                 io_deq_bits_src2IsImm,
                 io_deq_bits_src2IsFour,
   output [4:0]  io_deq_bits_src1_addr,
-                io_deq_bits_src2_addr,
   output        io_deq_bits_resFromMulDiv,
                 io_deq_bits_memWe,
   output [7:0]  io_deq_bits_lsOp,
   output        io_deq_bits_resFromMem,
                 io_deq_bits_regWriteEn,
-  output [4:0]  io_deq_bits_destReg,
   output [31:0] io_deq_bits_aux_data,
   output        io_deq_bits_hasException,
   output [5:0]  io_deq_bits_ecode,
-  output [8:0]  io_deq_bits_esubcode,
   output        io_deq_bits_isCsr,
                 io_deq_bits_csrWe,
   output [13:0] io_deq_bits_csrNum,
@@ -91,10 +82,7 @@ module IssueBuffer(
                 io_deq_bits_is_cacop,
   output [4:0]  io_deq_bits_cacop_op,
                 io_deq_bits_rob_idx,
-  output        io_deq_bits_src1_read,
-                io_deq_bits_src2_read,
   output [5:0]  io_deq_bits_pdest,
-                io_deq_bits_old_pdest,
                 io_deq_bits_psrc1,
                 io_deq_bits_psrc2,
   output        io_deq_bits_is_branch,
@@ -119,17 +107,14 @@ module IssueBuffer(
   reg         data_reg_src2IsImm;
   reg         data_reg_src2IsFour;
   reg  [4:0]  data_reg_src1_addr;
-  reg  [4:0]  data_reg_src2_addr;
   reg         data_reg_resFromMulDiv;
   reg         data_reg_memWe;
   reg  [7:0]  data_reg_lsOp;
   reg         data_reg_resFromMem;
   reg         data_reg_regWriteEn;
-  reg  [4:0]  data_reg_destReg;
   reg  [31:0] data_reg_aux_data;
   reg         data_reg_hasException;
   reg  [5:0]  data_reg_ecode;
-  reg  [8:0]  data_reg_esubcode;
   reg         data_reg_isCsr;
   reg         data_reg_csrWe;
   reg  [13:0] data_reg_csrNum;
@@ -142,10 +127,7 @@ module IssueBuffer(
   reg         data_reg_is_cacop;
   reg  [4:0]  data_reg_cacop_op;
   reg  [4:0]  data_reg_rob_idx;
-  reg         data_reg_src1_read;
-  reg         data_reg_src2_read;
   reg  [5:0]  data_reg_pdest;
-  reg  [5:0]  data_reg_old_pdest;
   reg  [5:0]  data_reg_psrc1;
   reg  [5:0]  data_reg_psrc2;
   reg         data_reg_is_branch;
@@ -176,17 +158,14 @@ module IssueBuffer(
       data_reg_src2IsImm <= 1'h0;
       data_reg_src2IsFour <= 1'h0;
       data_reg_src1_addr <= 5'h0;
-      data_reg_src2_addr <= 5'h0;
       data_reg_resFromMulDiv <= 1'h0;
       data_reg_memWe <= 1'h0;
       data_reg_lsOp <= 8'h0;
       data_reg_resFromMem <= 1'h0;
       data_reg_regWriteEn <= 1'h0;
-      data_reg_destReg <= 5'h0;
       data_reg_aux_data <= 32'h0;
       data_reg_hasException <= 1'h0;
       data_reg_ecode <= 6'h0;
-      data_reg_esubcode <= 9'h0;
       data_reg_isCsr <= 1'h0;
       data_reg_csrWe <= 1'h0;
       data_reg_csrNum <= 14'h0;
@@ -199,10 +178,7 @@ module IssueBuffer(
       data_reg_is_cacop <= 1'h0;
       data_reg_cacop_op <= 5'h0;
       data_reg_rob_idx <= 5'h0;
-      data_reg_src1_read <= 1'h0;
-      data_reg_src2_read <= 1'h0;
       data_reg_pdest <= 6'h0;
-      data_reg_old_pdest <= 6'h0;
       data_reg_psrc1 <= 6'h0;
       data_reg_psrc2 <= 6'h0;
       data_reg_is_branch <= 1'h0;
@@ -236,17 +212,14 @@ module IssueBuffer(
         data_reg_src2IsImm <= io_enq_bits_src2IsImm;
         data_reg_src2IsFour <= io_enq_bits_src2IsFour;
         data_reg_src1_addr <= io_enq_bits_src1_addr;
-        data_reg_src2_addr <= io_enq_bits_src2_addr;
         data_reg_resFromMulDiv <= io_enq_bits_resFromMulDiv;
         data_reg_memWe <= io_enq_bits_memWe;
         data_reg_lsOp <= io_enq_bits_lsOp;
         data_reg_resFromMem <= io_enq_bits_resFromMem;
         data_reg_regWriteEn <= io_enq_bits_regWriteEn;
-        data_reg_destReg <= io_enq_bits_destReg;
         data_reg_aux_data <= io_enq_bits_aux_data;
         data_reg_hasException <= io_enq_bits_hasException;
         data_reg_ecode <= io_enq_bits_ecode;
-        data_reg_esubcode <= io_enq_bits_esubcode;
         data_reg_isCsr <= io_enq_bits_isCsr;
         data_reg_csrWe <= io_enq_bits_csrWe;
         data_reg_csrNum <= io_enq_bits_csrNum;
@@ -259,10 +232,7 @@ module IssueBuffer(
         data_reg_is_cacop <= io_enq_bits_is_cacop;
         data_reg_cacop_op <= io_enq_bits_cacop_op;
         data_reg_rob_idx <= io_enq_bits_rob_idx;
-        data_reg_src1_read <= io_enq_bits_src1_read;
-        data_reg_src2_read <= io_enq_bits_src2_read;
         data_reg_pdest <= io_enq_bits_pdest;
-        data_reg_old_pdest <= io_enq_bits_old_pdest;
         data_reg_psrc1 <= io_enq_bits_psrc1;
         data_reg_psrc2 <= io_enq_bits_psrc2;
         data_reg_is_branch <= io_enq_bits_is_branch;
@@ -299,17 +269,14 @@ module IssueBuffer(
         data_reg_src2IsImm = 1'h0;
         data_reg_src2IsFour = 1'h0;
         data_reg_src1_addr = 5'h0;
-        data_reg_src2_addr = 5'h0;
         data_reg_resFromMulDiv = 1'h0;
         data_reg_memWe = 1'h0;
         data_reg_lsOp = 8'h0;
         data_reg_resFromMem = 1'h0;
         data_reg_regWriteEn = 1'h0;
-        data_reg_destReg = 5'h0;
         data_reg_aux_data = 32'h0;
         data_reg_hasException = 1'h0;
         data_reg_ecode = 6'h0;
-        data_reg_esubcode = 9'h0;
         data_reg_isCsr = 1'h0;
         data_reg_csrWe = 1'h0;
         data_reg_csrNum = 14'h0;
@@ -322,10 +289,7 @@ module IssueBuffer(
         data_reg_is_cacop = 1'h0;
         data_reg_cacop_op = 5'h0;
         data_reg_rob_idx = 5'h0;
-        data_reg_src1_read = 1'h0;
-        data_reg_src2_read = 1'h0;
         data_reg_pdest = 6'h0;
-        data_reg_old_pdest = 6'h0;
         data_reg_psrc1 = 6'h0;
         data_reg_psrc2 = 6'h0;
         data_reg_is_branch = 1'h0;
@@ -355,17 +319,14 @@ module IssueBuffer(
   assign io_deq_bits_src2IsImm = data_reg_src2IsImm;
   assign io_deq_bits_src2IsFour = data_reg_src2IsFour;
   assign io_deq_bits_src1_addr = data_reg_src1_addr;
-  assign io_deq_bits_src2_addr = data_reg_src2_addr;
   assign io_deq_bits_resFromMulDiv = data_reg_resFromMulDiv;
   assign io_deq_bits_memWe = data_reg_memWe;
   assign io_deq_bits_lsOp = data_reg_lsOp;
   assign io_deq_bits_resFromMem = data_reg_resFromMem;
   assign io_deq_bits_regWriteEn = data_reg_regWriteEn;
-  assign io_deq_bits_destReg = data_reg_destReg;
   assign io_deq_bits_aux_data = data_reg_aux_data;
   assign io_deq_bits_hasException = data_reg_hasException;
   assign io_deq_bits_ecode = data_reg_ecode;
-  assign io_deq_bits_esubcode = data_reg_esubcode;
   assign io_deq_bits_isCsr = data_reg_isCsr;
   assign io_deq_bits_csrWe = data_reg_csrWe;
   assign io_deq_bits_csrNum = data_reg_csrNum;
@@ -378,10 +339,7 @@ module IssueBuffer(
   assign io_deq_bits_is_cacop = data_reg_is_cacop;
   assign io_deq_bits_cacop_op = data_reg_cacop_op;
   assign io_deq_bits_rob_idx = data_reg_rob_idx;
-  assign io_deq_bits_src1_read = data_reg_src1_read;
-  assign io_deq_bits_src2_read = data_reg_src2_read;
   assign io_deq_bits_pdest = data_reg_pdest;
-  assign io_deq_bits_old_pdest = data_reg_old_pdest;
   assign io_deq_bits_psrc1 = data_reg_psrc1;
   assign io_deq_bits_psrc2 = data_reg_psrc2;
   assign io_deq_bits_is_branch = data_reg_is_branch;

@@ -19,11 +19,10 @@ Multiplier.sv
 Divider.sv
 MduUnit.sv
 AguUnit.sv
-CdbArbiter.sv
 LSQ.sv
-ram_2x173.sv
-Queue2_PipelineData.sv
-ExecutionEngine.sv
+CdbArbiter.sv
+MaskedQueue.sv
+Exec.sv
 CSR.sv
 StableCounter.sv
 tlb.sv

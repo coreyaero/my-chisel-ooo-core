@@ -36,6 +36,7 @@ module AluUnit(
   input  [3:0]  io_in_bits_branch_mask,
   input         io_in_bits_pred_taken,
   input  [31:0] io_in_bits_pred_target,
+  input  [1:0]  io_in_bits_bpu_type,
   input  [9:0]  io_in_bits_ghr,
   input  [3:0]  io_in_bits_ras_tos,
   input         io_out_ready,
@@ -113,6 +114,7 @@ module AluUnit(
   reg  [1:0]  data_reg_branch_tag;
   reg         data_reg_pred_taken;
   reg  [31:0] data_reg_pred_target;
+  reg  [1:0]  data_reg_bpu_type;
   reg  [9:0]  data_reg_ghr;
   reg  [3:0]  data_reg_ras_tos;
   reg         br_broadcasted;
@@ -134,16 +136,23 @@ module AluUnit(
                            & data_reg_src1_value == data_reg_src2_value);
   wire [31:0] _calc_target_pc_T =
     (_branch_base_pc_T ? data_reg_src1_value : data_reg_pc) + data_reg_imm;
-  wire        mispredict =
-    branch_actual_taken != data_reg_pred_taken | branch_actual_taken
-    & _calc_target_pc_T != data_reg_pred_target;
-  wire        do_br_resolve =
-    valid_reg & data_reg_is_branch & ~data_reg_hasException & ~br_broadcasted;
   wire        _is_uncond_T_3 = data_reg_inst[31:26] == 6'h13;
   wire        is_call =
     data_reg_inst[31:26] == 6'h15 | _is_uncond_T_3 & data_reg_inst[4:0] == 5'h1;
   wire        is_ret =
     _is_uncond_T_3 & data_reg_inst[9:5] == 5'h1 & data_reg_inst[4:0] == 5'h0;
+  wire [1:0]  btype =
+    is_ret
+      ? 2'h3
+      : is_call
+          ? 2'h2
+          : {1'h0, data_reg_inst[31:26] == 6'h14 | is_call | is_ret | _is_uncond_T_3};
+  wire        mispredict =
+    branch_actual_taken != data_reg_pred_taken | branch_actual_taken
+    & _calc_target_pc_T != data_reg_pred_target | data_reg_is_branch
+    & data_reg_bpu_type != btype;
+  wire        do_br_resolve =
+    valid_reg & data_reg_is_branch & ~data_reg_hasException & ~br_broadcasted;
   always @(posedge clock or posedge reset) begin
     if (reset) begin
       valid_reg <= 1'h0;
@@ -178,6 +187,7 @@ module AluUnit(
       data_reg_branch_tag <= 2'h0;
       data_reg_pred_taken <= 1'h0;
       data_reg_pred_target <= 32'h0;
+      data_reg_bpu_type <= 2'h0;
       data_reg_ghr <= 10'h0;
       data_reg_ras_tos <= 4'h0;
       br_broadcasted <= 1'h0;
@@ -225,6 +235,7 @@ module AluUnit(
         data_reg_branch_tag <= io_in_bits_branch_tag;
         data_reg_pred_taken <= io_in_bits_pred_taken;
         data_reg_pred_target <= io_in_bits_pred_target;
+        data_reg_bpu_type <= io_in_bits_bpu_type;
         data_reg_ghr <= io_in_bits_ghr;
         data_reg_ras_tos <= io_in_bits_ras_tos;
       end
@@ -269,6 +280,7 @@ module AluUnit(
         data_reg_branch_tag = 2'h0;
         data_reg_pred_taken = 1'h0;
         data_reg_pred_target = 32'h0;
+        data_reg_bpu_type = 2'h0;
         data_reg_ghr = 10'h0;
         data_reg_ras_tos = 4'h0;
         br_broadcasted = 1'h0;
@@ -327,12 +339,7 @@ module AluUnit(
   assign io_bpu_update_bits_pc = data_reg_pc;
   assign io_bpu_update_bits_target = _calc_target_pc_T;
   assign io_bpu_update_bits_taken = branch_actual_taken;
-  assign io_bpu_update_bits_bpu_type =
-    is_ret
-      ? 2'h3
-      : is_call
-          ? 2'h2
-          : {1'h0, data_reg_inst[31:26] == 6'h14 | is_call | is_ret | _is_uncond_T_3};
+  assign io_bpu_update_bits_bpu_type = btype;
   assign io_bpu_update_bits_ghr = data_reg_ghr;
   assign io_bpu_update_bits_mispredict = mispredict;
   assign io_bpu_update_bits_ras_tos = data_reg_ras_tos;

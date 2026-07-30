@@ -25,7 +25,6 @@ module DispatchBuffer(
   input  [31:0] io_in0_bits_aux_data,
   input         io_in0_bits_hasException,
   input  [5:0]  io_in0_bits_ecode,
-  input  [8:0]  io_in0_bits_esubcode,
   input         io_in0_bits_isCsr,
                 io_in0_bits_csrWe,
   input  [13:0] io_in0_bits_csrNum,
@@ -67,7 +66,6 @@ module DispatchBuffer(
   input  [31:0] io_in1_bits_aux_data,
   input         io_in1_bits_hasException,
   input  [5:0]  io_in1_bits_ecode,
-  input  [8:0]  io_in1_bits_esubcode,
   input         io_in1_bits_isCsr,
                 io_in1_bits_csrWe,
   input  [13:0] io_in1_bits_csrNum,
@@ -109,7 +107,6 @@ module DispatchBuffer(
   output [31:0] io_out0_bits_aux_data,
   output        io_out0_bits_hasException,
   output [5:0]  io_out0_bits_ecode,
-  output [8:0]  io_out0_bits_esubcode,
   output        io_out0_bits_isCsr,
                 io_out0_bits_csrWe,
   output [13:0] io_out0_bits_csrNum,
@@ -151,7 +148,6 @@ module DispatchBuffer(
   output [31:0] io_out1_bits_aux_data,
   output        io_out1_bits_hasException,
   output [5:0]  io_out1_bits_ecode,
-  output [8:0]  io_out1_bits_esubcode,
   output        io_out1_bits_isCsr,
                 io_out1_bits_csrWe,
   output [13:0] io_out1_bits_csrNum,
@@ -194,7 +190,6 @@ module DispatchBuffer(
   reg  [31:0] bits0_aux_data;
   reg         bits0_hasException;
   reg  [5:0]  bits0_ecode;
-  reg  [8:0]  bits0_esubcode;
   reg         bits0_isCsr;
   reg         bits0_csrWe;
   reg  [13:0] bits0_csrNum;
@@ -235,7 +230,6 @@ module DispatchBuffer(
   reg  [31:0] bits1_aux_data;
   reg         bits1_hasException;
   reg  [5:0]  bits1_ecode;
-  reg  [8:0]  bits1_esubcode;
   reg         bits1_isCsr;
   reg         bits1_csrWe;
   reg  [13:0] bits1_csrNum;
@@ -298,7 +292,6 @@ module DispatchBuffer(
       bits0_aux_data <= io_in0_bits_aux_data;
       bits0_hasException <= io_in0_bits_hasException;
       bits0_ecode <= io_in0_bits_ecode;
-      bits0_esubcode <= io_in0_bits_esubcode;
       bits0_isCsr <= io_in0_bits_isCsr;
       bits0_csrWe <= io_in0_bits_csrWe;
       bits0_csrNum <= io_in0_bits_csrNum;
@@ -338,7 +331,6 @@ module DispatchBuffer(
       bits1_aux_data <= io_in1_bits_aux_data;
       bits1_hasException <= io_in1_bits_hasException;
       bits1_ecode <= io_in1_bits_ecode;
-      bits1_esubcode <= io_in1_bits_esubcode;
       bits1_isCsr <= io_in1_bits_isCsr;
       bits1_csrWe <= io_in1_bits_csrWe;
       bits1_csrNum <= io_in1_bits_csrNum;
@@ -381,7 +373,6 @@ module DispatchBuffer(
         bits0_aux_data <= bits1_aux_data;
         bits0_hasException <= bits1_hasException;
         bits0_ecode <= bits1_ecode;
-        bits0_esubcode <= bits1_esubcode;
         bits0_isCsr <= bits1_isCsr;
         bits0_csrWe <= bits1_csrWe;
         bits0_csrNum <= bits1_csrNum;
@@ -423,7 +414,6 @@ module DispatchBuffer(
         bits1_aux_data <= io_in0_bits_aux_data;
         bits1_hasException <= io_in0_bits_hasException;
         bits1_ecode <= io_in0_bits_ecode;
-        bits1_esubcode <= io_in0_bits_esubcode;
         bits1_isCsr <= io_in0_bits_isCsr;
         bits1_csrWe <= io_in0_bits_csrWe;
         bits1_csrNum <= io_in0_bits_csrNum;
@@ -483,7 +473,6 @@ module DispatchBuffer(
   assign io_out0_bits_aux_data = bits0_aux_data;
   assign io_out0_bits_hasException = bits0_hasException;
   assign io_out0_bits_ecode = bits0_ecode;
-  assign io_out0_bits_esubcode = bits0_esubcode;
   assign io_out0_bits_isCsr = bits0_isCsr;
   assign io_out0_bits_csrWe = bits0_csrWe;
   assign io_out0_bits_csrNum = bits0_csrNum;
@@ -524,7 +513,6 @@ module DispatchBuffer(
   assign io_out1_bits_aux_data = bits1_aux_data;
   assign io_out1_bits_hasException = bits1_hasException;
   assign io_out1_bits_ecode = bits1_ecode;
-  assign io_out1_bits_esubcode = bits1_esubcode;
   assign io_out1_bits_isCsr = bits1_isCsr;
   assign io_out1_bits_csrWe = bits1_csrWe;
   assign io_out1_bits_csrNum = bits1_csrNum;

@@ -31,7 +31,6 @@ module FetchBuffer(
                 io_out_inst0_aux_data,
   output        io_out_inst0_hasException,
   output [5:0]  io_out_inst0_ecode,
-  output [8:0]  io_out_inst0_esubcode,
   output        io_out_inst0_pred_taken,
   output [31:0] io_out_inst0_pred_target,
   output [1:0]  io_out_inst0_bpu_type,
@@ -43,7 +42,6 @@ module FetchBuffer(
                 io_out_inst1_aux_data,
   output        io_out_inst1_hasException,
   output [5:0]  io_out_inst1_ecode,
-  output [8:0]  io_out_inst1_esubcode,
   output        io_out_inst1_pred_taken,
   output [31:0] io_out_inst1_pred_target,
   output [1:0]  io_out_inst1_bpu_type,
@@ -433,7 +431,6 @@ module FetchBuffer(
   assign io_out_inst0_aux_data = 32'h0;
   assign io_out_inst0_hasException = _GEN_1[head];
   assign io_out_inst0_ecode = _GEN_2[head];
-  assign io_out_inst0_esubcode = 9'h0;
   assign io_out_inst0_pred_taken = _GEN_3[head];
   assign io_out_inst0_pred_target = _GEN_4[head];
   assign io_out_inst0_bpu_type = _GEN_5[head];
@@ -445,7 +442,6 @@ module FetchBuffer(
   assign io_out_inst1_aux_data = 32'h0;
   assign io_out_inst1_hasException = _GEN_1[_io_out_inst1_sum_T];
   assign io_out_inst1_ecode = _GEN_2[_io_out_inst1_sum_T];
-  assign io_out_inst1_esubcode = 9'h0;
   assign io_out_inst1_pred_taken = _GEN_3[_io_out_inst1_sum_T];
   assign io_out_inst1_pred_target = _GEN_4[_io_out_inst1_sum_T];
   assign io_out_inst1_bpu_type = _GEN_5[_io_out_inst1_sum_T];
