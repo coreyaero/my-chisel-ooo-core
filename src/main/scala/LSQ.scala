@@ -542,6 +542,8 @@ class LSQ extends Module {
     val stlf_wakeup_idx   = PriorityEncoder(actual_do_stlf)
 
     // 3. 只要有一路成功，立刻向 IQ 广播该指令的目标物理寄存器号 (pdest)！
-    io.early_wakeup.valid := early_ret_valid || stlf_wakeup_valid
-    io.early_wakeup.bits  := Mux(early_ret_valid, entries(early_ret_idx).pdest, entries(stlf_wakeup_idx).pdest)
+    // ★ 核心修复：强行打一拍 (RegNext)，切断 Wakeup-Select 27ns 超长组合逻辑链！
+    io.early_wakeup.valid := RegNext(early_ret_valid || stlf_wakeup_valid, false.B)
+    io.early_wakeup.bits  := RegNext(Mux(early_ret_valid, entries(early_ret_idx).pdest, entries(stlf_wakeup_idx).pdest), 0.U)
+
 }
