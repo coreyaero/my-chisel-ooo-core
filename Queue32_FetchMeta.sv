@@ -18,7 +18,11 @@ module Queue32_FetchMeta(
   input  [3:0]  io_enq_bits_ras_tos,
                 io_enq_bits_ras_tos1,
   input  [7:0]  io_enq_bits_ticket,
-  input         io_deq_ready,
+  input         io_enq_bits_bimodal_pred0,
+                io_enq_bits_gshare_pred0,
+                io_enq_bits_bimodal_pred1,
+                io_enq_bits_gshare_pred1,
+                io_deq_ready,
   output        io_deq_valid,
   output [31:0] io_deq_bits_pc,
   output        io_deq_bits_is_cross,
@@ -33,10 +37,14 @@ module Queue32_FetchMeta(
   output [9:0]  io_deq_bits_ghr,
   output [3:0]  io_deq_bits_ras_tos,
                 io_deq_bits_ras_tos1,
-  output [7:0]  io_deq_bits_ticket
+  output [7:0]  io_deq_bits_ticket,
+  output        io_deq_bits_bimodal_pred0,
+                io_deq_bits_gshare_pred0,
+                io_deq_bits_bimodal_pred1,
+                io_deq_bits_gshare_pred1
 );
 
-  wire [135:0] _ram_ext_R0_data;
+  wire [139:0] _ram_ext_R0_data;
   reg  [4:0]   enq_ptr_value;
   reg  [4:0]   deq_ptr_value;
   reg          maybe_full;
@@ -60,7 +68,7 @@ module Queue32_FetchMeta(
         maybe_full <= do_enq;
     end
   end // always @(posedge)
-  ram_32x136 ram_ext (
+  ram_32x140 ram_ext (
     .R0_addr (deq_ptr_value),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -82,23 +90,31 @@ module Queue32_FetchMeta(
         io_enq_bits_ghr,
         io_enq_bits_ras_tos,
         io_enq_bits_ras_tos1,
-        io_enq_bits_ticket})
+        io_enq_bits_ticket,
+        io_enq_bits_bimodal_pred0,
+        io_enq_bits_gshare_pred0,
+        io_enq_bits_bimodal_pred1,
+        io_enq_bits_gshare_pred1})
   );
   assign io_enq_ready = ~full;
   assign io_deq_valid = ~empty;
-  assign io_deq_bits_pc = _ram_ext_R0_data[135:104];
-  assign io_deq_bits_is_cross = _ram_ext_R0_data[103];
-  assign io_deq_bits_has_exc = _ram_ext_R0_data[102];
-  assign io_deq_bits_ecode = _ram_ext_R0_data[101:96];
-  assign io_deq_bits_pred_taken0 = _ram_ext_R0_data[95];
-  assign io_deq_bits_pred_target0 = _ram_ext_R0_data[94:63];
-  assign io_deq_bits_pred_type0 = _ram_ext_R0_data[62:61];
-  assign io_deq_bits_pred_taken1 = _ram_ext_R0_data[60];
-  assign io_deq_bits_pred_target1 = _ram_ext_R0_data[59:28];
-  assign io_deq_bits_pred_type1 = _ram_ext_R0_data[27:26];
-  assign io_deq_bits_ghr = _ram_ext_R0_data[25:16];
-  assign io_deq_bits_ras_tos = _ram_ext_R0_data[15:12];
-  assign io_deq_bits_ras_tos1 = _ram_ext_R0_data[11:8];
-  assign io_deq_bits_ticket = _ram_ext_R0_data[7:0];
+  assign io_deq_bits_pc = _ram_ext_R0_data[139:108];
+  assign io_deq_bits_is_cross = _ram_ext_R0_data[107];
+  assign io_deq_bits_has_exc = _ram_ext_R0_data[106];
+  assign io_deq_bits_ecode = _ram_ext_R0_data[105:100];
+  assign io_deq_bits_pred_taken0 = _ram_ext_R0_data[99];
+  assign io_deq_bits_pred_target0 = _ram_ext_R0_data[98:67];
+  assign io_deq_bits_pred_type0 = _ram_ext_R0_data[66:65];
+  assign io_deq_bits_pred_taken1 = _ram_ext_R0_data[64];
+  assign io_deq_bits_pred_target1 = _ram_ext_R0_data[63:32];
+  assign io_deq_bits_pred_type1 = _ram_ext_R0_data[31:30];
+  assign io_deq_bits_ghr = _ram_ext_R0_data[29:20];
+  assign io_deq_bits_ras_tos = _ram_ext_R0_data[19:16];
+  assign io_deq_bits_ras_tos1 = _ram_ext_R0_data[15:12];
+  assign io_deq_bits_ticket = _ram_ext_R0_data[11:4];
+  assign io_deq_bits_bimodal_pred0 = _ram_ext_R0_data[3];
+  assign io_deq_bits_gshare_pred0 = _ram_ext_R0_data[2];
+  assign io_deq_bits_bimodal_pred1 = _ram_ext_R0_data[1];
+  assign io_deq_bits_gshare_pred1 = _ram_ext_R0_data[0];
 endmodule
 

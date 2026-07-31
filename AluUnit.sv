@@ -39,7 +39,9 @@ module AluUnit(
   input  [1:0]  io_in_bits_bpu_type,
   input  [9:0]  io_in_bits_ghr,
   input  [3:0]  io_in_bits_ras_tos,
-  input         io_out_ready,
+  input         io_in_bits_bimodal_pred,
+                io_in_bits_gshare_pred,
+                io_out_ready,
   output        io_out_valid,
   output [31:0] io_out_bits_pc,
                 io_out_bits_src2_value,
@@ -63,7 +65,9 @@ module AluUnit(
   output [9:0]  io_out_bits_ghr,
   output        io_out_bits_br_actual_taken,
   output [1:0]  io_out_bits_br_type,
-  output        io_branch_req,
+  output        io_out_bits_bimodal_pred,
+                io_out_bits_gshare_pred,
+                io_branch_req,
   output [31:0] io_branch_pc,
   output        io_br_resolve_valid,
                 io_br_resolve_mispredict,
@@ -121,6 +125,8 @@ module AluUnit(
   reg  [1:0]  data_reg_bpu_type;
   reg  [9:0]  data_reg_ghr;
   reg  [3:0]  data_reg_ras_tos;
+  reg         data_reg_bimodal_pred;
+  reg         data_reg_gshare_pred;
   reg         br_broadcasted;
   wire        in_ready = ~valid_reg | io_out_ready;
   wire        _branch_base_pc_T = data_reg_brType == 9'h40;
@@ -194,6 +200,8 @@ module AluUnit(
       data_reg_bpu_type <= 2'h0;
       data_reg_ghr <= 10'h0;
       data_reg_ras_tos <= 4'h0;
+      data_reg_bimodal_pred <= 1'h0;
+      data_reg_gshare_pred <= 1'h0;
       br_broadcasted <= 1'h0;
     end
     else begin
@@ -242,6 +250,8 @@ module AluUnit(
         data_reg_bpu_type <= io_in_bits_bpu_type;
         data_reg_ghr <= io_in_bits_ghr;
         data_reg_ras_tos <= io_in_bits_ras_tos;
+        data_reg_bimodal_pred <= io_in_bits_bimodal_pred;
+        data_reg_gshare_pred <= io_in_bits_gshare_pred;
       end
       br_broadcasted <= ~(io_flush | in_ready) & (do_br_resolve | br_broadcasted);
     end
@@ -287,6 +297,8 @@ module AluUnit(
         data_reg_bpu_type = 2'h0;
         data_reg_ghr = 10'h0;
         data_reg_ras_tos = 4'h0;
+        data_reg_bimodal_pred = 1'h0;
+        data_reg_gshare_pred = 1'h0;
         br_broadcasted = 1'h0;
       end
     end // initial
@@ -337,6 +349,8 @@ module AluUnit(
   assign io_out_bits_ghr = data_reg_ghr;
   assign io_out_bits_br_actual_taken = branch_actual_taken;
   assign io_out_bits_br_type = btype;
+  assign io_out_bits_bimodal_pred = data_reg_bimodal_pred;
+  assign io_out_bits_gshare_pred = data_reg_gshare_pred;
   assign io_branch_req = do_br_resolve & mispredict;
   assign io_branch_pc = branch_actual_taken ? _calc_target_pc_T : data_reg_pc + 32'h4;
   assign io_br_resolve_valid = do_br_resolve;

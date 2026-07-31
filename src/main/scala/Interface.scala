@@ -119,6 +119,9 @@ class PipelineData extends Bundle{
     val br_actual_taken = Bool()
     val br_target       = UInt(32.W)
     val br_type         = UInt(2.W)
+
+    val bimodal_pred    = Bool()
+    val gshare_pred     = Bool()
 }
 
 class BranchResolve extends Bundle {
@@ -169,6 +172,9 @@ class BpuUpdate extends Bundle {
     val ghr        = UInt(10.W) 
     val mispredict = Bool()
     val ras_tos  = UInt(4.W) // ★ 新增：指令执行前的纯净栈顶快照
+
+    val bimodal_pred = Bool()
+    val gshare_pred  = Bool()
 }
 
 // ====================================================================

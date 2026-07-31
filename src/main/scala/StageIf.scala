@@ -21,6 +21,10 @@ class FetchMeta extends Bundle {
     val ras_tos      = UInt(4.W)
     val ras_tos1     = UInt(4.W)
     val ticket       = UInt(8.W) // ★ 新增：记住自己的取餐码
+    val bimodal_pred0 = Bool()
+    val gshare_pred0  = Bool()
+    val bimodal_pred1 = Bool()
+    val gshare_pred1  = Bool()
 }
 
 
@@ -113,24 +117,62 @@ class StageIF extends Module {
     // ==========================================
     val ghr = RegInit(0.U(10.W))
     // ★ 修复：保留 Mem 以拯救时序，外挂一层 Valid 护盾屏蔽仿真 X 态！
-    val bht = Mem(1024, UInt(2.W))
-    val bht_valid = RegInit(VecInit(Seq.fill(1024)(false.B))) 
+    // ==========================================
+    // ★ 终极形态：竞争预测器 (Tournament Predictor)
+    // ==========================================
+    // 1. P1: 纯 Bimodal 预测器 (抗污染，容量 1024)
+    val bimodal_table = Mem(1024, UInt(2.W))
+    val bimodal_valid = RegInit(VecInit(Seq.fill(1024)(false.B))) 
+
+    // 2. P2: GShare 预测器 (抓相关性，容量 1024)
+    val gshare_table = Mem(1024, UInt(2.W))
+    val gshare_valid = RegInit(VecInit(Seq.fill(1024)(false.B))) 
+
+    // 3. Meta: 仲裁表 (0/1 信 Bimodal，2/3 信 GShare，容量 1024)
+    val meta_table = Mem(1024, UInt(2.W))
+    val meta_valid = RegInit(VecInit(Seq.fill(1024)(false.B))) 
 
     // ------------------------------------------
-    // 训练逻辑：ALU 后端发来的 BHT 饱和更新
+    // 训练逻辑：ROB 顺序提交时的精准奖惩
     // ------------------------------------------
     when(io.commit_bpu_update.valid && io.commit_bpu_update.bits.bpu_type === BpuType.COND) {
-        val update_hash = io.commit_bpu_update.bits.pc(11, 2) ^ io.commit_bpu_update.bits.ghr
+        val u = io.commit_bpu_update.bits
         
-        val raw_old_ctr = bht(update_hash)
-        val old_ctr = Mux(bht_valid(update_hash), raw_old_ctr, 1.U(2.W))
+        // 算出查表地址
+        val hash_bimodal = u.pc(11, 2)
+        val hash_gshare  = u.pc(11, 2) ^ u.ghr
+        val hash_meta    = u.pc(11, 2) // Meta 通常只用 PC 索引
         
-        val new_ctr = Mux(io.commit_bpu_update.bits.taken,
-            Mux(old_ctr === 3.U, 3.U, old_ctr + 1.U), 
-            Mux(old_ctr === 0.U, 0.U, old_ctr - 1.U)) 
-            
-        bht(update_hash) := new_ctr
-        bht_valid(update_hash) := true.B 
+        // 提取旧状态 (未初始化则默认为 1 - Weakly Not Taken)
+        val old_bim = Mux(bimodal_valid(hash_bimodal), bimodal_table(hash_bimodal), 1.U(2.W))
+        val old_gsh = Mux(gshare_valid(hash_gshare), gshare_table(hash_gshare), 1.U(2.W))
+        val old_met = Mux(meta_valid(hash_meta), meta_table(hash_meta), 1.U(2.W)) // 默认倾向 Bimodal
+
+        // 1. 训练 Bimodal (顺从事实)
+        bimodal_table(hash_bimodal) := Mux(u.taken, 
+            Mux(old_bim === 3.U, 3.U, old_bim + 1.U), 
+            Mux(old_bim === 0.U, 0.U, old_bim - 1.U))
+        bimodal_valid(hash_bimodal) := true.B
+
+        // 2. 训练 GShare (顺从事实)
+        gshare_table(hash_gshare) := Mux(u.taken, 
+            Mux(old_gsh === 3.U, 3.U, old_gsh + 1.U), 
+            Mux(old_gsh === 0.U, 0.U, old_gsh - 1.U))
+        gshare_valid(hash_gshare) := true.B
+
+        // 3. 训练 Meta (★ 终极奖惩机制)
+        val bim_correct = (u.bimodal_pred === u.taken)
+        val gsh_correct = (u.gshare_pred === u.taken)
+        
+        when(gsh_correct && !bim_correct) {
+            // GShare 对了而 Bimodal 错了，Meta 加 1 (倾向 GShare)
+            meta_table(hash_meta) := Mux(old_met === 3.U, 3.U, old_met + 1.U)
+        } .elsewhen(bim_correct && !gsh_correct) {
+            // Bimodal 对了而 GShare 错了，Meta 减 1 (倾向 Bimodal)
+            meta_table(hash_meta) := Mux(old_met === 0.U, 0.U, old_met - 1.U)
+        }
+        // 若都对或都错，Meta 保持不动！
+        meta_valid(hash_meta) := true.B
     }
 
     // ------------------------------------------
@@ -165,15 +207,27 @@ class StageIF extends Module {
     val call_ret_pc0 = pc_reg + 4.U
 
     // --- 阶段二：Inst0 预测决策 ---
-    val hash0 = pc_reg(11, 2) ^ ghr
-    val raw_bht_out0 = bht(hash0)
-    val bht_out0 = Mux(bht_valid(hash0), raw_bht_out0, 1.U(2.W))
+    val hash0_bim = pc_reg(11, 2)
+    val hash0_gsh = pc_reg(11, 2) ^ ghr
+    val hash0_met = pc_reg(11, 2)
+
+    val out0_bim = Mux(bimodal_valid(hash0_bim), bimodal_table(hash0_bim), 1.U(2.W))
+    val out0_gsh = Mux(gshare_valid(hash0_gsh), gshare_table(hash0_gsh), 1.U(2.W))
+    val out0_met = Mux(meta_valid(hash0_met), meta_table(hash0_met), 1.U(2.W))
+
+    // 各自的预测结论 (高位为 1 代表 Taken)
+    val pred0_bim_taken = out0_bim(1)
+    val pred0_gsh_taken = out0_gsh(1)
+    
+    // Meta 选择权 (高位为 1 代表信 GShare，0 代表信 Bimodal)
+    val use_gshare0 = out0_met(1)
+    val final_pred0_taken = Mux(use_gshare0, pred0_gsh_taken, pred0_bim_taken)
 
     val is_cond0 = hit0 && (payload0.bpu_type === BpuType.COND)
     val is_call0 = hit0 && (payload0.bpu_type === BpuType.CALL)
     val is_ret0  = hit0 && (payload0.bpu_type === BpuType.RET)
-
-    val pred_taken0  = Mux(is_cond0, bht_out0(1), hit0)
+    // 最终是否跳转
+    val pred_taken0  = Mux(is_cond0, final_pred0_taken, hit0)
     val pred_type0   = Mux(hit0, payload0.bpu_type, BpuType.UNCOND) // 未命中当做非条件分支，绝不触发 GHR 移位
 
     val ras_pop_addr0 = ras_val_tos_minus_1
@@ -182,18 +236,27 @@ class StageIF extends Module {
 
     // --- 阶段三：Inst1 预测决策 (强依赖 Inst0 结果) ---
     val hit1 = btb_valid(idx1) && (payload1.tag === tag_match) && !is_cross_line && !pred_taken0
+    
     // 1. GHR 级联推测
     val ghr_for_hash1 = Mux(is_cond0, Cat(ghr(8, 0), pred_taken0), ghr)
-    val hash1 = (pc_reg(11, 2) + 1.U)(9, 0) ^ ghr_for_hash1
-    val raw_bht_out1 = bht(hash1)
-    val bht_out1 = Mux(bht_valid(hash1), raw_bht_out1, 1.U(2.W))
+    
+    val hash1_bim = (pc_reg(11, 2) + 1.U)(9, 0)
+    val hash1_gsh = (pc_reg(11, 2) + 1.U)(9, 0) ^ ghr_for_hash1
+    val hash1_met = (pc_reg(11, 2) + 1.U)(9, 0)
 
-    // 2. 类型与动作推测 (前提：Inst0 没跳)
+    val out1_bim = Mux(bimodal_valid(hash1_bim), bimodal_table(hash1_bim), 1.U(2.W))
+    val out1_gsh = Mux(gshare_valid(hash1_gsh), gshare_table(hash1_gsh), 1.U(2.W))
+    val out1_met = Mux(meta_valid(hash1_met), meta_table(hash1_met), 1.U(2.W))
+
+    val pred1_bim_taken = out1_bim(1)
+    val pred1_gsh_taken = out1_gsh(1)
+    val use_gshare1 = out1_met(1)
+
+    val final_pred1_taken = Mux(use_gshare1, pred1_gsh_taken, pred1_bim_taken)
     val is_cond1 = hit1 && (payload1.bpu_type === BpuType.COND)
     val is_call1 = hit1 && (payload1.bpu_type === BpuType.CALL)
     val is_ret1  = hit1 && (payload1.bpu_type === BpuType.RET)
-
-    val pred_taken1  = Mux(is_cond1, bht_out1(1), hit1)
+    val pred_taken1  = Mux(is_cond1, final_pred1_taken, hit1)
     val pred_type1   = Mux(hit1, payload1.bpu_type, BpuType.UNCOND)
 
     val ras_pop_addr1 = Mux(is_call0, call_ret_pc0, 
@@ -364,6 +427,10 @@ class StageIF extends Module {
     meta_queue.io.enq.bits.ras_tos      := tos
     meta_queue.io.enq.bits.ras_tos1     := tos_after_0
     meta_queue.io.enq.bits.ticket := ticket_cnt // ★ 新增
+    meta_queue.io.enq.bits.bimodal_pred0 := pred0_bim_taken
+    meta_queue.io.enq.bits.gshare_pred0  := pred0_gsh_taken
+    meta_queue.io.enq.bits.bimodal_pred1 := pred1_bim_taken
+    meta_queue.io.enq.bits.gshare_pred1  := pred1_gsh_taken
 
     // PC 狂飙：只在 if1_fire 时更新！
     when(io.flush) {
@@ -388,6 +455,8 @@ class StageIF extends Module {
     out0_data.bpu_type     := meta.pred_type0
     out0_data.ghr          := meta.ghr
     out0_data.ras_tos      := meta.ras_tos
+    out0_data.bimodal_pred := meta.bimodal_pred0
+    out0_data.gshare_pred  := meta.gshare_pred0
 
     // ★ 修复：如果 inst0 是条件分支，计算它移位后的新 GHR
     val ghr_after_0 = Mux(meta.pred_type0 === BpuType.COND, 
@@ -404,6 +473,8 @@ class StageIF extends Module {
     // ★ 让 inst1 使用接力后的 GHR，杜绝历史污染！
     out1_data.ghr          := ghr_after_0
     out1_data.ras_tos      := meta.ras_tos1
+    out1_data.bimodal_pred := meta.bimodal_pred1
+    out1_data.gshare_pred  := meta.gshare_pred1
 
     io.out0.valid := if2_fire
     io.out1.valid := if2_fire && !meta.is_cross && !meta.pred_taken0

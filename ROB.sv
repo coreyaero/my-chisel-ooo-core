@@ -46,7 +46,9 @@ module ROB(
   input  [9:0]  io_cdb0_bits_ghr,
   input         io_cdb0_bits_br_actual_taken,
   input  [1:0]  io_cdb0_bits_br_type,
-  input         io_cdb1_valid,
+  input         io_cdb0_bits_bimodal_pred,
+                io_cdb0_bits_gshare_pred,
+                io_cdb1_valid,
   input  [31:0] io_cdb1_bits_src2_value,
   input         io_cdb1_bits_memWe,
                 io_cdb1_bits_resFromMem,
@@ -67,7 +69,9 @@ module ROB(
   input  [9:0]  io_cdb1_bits_ghr,
   input         io_cdb1_bits_br_actual_taken,
   input  [1:0]  io_cdb1_bits_br_type,
-  input         io_lsq_violation_valid,
+  input         io_cdb1_bits_bimodal_pred,
+                io_cdb1_bits_gshare_pred,
+                io_lsq_violation_valid,
   input  [4:0]  io_lsq_violation_rob,
   input  [31:0] io_lsq_violation_pc,
   output        io_commit_mem_valid0,
@@ -144,7 +148,9 @@ module ROB(
   output [31:0] io_commit_bpu_update_bits_pc,
   output        io_commit_bpu_update_bits_taken,
   output [1:0]  io_commit_bpu_update_bits_bpu_type,
-  output [9:0]  io_commit_bpu_update_bits_ghr
+  output [9:0]  io_commit_bpu_update_bits_ghr,
+  output        io_commit_bpu_update_bits_bimodal_pred,
+                io_commit_bpu_update_bits_gshare_pred
 );
 
   reg               entries_0_valid;
@@ -174,6 +180,8 @@ module ROB(
   reg               entries_0_br_actual_taken;
   reg  [1:0]        entries_0_br_type;
   reg  [9:0]        entries_0_ghr;
+  reg               entries_0_bimodal_pred;
+  reg               entries_0_gshare_pred;
   reg               entries_1_valid;
   reg  [31:0]       entries_1_pc;
   reg               entries_1_rf_we;
@@ -201,6 +209,8 @@ module ROB(
   reg               entries_1_br_actual_taken;
   reg  [1:0]        entries_1_br_type;
   reg  [9:0]        entries_1_ghr;
+  reg               entries_1_bimodal_pred;
+  reg               entries_1_gshare_pred;
   reg               entries_2_valid;
   reg  [31:0]       entries_2_pc;
   reg               entries_2_rf_we;
@@ -228,6 +238,8 @@ module ROB(
   reg               entries_2_br_actual_taken;
   reg  [1:0]        entries_2_br_type;
   reg  [9:0]        entries_2_ghr;
+  reg               entries_2_bimodal_pred;
+  reg               entries_2_gshare_pred;
   reg               entries_3_valid;
   reg  [31:0]       entries_3_pc;
   reg               entries_3_rf_we;
@@ -255,6 +267,8 @@ module ROB(
   reg               entries_3_br_actual_taken;
   reg  [1:0]        entries_3_br_type;
   reg  [9:0]        entries_3_ghr;
+  reg               entries_3_bimodal_pred;
+  reg               entries_3_gshare_pred;
   reg               entries_4_valid;
   reg  [31:0]       entries_4_pc;
   reg               entries_4_rf_we;
@@ -282,6 +296,8 @@ module ROB(
   reg               entries_4_br_actual_taken;
   reg  [1:0]        entries_4_br_type;
   reg  [9:0]        entries_4_ghr;
+  reg               entries_4_bimodal_pred;
+  reg               entries_4_gshare_pred;
   reg               entries_5_valid;
   reg  [31:0]       entries_5_pc;
   reg               entries_5_rf_we;
@@ -309,6 +325,8 @@ module ROB(
   reg               entries_5_br_actual_taken;
   reg  [1:0]        entries_5_br_type;
   reg  [9:0]        entries_5_ghr;
+  reg               entries_5_bimodal_pred;
+  reg               entries_5_gshare_pred;
   reg               entries_6_valid;
   reg  [31:0]       entries_6_pc;
   reg               entries_6_rf_we;
@@ -336,6 +354,8 @@ module ROB(
   reg               entries_6_br_actual_taken;
   reg  [1:0]        entries_6_br_type;
   reg  [9:0]        entries_6_ghr;
+  reg               entries_6_bimodal_pred;
+  reg               entries_6_gshare_pred;
   reg               entries_7_valid;
   reg  [31:0]       entries_7_pc;
   reg               entries_7_rf_we;
@@ -363,6 +383,8 @@ module ROB(
   reg               entries_7_br_actual_taken;
   reg  [1:0]        entries_7_br_type;
   reg  [9:0]        entries_7_ghr;
+  reg               entries_7_bimodal_pred;
+  reg               entries_7_gshare_pred;
   reg               entries_8_valid;
   reg  [31:0]       entries_8_pc;
   reg               entries_8_rf_we;
@@ -390,6 +412,8 @@ module ROB(
   reg               entries_8_br_actual_taken;
   reg  [1:0]        entries_8_br_type;
   reg  [9:0]        entries_8_ghr;
+  reg               entries_8_bimodal_pred;
+  reg               entries_8_gshare_pred;
   reg               entries_9_valid;
   reg  [31:0]       entries_9_pc;
   reg               entries_9_rf_we;
@@ -417,6 +441,8 @@ module ROB(
   reg               entries_9_br_actual_taken;
   reg  [1:0]        entries_9_br_type;
   reg  [9:0]        entries_9_ghr;
+  reg               entries_9_bimodal_pred;
+  reg               entries_9_gshare_pred;
   reg               entries_10_valid;
   reg  [31:0]       entries_10_pc;
   reg               entries_10_rf_we;
@@ -444,6 +470,8 @@ module ROB(
   reg               entries_10_br_actual_taken;
   reg  [1:0]        entries_10_br_type;
   reg  [9:0]        entries_10_ghr;
+  reg               entries_10_bimodal_pred;
+  reg               entries_10_gshare_pred;
   reg               entries_11_valid;
   reg  [31:0]       entries_11_pc;
   reg               entries_11_rf_we;
@@ -471,6 +499,8 @@ module ROB(
   reg               entries_11_br_actual_taken;
   reg  [1:0]        entries_11_br_type;
   reg  [9:0]        entries_11_ghr;
+  reg               entries_11_bimodal_pred;
+  reg               entries_11_gshare_pred;
   reg               entries_12_valid;
   reg  [31:0]       entries_12_pc;
   reg               entries_12_rf_we;
@@ -498,6 +528,8 @@ module ROB(
   reg               entries_12_br_actual_taken;
   reg  [1:0]        entries_12_br_type;
   reg  [9:0]        entries_12_ghr;
+  reg               entries_12_bimodal_pred;
+  reg               entries_12_gshare_pred;
   reg               entries_13_valid;
   reg  [31:0]       entries_13_pc;
   reg               entries_13_rf_we;
@@ -525,6 +557,8 @@ module ROB(
   reg               entries_13_br_actual_taken;
   reg  [1:0]        entries_13_br_type;
   reg  [9:0]        entries_13_ghr;
+  reg               entries_13_bimodal_pred;
+  reg               entries_13_gshare_pred;
   reg               entries_14_valid;
   reg  [31:0]       entries_14_pc;
   reg               entries_14_rf_we;
@@ -552,6 +586,8 @@ module ROB(
   reg               entries_14_br_actual_taken;
   reg  [1:0]        entries_14_br_type;
   reg  [9:0]        entries_14_ghr;
+  reg               entries_14_bimodal_pred;
+  reg               entries_14_gshare_pred;
   reg               entries_15_valid;
   reg  [31:0]       entries_15_pc;
   reg               entries_15_rf_we;
@@ -579,6 +615,8 @@ module ROB(
   reg               entries_15_br_actual_taken;
   reg  [1:0]        entries_15_br_type;
   reg  [9:0]        entries_15_ghr;
+  reg               entries_15_bimodal_pred;
+  reg               entries_15_gshare_pred;
   reg               entries_16_valid;
   reg  [31:0]       entries_16_pc;
   reg               entries_16_rf_we;
@@ -606,6 +644,8 @@ module ROB(
   reg               entries_16_br_actual_taken;
   reg  [1:0]        entries_16_br_type;
   reg  [9:0]        entries_16_ghr;
+  reg               entries_16_bimodal_pred;
+  reg               entries_16_gshare_pred;
   reg               entries_17_valid;
   reg  [31:0]       entries_17_pc;
   reg               entries_17_rf_we;
@@ -633,6 +673,8 @@ module ROB(
   reg               entries_17_br_actual_taken;
   reg  [1:0]        entries_17_br_type;
   reg  [9:0]        entries_17_ghr;
+  reg               entries_17_bimodal_pred;
+  reg               entries_17_gshare_pred;
   reg               entries_18_valid;
   reg  [31:0]       entries_18_pc;
   reg               entries_18_rf_we;
@@ -660,6 +702,8 @@ module ROB(
   reg               entries_18_br_actual_taken;
   reg  [1:0]        entries_18_br_type;
   reg  [9:0]        entries_18_ghr;
+  reg               entries_18_bimodal_pred;
+  reg               entries_18_gshare_pred;
   reg               entries_19_valid;
   reg  [31:0]       entries_19_pc;
   reg               entries_19_rf_we;
@@ -687,6 +731,8 @@ module ROB(
   reg               entries_19_br_actual_taken;
   reg  [1:0]        entries_19_br_type;
   reg  [9:0]        entries_19_ghr;
+  reg               entries_19_bimodal_pred;
+  reg               entries_19_gshare_pred;
   reg               entries_20_valid;
   reg  [31:0]       entries_20_pc;
   reg               entries_20_rf_we;
@@ -714,6 +760,8 @@ module ROB(
   reg               entries_20_br_actual_taken;
   reg  [1:0]        entries_20_br_type;
   reg  [9:0]        entries_20_ghr;
+  reg               entries_20_bimodal_pred;
+  reg               entries_20_gshare_pred;
   reg               entries_21_valid;
   reg  [31:0]       entries_21_pc;
   reg               entries_21_rf_we;
@@ -741,6 +789,8 @@ module ROB(
   reg               entries_21_br_actual_taken;
   reg  [1:0]        entries_21_br_type;
   reg  [9:0]        entries_21_ghr;
+  reg               entries_21_bimodal_pred;
+  reg               entries_21_gshare_pred;
   reg               entries_22_valid;
   reg  [31:0]       entries_22_pc;
   reg               entries_22_rf_we;
@@ -768,6 +818,8 @@ module ROB(
   reg               entries_22_br_actual_taken;
   reg  [1:0]        entries_22_br_type;
   reg  [9:0]        entries_22_ghr;
+  reg               entries_22_bimodal_pred;
+  reg               entries_22_gshare_pred;
   reg               entries_23_valid;
   reg  [31:0]       entries_23_pc;
   reg               entries_23_rf_we;
@@ -795,6 +847,8 @@ module ROB(
   reg               entries_23_br_actual_taken;
   reg  [1:0]        entries_23_br_type;
   reg  [9:0]        entries_23_ghr;
+  reg               entries_23_bimodal_pred;
+  reg               entries_23_gshare_pred;
   reg               entries_24_valid;
   reg  [31:0]       entries_24_pc;
   reg               entries_24_rf_we;
@@ -822,6 +876,8 @@ module ROB(
   reg               entries_24_br_actual_taken;
   reg  [1:0]        entries_24_br_type;
   reg  [9:0]        entries_24_ghr;
+  reg               entries_24_bimodal_pred;
+  reg               entries_24_gshare_pred;
   reg               entries_25_valid;
   reg  [31:0]       entries_25_pc;
   reg               entries_25_rf_we;
@@ -849,6 +905,8 @@ module ROB(
   reg               entries_25_br_actual_taken;
   reg  [1:0]        entries_25_br_type;
   reg  [9:0]        entries_25_ghr;
+  reg               entries_25_bimodal_pred;
+  reg               entries_25_gshare_pred;
   reg               entries_26_valid;
   reg  [31:0]       entries_26_pc;
   reg               entries_26_rf_we;
@@ -876,6 +934,8 @@ module ROB(
   reg               entries_26_br_actual_taken;
   reg  [1:0]        entries_26_br_type;
   reg  [9:0]        entries_26_ghr;
+  reg               entries_26_bimodal_pred;
+  reg               entries_26_gshare_pred;
   reg               entries_27_valid;
   reg  [31:0]       entries_27_pc;
   reg               entries_27_rf_we;
@@ -903,6 +963,8 @@ module ROB(
   reg               entries_27_br_actual_taken;
   reg  [1:0]        entries_27_br_type;
   reg  [9:0]        entries_27_ghr;
+  reg               entries_27_bimodal_pred;
+  reg               entries_27_gshare_pred;
   reg               entries_28_valid;
   reg  [31:0]       entries_28_pc;
   reg               entries_28_rf_we;
@@ -930,6 +992,8 @@ module ROB(
   reg               entries_28_br_actual_taken;
   reg  [1:0]        entries_28_br_type;
   reg  [9:0]        entries_28_ghr;
+  reg               entries_28_bimodal_pred;
+  reg               entries_28_gshare_pred;
   reg               entries_29_valid;
   reg  [31:0]       entries_29_pc;
   reg               entries_29_rf_we;
@@ -957,6 +1021,8 @@ module ROB(
   reg               entries_29_br_actual_taken;
   reg  [1:0]        entries_29_br_type;
   reg  [9:0]        entries_29_ghr;
+  reg               entries_29_bimodal_pred;
+  reg               entries_29_gshare_pred;
   reg               entries_30_valid;
   reg  [31:0]       entries_30_pc;
   reg               entries_30_rf_we;
@@ -984,6 +1050,8 @@ module ROB(
   reg               entries_30_br_actual_taken;
   reg  [1:0]        entries_30_br_type;
   reg  [9:0]        entries_30_ghr;
+  reg               entries_30_bimodal_pred;
+  reg               entries_30_gshare_pred;
   reg               entries_31_valid;
   reg  [31:0]       entries_31_pc;
   reg               entries_31_rf_we;
@@ -1011,6 +1079,8 @@ module ROB(
   reg               entries_31_br_actual_taken;
   reg  [1:0]        entries_31_br_type;
   reg  [9:0]        entries_31_ghr;
+  reg               entries_31_bimodal_pred;
+  reg               entries_31_gshare_pred;
   reg  [4:0]        head;
   reg  [4:0]        tail;
   reg               is_full;
@@ -1889,6 +1959,72 @@ module ROB(
      {entries_2_ghr},
      {entries_1_ghr},
      {entries_0_ghr}};
+  wire [31:0]       _GEN_36 =
+    {{entries_31_bimodal_pred},
+     {entries_30_bimodal_pred},
+     {entries_29_bimodal_pred},
+     {entries_28_bimodal_pred},
+     {entries_27_bimodal_pred},
+     {entries_26_bimodal_pred},
+     {entries_25_bimodal_pred},
+     {entries_24_bimodal_pred},
+     {entries_23_bimodal_pred},
+     {entries_22_bimodal_pred},
+     {entries_21_bimodal_pred},
+     {entries_20_bimodal_pred},
+     {entries_19_bimodal_pred},
+     {entries_18_bimodal_pred},
+     {entries_17_bimodal_pred},
+     {entries_16_bimodal_pred},
+     {entries_15_bimodal_pred},
+     {entries_14_bimodal_pred},
+     {entries_13_bimodal_pred},
+     {entries_12_bimodal_pred},
+     {entries_11_bimodal_pred},
+     {entries_10_bimodal_pred},
+     {entries_9_bimodal_pred},
+     {entries_8_bimodal_pred},
+     {entries_7_bimodal_pred},
+     {entries_6_bimodal_pred},
+     {entries_5_bimodal_pred},
+     {entries_4_bimodal_pred},
+     {entries_3_bimodal_pred},
+     {entries_2_bimodal_pred},
+     {entries_1_bimodal_pred},
+     {entries_0_bimodal_pred}};
+  wire [31:0]       _GEN_37 =
+    {{entries_31_gshare_pred},
+     {entries_30_gshare_pred},
+     {entries_29_gshare_pred},
+     {entries_28_gshare_pred},
+     {entries_27_gshare_pred},
+     {entries_26_gshare_pred},
+     {entries_25_gshare_pred},
+     {entries_24_gshare_pred},
+     {entries_23_gshare_pred},
+     {entries_22_gshare_pred},
+     {entries_21_gshare_pred},
+     {entries_20_gshare_pred},
+     {entries_19_gshare_pred},
+     {entries_18_gshare_pred},
+     {entries_17_gshare_pred},
+     {entries_16_gshare_pred},
+     {entries_15_gshare_pred},
+     {entries_14_gshare_pred},
+     {entries_13_gshare_pred},
+     {entries_12_gshare_pred},
+     {entries_11_gshare_pred},
+     {entries_10_gshare_pred},
+     {entries_9_gshare_pred},
+     {entries_8_gshare_pred},
+     {entries_7_gshare_pred},
+     {entries_6_gshare_pred},
+     {entries_5_gshare_pred},
+     {entries_4_gshare_pred},
+     {entries_3_gshare_pred},
+     {entries_2_gshare_pred},
+     {entries_1_gshare_pred},
+     {entries_0_gshare_pred}};
   wire              can_commit0 = _GEN_1 & _GEN_7[head] & ~io_flush;
   wire              h0_is_replay = _GEN_9 & _GEN_11 == 6'h3E;
   wire              take_int = io_has_int & can_commit0 & ~_GEN_9 & ~_GEN_13;
@@ -1946,6 +2082,8 @@ module ROB(
       entries_0_br_actual_taken <= 1'h0;
       entries_0_br_type <= 2'h0;
       entries_0_ghr <= 10'h0;
+      entries_0_bimodal_pred <= 1'h0;
+      entries_0_gshare_pred <= 1'h0;
       entries_1_valid <= 1'h0;
       entries_1_pc <= 32'h0;
       entries_1_rf_we <= 1'h0;
@@ -1973,6 +2111,8 @@ module ROB(
       entries_1_br_actual_taken <= 1'h0;
       entries_1_br_type <= 2'h0;
       entries_1_ghr <= 10'h0;
+      entries_1_bimodal_pred <= 1'h0;
+      entries_1_gshare_pred <= 1'h0;
       entries_2_valid <= 1'h0;
       entries_2_pc <= 32'h0;
       entries_2_rf_we <= 1'h0;
@@ -2000,6 +2140,8 @@ module ROB(
       entries_2_br_actual_taken <= 1'h0;
       entries_2_br_type <= 2'h0;
       entries_2_ghr <= 10'h0;
+      entries_2_bimodal_pred <= 1'h0;
+      entries_2_gshare_pred <= 1'h0;
       entries_3_valid <= 1'h0;
       entries_3_pc <= 32'h0;
       entries_3_rf_we <= 1'h0;
@@ -2027,6 +2169,8 @@ module ROB(
       entries_3_br_actual_taken <= 1'h0;
       entries_3_br_type <= 2'h0;
       entries_3_ghr <= 10'h0;
+      entries_3_bimodal_pred <= 1'h0;
+      entries_3_gshare_pred <= 1'h0;
       entries_4_valid <= 1'h0;
       entries_4_pc <= 32'h0;
       entries_4_rf_we <= 1'h0;
@@ -2054,6 +2198,8 @@ module ROB(
       entries_4_br_actual_taken <= 1'h0;
       entries_4_br_type <= 2'h0;
       entries_4_ghr <= 10'h0;
+      entries_4_bimodal_pred <= 1'h0;
+      entries_4_gshare_pred <= 1'h0;
       entries_5_valid <= 1'h0;
       entries_5_pc <= 32'h0;
       entries_5_rf_we <= 1'h0;
@@ -2081,6 +2227,8 @@ module ROB(
       entries_5_br_actual_taken <= 1'h0;
       entries_5_br_type <= 2'h0;
       entries_5_ghr <= 10'h0;
+      entries_5_bimodal_pred <= 1'h0;
+      entries_5_gshare_pred <= 1'h0;
       entries_6_valid <= 1'h0;
       entries_6_pc <= 32'h0;
       entries_6_rf_we <= 1'h0;
@@ -2108,6 +2256,8 @@ module ROB(
       entries_6_br_actual_taken <= 1'h0;
       entries_6_br_type <= 2'h0;
       entries_6_ghr <= 10'h0;
+      entries_6_bimodal_pred <= 1'h0;
+      entries_6_gshare_pred <= 1'h0;
       entries_7_valid <= 1'h0;
       entries_7_pc <= 32'h0;
       entries_7_rf_we <= 1'h0;
@@ -2135,6 +2285,8 @@ module ROB(
       entries_7_br_actual_taken <= 1'h0;
       entries_7_br_type <= 2'h0;
       entries_7_ghr <= 10'h0;
+      entries_7_bimodal_pred <= 1'h0;
+      entries_7_gshare_pred <= 1'h0;
       entries_8_valid <= 1'h0;
       entries_8_pc <= 32'h0;
       entries_8_rf_we <= 1'h0;
@@ -2162,6 +2314,8 @@ module ROB(
       entries_8_br_actual_taken <= 1'h0;
       entries_8_br_type <= 2'h0;
       entries_8_ghr <= 10'h0;
+      entries_8_bimodal_pred <= 1'h0;
+      entries_8_gshare_pred <= 1'h0;
       entries_9_valid <= 1'h0;
       entries_9_pc <= 32'h0;
       entries_9_rf_we <= 1'h0;
@@ -2189,6 +2343,8 @@ module ROB(
       entries_9_br_actual_taken <= 1'h0;
       entries_9_br_type <= 2'h0;
       entries_9_ghr <= 10'h0;
+      entries_9_bimodal_pred <= 1'h0;
+      entries_9_gshare_pred <= 1'h0;
       entries_10_valid <= 1'h0;
       entries_10_pc <= 32'h0;
       entries_10_rf_we <= 1'h0;
@@ -2216,6 +2372,8 @@ module ROB(
       entries_10_br_actual_taken <= 1'h0;
       entries_10_br_type <= 2'h0;
       entries_10_ghr <= 10'h0;
+      entries_10_bimodal_pred <= 1'h0;
+      entries_10_gshare_pred <= 1'h0;
       entries_11_valid <= 1'h0;
       entries_11_pc <= 32'h0;
       entries_11_rf_we <= 1'h0;
@@ -2243,6 +2401,8 @@ module ROB(
       entries_11_br_actual_taken <= 1'h0;
       entries_11_br_type <= 2'h0;
       entries_11_ghr <= 10'h0;
+      entries_11_bimodal_pred <= 1'h0;
+      entries_11_gshare_pred <= 1'h0;
       entries_12_valid <= 1'h0;
       entries_12_pc <= 32'h0;
       entries_12_rf_we <= 1'h0;
@@ -2270,6 +2430,8 @@ module ROB(
       entries_12_br_actual_taken <= 1'h0;
       entries_12_br_type <= 2'h0;
       entries_12_ghr <= 10'h0;
+      entries_12_bimodal_pred <= 1'h0;
+      entries_12_gshare_pred <= 1'h0;
       entries_13_valid <= 1'h0;
       entries_13_pc <= 32'h0;
       entries_13_rf_we <= 1'h0;
@@ -2297,6 +2459,8 @@ module ROB(
       entries_13_br_actual_taken <= 1'h0;
       entries_13_br_type <= 2'h0;
       entries_13_ghr <= 10'h0;
+      entries_13_bimodal_pred <= 1'h0;
+      entries_13_gshare_pred <= 1'h0;
       entries_14_valid <= 1'h0;
       entries_14_pc <= 32'h0;
       entries_14_rf_we <= 1'h0;
@@ -2324,6 +2488,8 @@ module ROB(
       entries_14_br_actual_taken <= 1'h0;
       entries_14_br_type <= 2'h0;
       entries_14_ghr <= 10'h0;
+      entries_14_bimodal_pred <= 1'h0;
+      entries_14_gshare_pred <= 1'h0;
       entries_15_valid <= 1'h0;
       entries_15_pc <= 32'h0;
       entries_15_rf_we <= 1'h0;
@@ -2351,6 +2517,8 @@ module ROB(
       entries_15_br_actual_taken <= 1'h0;
       entries_15_br_type <= 2'h0;
       entries_15_ghr <= 10'h0;
+      entries_15_bimodal_pred <= 1'h0;
+      entries_15_gshare_pred <= 1'h0;
       entries_16_valid <= 1'h0;
       entries_16_pc <= 32'h0;
       entries_16_rf_we <= 1'h0;
@@ -2378,6 +2546,8 @@ module ROB(
       entries_16_br_actual_taken <= 1'h0;
       entries_16_br_type <= 2'h0;
       entries_16_ghr <= 10'h0;
+      entries_16_bimodal_pred <= 1'h0;
+      entries_16_gshare_pred <= 1'h0;
       entries_17_valid <= 1'h0;
       entries_17_pc <= 32'h0;
       entries_17_rf_we <= 1'h0;
@@ -2405,6 +2575,8 @@ module ROB(
       entries_17_br_actual_taken <= 1'h0;
       entries_17_br_type <= 2'h0;
       entries_17_ghr <= 10'h0;
+      entries_17_bimodal_pred <= 1'h0;
+      entries_17_gshare_pred <= 1'h0;
       entries_18_valid <= 1'h0;
       entries_18_pc <= 32'h0;
       entries_18_rf_we <= 1'h0;
@@ -2432,6 +2604,8 @@ module ROB(
       entries_18_br_actual_taken <= 1'h0;
       entries_18_br_type <= 2'h0;
       entries_18_ghr <= 10'h0;
+      entries_18_bimodal_pred <= 1'h0;
+      entries_18_gshare_pred <= 1'h0;
       entries_19_valid <= 1'h0;
       entries_19_pc <= 32'h0;
       entries_19_rf_we <= 1'h0;
@@ -2459,6 +2633,8 @@ module ROB(
       entries_19_br_actual_taken <= 1'h0;
       entries_19_br_type <= 2'h0;
       entries_19_ghr <= 10'h0;
+      entries_19_bimodal_pred <= 1'h0;
+      entries_19_gshare_pred <= 1'h0;
       entries_20_valid <= 1'h0;
       entries_20_pc <= 32'h0;
       entries_20_rf_we <= 1'h0;
@@ -2486,6 +2662,8 @@ module ROB(
       entries_20_br_actual_taken <= 1'h0;
       entries_20_br_type <= 2'h0;
       entries_20_ghr <= 10'h0;
+      entries_20_bimodal_pred <= 1'h0;
+      entries_20_gshare_pred <= 1'h0;
       entries_21_valid <= 1'h0;
       entries_21_pc <= 32'h0;
       entries_21_rf_we <= 1'h0;
@@ -2513,6 +2691,8 @@ module ROB(
       entries_21_br_actual_taken <= 1'h0;
       entries_21_br_type <= 2'h0;
       entries_21_ghr <= 10'h0;
+      entries_21_bimodal_pred <= 1'h0;
+      entries_21_gshare_pred <= 1'h0;
       entries_22_valid <= 1'h0;
       entries_22_pc <= 32'h0;
       entries_22_rf_we <= 1'h0;
@@ -2540,6 +2720,8 @@ module ROB(
       entries_22_br_actual_taken <= 1'h0;
       entries_22_br_type <= 2'h0;
       entries_22_ghr <= 10'h0;
+      entries_22_bimodal_pred <= 1'h0;
+      entries_22_gshare_pred <= 1'h0;
       entries_23_valid <= 1'h0;
       entries_23_pc <= 32'h0;
       entries_23_rf_we <= 1'h0;
@@ -2567,6 +2749,8 @@ module ROB(
       entries_23_br_actual_taken <= 1'h0;
       entries_23_br_type <= 2'h0;
       entries_23_ghr <= 10'h0;
+      entries_23_bimodal_pred <= 1'h0;
+      entries_23_gshare_pred <= 1'h0;
       entries_24_valid <= 1'h0;
       entries_24_pc <= 32'h0;
       entries_24_rf_we <= 1'h0;
@@ -2594,6 +2778,8 @@ module ROB(
       entries_24_br_actual_taken <= 1'h0;
       entries_24_br_type <= 2'h0;
       entries_24_ghr <= 10'h0;
+      entries_24_bimodal_pred <= 1'h0;
+      entries_24_gshare_pred <= 1'h0;
       entries_25_valid <= 1'h0;
       entries_25_pc <= 32'h0;
       entries_25_rf_we <= 1'h0;
@@ -2621,6 +2807,8 @@ module ROB(
       entries_25_br_actual_taken <= 1'h0;
       entries_25_br_type <= 2'h0;
       entries_25_ghr <= 10'h0;
+      entries_25_bimodal_pred <= 1'h0;
+      entries_25_gshare_pred <= 1'h0;
       entries_26_valid <= 1'h0;
       entries_26_pc <= 32'h0;
       entries_26_rf_we <= 1'h0;
@@ -2648,6 +2836,8 @@ module ROB(
       entries_26_br_actual_taken <= 1'h0;
       entries_26_br_type <= 2'h0;
       entries_26_ghr <= 10'h0;
+      entries_26_bimodal_pred <= 1'h0;
+      entries_26_gshare_pred <= 1'h0;
       entries_27_valid <= 1'h0;
       entries_27_pc <= 32'h0;
       entries_27_rf_we <= 1'h0;
@@ -2675,6 +2865,8 @@ module ROB(
       entries_27_br_actual_taken <= 1'h0;
       entries_27_br_type <= 2'h0;
       entries_27_ghr <= 10'h0;
+      entries_27_bimodal_pred <= 1'h0;
+      entries_27_gshare_pred <= 1'h0;
       entries_28_valid <= 1'h0;
       entries_28_pc <= 32'h0;
       entries_28_rf_we <= 1'h0;
@@ -2702,6 +2894,8 @@ module ROB(
       entries_28_br_actual_taken <= 1'h0;
       entries_28_br_type <= 2'h0;
       entries_28_ghr <= 10'h0;
+      entries_28_bimodal_pred <= 1'h0;
+      entries_28_gshare_pred <= 1'h0;
       entries_29_valid <= 1'h0;
       entries_29_pc <= 32'h0;
       entries_29_rf_we <= 1'h0;
@@ -2729,6 +2923,8 @@ module ROB(
       entries_29_br_actual_taken <= 1'h0;
       entries_29_br_type <= 2'h0;
       entries_29_ghr <= 10'h0;
+      entries_29_bimodal_pred <= 1'h0;
+      entries_29_gshare_pred <= 1'h0;
       entries_30_valid <= 1'h0;
       entries_30_pc <= 32'h0;
       entries_30_rf_we <= 1'h0;
@@ -2756,6 +2952,8 @@ module ROB(
       entries_30_br_actual_taken <= 1'h0;
       entries_30_br_type <= 2'h0;
       entries_30_ghr <= 10'h0;
+      entries_30_bimodal_pred <= 1'h0;
+      entries_30_gshare_pred <= 1'h0;
       entries_31_valid <= 1'h0;
       entries_31_pc <= 32'h0;
       entries_31_rf_we <= 1'h0;
@@ -2783,6 +2981,8 @@ module ROB(
       entries_31_br_actual_taken <= 1'h0;
       entries_31_br_type <= 2'h0;
       entries_31_ghr <= 10'h0;
+      entries_31_bimodal_pred <= 1'h0;
+      entries_31_gshare_pred <= 1'h0;
       head <= 5'h0;
       tail <= 5'h0;
       is_full <= 1'h0;
@@ -2795,8 +2995,6 @@ module ROB(
       automatic logic       _real_alloc1_T =
         io_br_resolve_valid & io_br_resolve_mispredict;
       automatic logic       fire0;
-      automatic logic       _GEN_36;
-      automatic logic       _GEN_37;
       automatic logic       _GEN_38;
       automatic logic       _GEN_39;
       automatic logic       _GEN_40;
@@ -2954,103 +3152,105 @@ module ROB(
       automatic logic       _GEN_192;
       automatic logic       _GEN_193;
       automatic logic       _GEN_194;
-      automatic logic [6:0] tag_bit = 7'h1 << io_br_resolve_tag;
-      automatic logic [3:0] _GEN_195;
+      automatic logic       _GEN_195;
       automatic logic       _GEN_196;
-      automatic logic       _GEN_197;
-      automatic logic [3:0] _GEN_198;
+      automatic logic [6:0] tag_bit = 7'h1 << io_br_resolve_tag;
+      automatic logic [3:0] _GEN_197;
+      automatic logic       _GEN_198;
       automatic logic       _GEN_199;
-      automatic logic       _GEN_200;
-      automatic logic [3:0] _GEN_201;
+      automatic logic [3:0] _GEN_200;
+      automatic logic       _GEN_201;
       automatic logic       _GEN_202;
-      automatic logic       _GEN_203;
-      automatic logic [3:0] _GEN_204;
+      automatic logic [3:0] _GEN_203;
+      automatic logic       _GEN_204;
       automatic logic       _GEN_205;
-      automatic logic       _GEN_206;
-      automatic logic [3:0] _GEN_207;
+      automatic logic [3:0] _GEN_206;
+      automatic logic       _GEN_207;
       automatic logic       _GEN_208;
-      automatic logic       _GEN_209;
-      automatic logic [3:0] _GEN_210;
+      automatic logic [3:0] _GEN_209;
+      automatic logic       _GEN_210;
       automatic logic       _GEN_211;
-      automatic logic       _GEN_212;
-      automatic logic [3:0] _GEN_213;
+      automatic logic [3:0] _GEN_212;
+      automatic logic       _GEN_213;
       automatic logic       _GEN_214;
-      automatic logic       _GEN_215;
-      automatic logic [3:0] _GEN_216;
+      automatic logic [3:0] _GEN_215;
+      automatic logic       _GEN_216;
       automatic logic       _GEN_217;
-      automatic logic       _GEN_218;
-      automatic logic [3:0] _GEN_219;
+      automatic logic [3:0] _GEN_218;
+      automatic logic       _GEN_219;
       automatic logic       _GEN_220;
-      automatic logic       _GEN_221;
-      automatic logic [3:0] _GEN_222;
+      automatic logic [3:0] _GEN_221;
+      automatic logic       _GEN_222;
       automatic logic       _GEN_223;
-      automatic logic       _GEN_224;
-      automatic logic [3:0] _GEN_225;
+      automatic logic [3:0] _GEN_224;
+      automatic logic       _GEN_225;
       automatic logic       _GEN_226;
-      automatic logic       _GEN_227;
-      automatic logic [3:0] _GEN_228;
+      automatic logic [3:0] _GEN_227;
+      automatic logic       _GEN_228;
       automatic logic       _GEN_229;
-      automatic logic       _GEN_230;
-      automatic logic [3:0] _GEN_231;
+      automatic logic [3:0] _GEN_230;
+      automatic logic       _GEN_231;
       automatic logic       _GEN_232;
-      automatic logic       _GEN_233;
-      automatic logic [3:0] _GEN_234;
+      automatic logic [3:0] _GEN_233;
+      automatic logic       _GEN_234;
       automatic logic       _GEN_235;
-      automatic logic       _GEN_236;
-      automatic logic [3:0] _GEN_237;
+      automatic logic [3:0] _GEN_236;
+      automatic logic       _GEN_237;
       automatic logic       _GEN_238;
-      automatic logic       _GEN_239;
-      automatic logic [3:0] _GEN_240;
+      automatic logic [3:0] _GEN_239;
+      automatic logic       _GEN_240;
       automatic logic       _GEN_241;
-      automatic logic       _GEN_242;
-      automatic logic [3:0] _GEN_243;
+      automatic logic [3:0] _GEN_242;
+      automatic logic       _GEN_243;
       automatic logic       _GEN_244;
-      automatic logic       _GEN_245;
-      automatic logic [3:0] _GEN_246;
+      automatic logic [3:0] _GEN_245;
+      automatic logic       _GEN_246;
       automatic logic       _GEN_247;
-      automatic logic       _GEN_248;
-      automatic logic [3:0] _GEN_249;
+      automatic logic [3:0] _GEN_248;
+      automatic logic       _GEN_249;
       automatic logic       _GEN_250;
-      automatic logic       _GEN_251;
-      automatic logic [3:0] _GEN_252;
+      automatic logic [3:0] _GEN_251;
+      automatic logic       _GEN_252;
       automatic logic       _GEN_253;
-      automatic logic       _GEN_254;
-      automatic logic [3:0] _GEN_255;
+      automatic logic [3:0] _GEN_254;
+      automatic logic       _GEN_255;
       automatic logic       _GEN_256;
-      automatic logic       _GEN_257;
-      automatic logic [3:0] _GEN_258;
+      automatic logic [3:0] _GEN_257;
+      automatic logic       _GEN_258;
       automatic logic       _GEN_259;
-      automatic logic       _GEN_260;
-      automatic logic [3:0] _GEN_261;
+      automatic logic [3:0] _GEN_260;
+      automatic logic       _GEN_261;
       automatic logic       _GEN_262;
-      automatic logic       _GEN_263;
-      automatic logic [3:0] _GEN_264;
+      automatic logic [3:0] _GEN_263;
+      automatic logic       _GEN_264;
       automatic logic       _GEN_265;
-      automatic logic       _GEN_266;
-      automatic logic [3:0] _GEN_267;
+      automatic logic [3:0] _GEN_266;
+      automatic logic       _GEN_267;
       automatic logic       _GEN_268;
-      automatic logic       _GEN_269;
-      automatic logic [3:0] _GEN_270;
+      automatic logic [3:0] _GEN_269;
+      automatic logic       _GEN_270;
       automatic logic       _GEN_271;
-      automatic logic       _GEN_272;
-      automatic logic [3:0] _GEN_273;
+      automatic logic [3:0] _GEN_272;
+      automatic logic       _GEN_273;
       automatic logic       _GEN_274;
-      automatic logic       _GEN_275;
-      automatic logic [3:0] _GEN_276;
+      automatic logic [3:0] _GEN_275;
+      automatic logic       _GEN_276;
       automatic logic       _GEN_277;
-      automatic logic       _GEN_278;
-      automatic logic [3:0] _GEN_279;
+      automatic logic [3:0] _GEN_278;
+      automatic logic       _GEN_279;
       automatic logic       _GEN_280;
-      automatic logic       _GEN_281;
-      automatic logic [3:0] _GEN_282;
+      automatic logic [3:0] _GEN_281;
+      automatic logic       _GEN_282;
       automatic logic       _GEN_283;
-      automatic logic       _GEN_284;
-      automatic logic [3:0] _GEN_285;
+      automatic logic [3:0] _GEN_284;
+      automatic logic       _GEN_285;
       automatic logic       _GEN_286;
-      automatic logic       _GEN_287;
-      automatic logic [3:0] _GEN_288;
+      automatic logic [3:0] _GEN_287;
+      automatic logic       _GEN_288;
       automatic logic       _GEN_289;
-      automatic logic       _GEN_290;
+      automatic logic [3:0] _GEN_290;
+      automatic logic       _GEN_291;
+      automatic logic       _GEN_292;
       automatic logic       match0;
       automatic logic       match1;
       automatic logic       match0_1;
@@ -3115,76 +3315,74 @@ module ROB(
       automatic logic       match1_30;
       automatic logic       match0_31;
       automatic logic       match1_31;
-      automatic logic       _GEN_291 =
-        _GEN[io_lsq_violation_rob] & _GEN_0[io_lsq_violation_rob] == io_lsq_violation_pc;
-      automatic logic       _GEN_292 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h0;
       automatic logic       _GEN_293 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h1;
+        _GEN[io_lsq_violation_rob] & _GEN_0[io_lsq_violation_rob] == io_lsq_violation_pc;
       automatic logic       _GEN_294 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h2;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h0;
       automatic logic       _GEN_295 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h3;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h1;
       automatic logic       _GEN_296 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h4;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h2;
       automatic logic       _GEN_297 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h5;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h3;
       automatic logic       _GEN_298 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h6;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h4;
       automatic logic       _GEN_299 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h7;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h5;
       automatic logic       _GEN_300 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h8;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h6;
       automatic logic       _GEN_301 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h9;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h7;
       automatic logic       _GEN_302 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'hA;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h8;
       automatic logic       _GEN_303 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'hB;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h9;
       automatic logic       _GEN_304 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'hC;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'hA;
       automatic logic       _GEN_305 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'hD;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'hB;
       automatic logic       _GEN_306 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'hE;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'hC;
       automatic logic       _GEN_307 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'hF;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'hD;
       automatic logic       _GEN_308 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h10;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'hE;
       automatic logic       _GEN_309 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h11;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'hF;
       automatic logic       _GEN_310 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h12;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h10;
       automatic logic       _GEN_311 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h13;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h11;
       automatic logic       _GEN_312 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h14;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h12;
       automatic logic       _GEN_313 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h15;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h13;
       automatic logic       _GEN_314 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h16;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h14;
       automatic logic       _GEN_315 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h17;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h15;
       automatic logic       _GEN_316 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h18;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h16;
       automatic logic       _GEN_317 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h19;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h17;
       automatic logic       _GEN_318 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h1A;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h18;
       automatic logic       _GEN_319 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h1B;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h19;
       automatic logic       _GEN_320 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h1C;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h1A;
       automatic logic       _GEN_321 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h1D;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h1B;
       automatic logic       _GEN_322 =
-        io_lsq_violation_valid & _GEN_291 & io_lsq_violation_rob == 5'h1E;
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h1C;
       automatic logic       _GEN_323 =
-        io_lsq_violation_valid & _GEN_291 & (&io_lsq_violation_rob);
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h1D;
+      automatic logic       _GEN_324 =
+        io_lsq_violation_valid & _GEN_293 & io_lsq_violation_rob == 5'h1E;
+      automatic logic       _GEN_325 =
+        io_lsq_violation_valid & _GEN_293 & (&io_lsq_violation_rob);
       automatic logic       do_replay = can_commit0 & h0_is_replay;
       automatic logic [4:0] _head_T_3;
-      automatic logic       _GEN_324;
-      automatic logic       _GEN_325;
       automatic logic       _GEN_326;
       automatic logic       _GEN_327;
       automatic logic       _GEN_328;
@@ -3211,9 +3409,9 @@ module ROB(
       automatic logic       _GEN_349;
       automatic logic       _GEN_350;
       automatic logic       _GEN_351;
-      automatic logic       no_valid_left;
       automatic logic       _GEN_352;
       automatic logic       _GEN_353;
+      automatic logic       no_valid_left;
       automatic logic       _GEN_354;
       automatic logic       _GEN_355;
       automatic logic       _GEN_356;
@@ -3245,295 +3443,297 @@ module ROB(
       automatic logic       _GEN_382;
       automatic logic       _GEN_383;
       automatic logic       _GEN_384;
+      automatic logic       _GEN_385;
+      automatic logic       _GEN_386;
       _tail_next2_T = tail + 5'h2;
       fire0 = io_alloc_valid & ~_real_alloc1_T & ~is_full;
-      _GEN_36 = fire0 & io_alloc1_valid & ~_real_alloc1_T & ~is_full_for_2;
-      _GEN_37 = tail == 5'h0;
-      _GEN_38 = tail == 5'h1;
-      _GEN_39 = tail == 5'h2;
-      _GEN_40 = tail == 5'h3;
-      _GEN_41 = tail == 5'h4;
-      _GEN_42 = tail == 5'h5;
-      _GEN_43 = tail == 5'h6;
-      _GEN_44 = tail == 5'h7;
-      _GEN_45 = tail == 5'h8;
-      _GEN_46 = tail == 5'h9;
-      _GEN_47 = tail == 5'hA;
-      _GEN_48 = tail == 5'hB;
-      _GEN_49 = tail == 5'hC;
-      _GEN_50 = tail == 5'hD;
-      _GEN_51 = tail == 5'hE;
-      _GEN_52 = tail == 5'hF;
-      _GEN_53 = tail == 5'h10;
-      _GEN_54 = tail == 5'h11;
-      _GEN_55 = tail == 5'h12;
-      _GEN_56 = tail == 5'h13;
-      _GEN_57 = tail == 5'h14;
-      _GEN_58 = tail == 5'h15;
-      _GEN_59 = tail == 5'h16;
-      _GEN_60 = tail == 5'h17;
-      _GEN_61 = tail == 5'h18;
-      _GEN_62 = tail == 5'h19;
-      _GEN_63 = tail == 5'h1A;
-      _GEN_64 = tail == 5'h1B;
-      _GEN_65 = tail == 5'h1C;
-      _GEN_66 = tail == 5'h1D;
-      _GEN_67 = tail == 5'h1E;
-      _GEN_68 = _tail_next_T == 5'h0;
-      _GEN_69 = _GEN_68 | _GEN_37;
-      _GEN_70 = _tail_next_T == 5'h1;
-      _GEN_71 = _GEN_70 | _GEN_38;
-      _GEN_72 = _tail_next_T == 5'h2;
-      _GEN_73 = _GEN_72 | _GEN_39;
-      _GEN_74 = _tail_next_T == 5'h3;
-      _GEN_75 = _GEN_74 | _GEN_40;
-      _GEN_76 = _tail_next_T == 5'h4;
-      _GEN_77 = _GEN_76 | _GEN_41;
-      _GEN_78 = _tail_next_T == 5'h5;
-      _GEN_79 = _GEN_78 | _GEN_42;
-      _GEN_80 = _tail_next_T == 5'h6;
-      _GEN_81 = _GEN_80 | _GEN_43;
-      _GEN_82 = _tail_next_T == 5'h7;
-      _GEN_83 = _GEN_82 | _GEN_44;
-      _GEN_84 = _tail_next_T == 5'h8;
-      _GEN_85 = _GEN_84 | _GEN_45;
-      _GEN_86 = _tail_next_T == 5'h9;
-      _GEN_87 = _GEN_86 | _GEN_46;
-      _GEN_88 = _tail_next_T == 5'hA;
-      _GEN_89 = _GEN_88 | _GEN_47;
-      _GEN_90 = _tail_next_T == 5'hB;
-      _GEN_91 = _GEN_90 | _GEN_48;
-      _GEN_92 = _tail_next_T == 5'hC;
-      _GEN_93 = _GEN_92 | _GEN_49;
-      _GEN_94 = _tail_next_T == 5'hD;
-      _GEN_95 = _GEN_94 | _GEN_50;
-      _GEN_96 = _tail_next_T == 5'hE;
-      _GEN_97 = _GEN_96 | _GEN_51;
-      _GEN_98 = _tail_next_T == 5'hF;
-      _GEN_99 = _GEN_98 | _GEN_52;
-      _GEN_100 = _tail_next_T == 5'h10;
-      _GEN_101 = _GEN_100 | _GEN_53;
-      _GEN_102 = _tail_next_T == 5'h11;
-      _GEN_103 = _GEN_102 | _GEN_54;
-      _GEN_104 = _tail_next_T == 5'h12;
-      _GEN_105 = _GEN_104 | _GEN_55;
-      _GEN_106 = _tail_next_T == 5'h13;
-      _GEN_107 = _GEN_106 | _GEN_56;
-      _GEN_108 = _tail_next_T == 5'h14;
-      _GEN_109 = _GEN_108 | _GEN_57;
-      _GEN_110 = _tail_next_T == 5'h15;
-      _GEN_111 = _GEN_110 | _GEN_58;
-      _GEN_112 = _tail_next_T == 5'h16;
-      _GEN_113 = _GEN_112 | _GEN_59;
-      _GEN_114 = _tail_next_T == 5'h17;
-      _GEN_115 = _GEN_114 | _GEN_60;
-      _GEN_116 = _tail_next_T == 5'h18;
-      _GEN_117 = _GEN_116 | _GEN_61;
-      _GEN_118 = _tail_next_T == 5'h19;
-      _GEN_119 = _GEN_118 | _GEN_62;
-      _GEN_120 = _tail_next_T == 5'h1A;
-      _GEN_121 = _GEN_120 | _GEN_63;
-      _GEN_122 = _tail_next_T == 5'h1B;
-      _GEN_123 = _GEN_122 | _GEN_64;
-      _GEN_124 = _tail_next_T == 5'h1C;
-      _GEN_125 = _GEN_124 | _GEN_65;
-      _GEN_126 = _tail_next_T == 5'h1D;
-      _GEN_127 = _GEN_126 | _GEN_66;
-      _GEN_128 = _tail_next_T == 5'h1E;
-      _GEN_129 = _GEN_128 | _GEN_67;
-      _GEN_130 = (&_tail_next_T) | (&tail);
-      _GEN_131 = fire0 & _GEN_37;
-      _GEN_132 = _GEN_36 ? _GEN_69 | entries_0_valid : _GEN_131 | entries_0_valid;
-      _GEN_133 = fire0 & _GEN_38;
-      _GEN_134 = _GEN_36 ? _GEN_71 | entries_1_valid : _GEN_133 | entries_1_valid;
-      _GEN_135 = fire0 & _GEN_39;
-      _GEN_136 = _GEN_36 ? _GEN_73 | entries_2_valid : _GEN_135 | entries_2_valid;
-      _GEN_137 = fire0 & _GEN_40;
-      _GEN_138 = _GEN_36 ? _GEN_75 | entries_3_valid : _GEN_137 | entries_3_valid;
-      _GEN_139 = fire0 & _GEN_41;
-      _GEN_140 = _GEN_36 ? _GEN_77 | entries_4_valid : _GEN_139 | entries_4_valid;
-      _GEN_141 = fire0 & _GEN_42;
-      _GEN_142 = _GEN_36 ? _GEN_79 | entries_5_valid : _GEN_141 | entries_5_valid;
-      _GEN_143 = fire0 & _GEN_43;
-      _GEN_144 = _GEN_36 ? _GEN_81 | entries_6_valid : _GEN_143 | entries_6_valid;
-      _GEN_145 = fire0 & _GEN_44;
-      _GEN_146 = _GEN_36 ? _GEN_83 | entries_7_valid : _GEN_145 | entries_7_valid;
-      _GEN_147 = fire0 & _GEN_45;
-      _GEN_148 = _GEN_36 ? _GEN_85 | entries_8_valid : _GEN_147 | entries_8_valid;
-      _GEN_149 = fire0 & _GEN_46;
-      _GEN_150 = _GEN_36 ? _GEN_87 | entries_9_valid : _GEN_149 | entries_9_valid;
-      _GEN_151 = fire0 & _GEN_47;
-      _GEN_152 = _GEN_36 ? _GEN_89 | entries_10_valid : _GEN_151 | entries_10_valid;
-      _GEN_153 = fire0 & _GEN_48;
-      _GEN_154 = _GEN_36 ? _GEN_91 | entries_11_valid : _GEN_153 | entries_11_valid;
-      _GEN_155 = fire0 & _GEN_49;
-      _GEN_156 = _GEN_36 ? _GEN_93 | entries_12_valid : _GEN_155 | entries_12_valid;
-      _GEN_157 = fire0 & _GEN_50;
-      _GEN_158 = _GEN_36 ? _GEN_95 | entries_13_valid : _GEN_157 | entries_13_valid;
-      _GEN_159 = fire0 & _GEN_51;
-      _GEN_160 = _GEN_36 ? _GEN_97 | entries_14_valid : _GEN_159 | entries_14_valid;
-      _GEN_161 = fire0 & _GEN_52;
-      _GEN_162 = _GEN_36 ? _GEN_99 | entries_15_valid : _GEN_161 | entries_15_valid;
-      _GEN_163 = fire0 & _GEN_53;
-      _GEN_164 = _GEN_36 ? _GEN_101 | entries_16_valid : _GEN_163 | entries_16_valid;
-      _GEN_165 = fire0 & _GEN_54;
-      _GEN_166 = _GEN_36 ? _GEN_103 | entries_17_valid : _GEN_165 | entries_17_valid;
-      _GEN_167 = fire0 & _GEN_55;
-      _GEN_168 = _GEN_36 ? _GEN_105 | entries_18_valid : _GEN_167 | entries_18_valid;
-      _GEN_169 = fire0 & _GEN_56;
-      _GEN_170 = _GEN_36 ? _GEN_107 | entries_19_valid : _GEN_169 | entries_19_valid;
-      _GEN_171 = fire0 & _GEN_57;
-      _GEN_172 = _GEN_36 ? _GEN_109 | entries_20_valid : _GEN_171 | entries_20_valid;
-      _GEN_173 = fire0 & _GEN_58;
-      _GEN_174 = _GEN_36 ? _GEN_111 | entries_21_valid : _GEN_173 | entries_21_valid;
-      _GEN_175 = fire0 & _GEN_59;
-      _GEN_176 = _GEN_36 ? _GEN_113 | entries_22_valid : _GEN_175 | entries_22_valid;
-      _GEN_177 = fire0 & _GEN_60;
-      _GEN_178 = _GEN_36 ? _GEN_115 | entries_23_valid : _GEN_177 | entries_23_valid;
-      _GEN_179 = fire0 & _GEN_61;
-      _GEN_180 = _GEN_36 ? _GEN_117 | entries_24_valid : _GEN_179 | entries_24_valid;
-      _GEN_181 = fire0 & _GEN_62;
-      _GEN_182 = _GEN_36 ? _GEN_119 | entries_25_valid : _GEN_181 | entries_25_valid;
-      _GEN_183 = fire0 & _GEN_63;
-      _GEN_184 = _GEN_36 ? _GEN_121 | entries_26_valid : _GEN_183 | entries_26_valid;
-      _GEN_185 = fire0 & _GEN_64;
-      _GEN_186 = _GEN_36 ? _GEN_123 | entries_27_valid : _GEN_185 | entries_27_valid;
-      _GEN_187 = fire0 & _GEN_65;
-      _GEN_188 = _GEN_36 ? _GEN_125 | entries_28_valid : _GEN_187 | entries_28_valid;
-      _GEN_189 = fire0 & _GEN_66;
-      _GEN_190 = _GEN_36 ? _GEN_127 | entries_29_valid : _GEN_189 | entries_29_valid;
-      _GEN_191 = fire0 & _GEN_67;
-      _GEN_192 = _GEN_36 ? _GEN_129 | entries_30_valid : _GEN_191 | entries_30_valid;
-      _GEN_193 = fire0 & (&tail);
-      _GEN_194 = _GEN_36 ? _GEN_130 | entries_31_valid : _GEN_193 | entries_31_valid;
-      _GEN_195 = tag_bit[3:0] & entries_0_branch_mask;
-      _GEN_196 =
-        io_br_resolve_valid & entries_0_valid & io_br_resolve_mispredict & (|_GEN_195);
-      _GEN_197 = ~_GEN_196 & _GEN_132;
-      _GEN_198 = tag_bit[3:0] & entries_1_branch_mask;
-      _GEN_199 =
-        io_br_resolve_valid & entries_1_valid & io_br_resolve_mispredict & (|_GEN_198);
-      _GEN_200 = ~_GEN_199 & _GEN_134;
-      _GEN_201 = tag_bit[3:0] & entries_2_branch_mask;
-      _GEN_202 =
-        io_br_resolve_valid & entries_2_valid & io_br_resolve_mispredict & (|_GEN_201);
-      _GEN_203 = ~_GEN_202 & _GEN_136;
-      _GEN_204 = tag_bit[3:0] & entries_3_branch_mask;
-      _GEN_205 =
-        io_br_resolve_valid & entries_3_valid & io_br_resolve_mispredict & (|_GEN_204);
-      _GEN_206 = ~_GEN_205 & _GEN_138;
-      _GEN_207 = tag_bit[3:0] & entries_4_branch_mask;
-      _GEN_208 =
-        io_br_resolve_valid & entries_4_valid & io_br_resolve_mispredict & (|_GEN_207);
-      _GEN_209 = ~_GEN_208 & _GEN_140;
-      _GEN_210 = tag_bit[3:0] & entries_5_branch_mask;
-      _GEN_211 =
-        io_br_resolve_valid & entries_5_valid & io_br_resolve_mispredict & (|_GEN_210);
-      _GEN_212 = ~_GEN_211 & _GEN_142;
-      _GEN_213 = tag_bit[3:0] & entries_6_branch_mask;
-      _GEN_214 =
-        io_br_resolve_valid & entries_6_valid & io_br_resolve_mispredict & (|_GEN_213);
-      _GEN_215 = ~_GEN_214 & _GEN_144;
-      _GEN_216 = tag_bit[3:0] & entries_7_branch_mask;
-      _GEN_217 =
-        io_br_resolve_valid & entries_7_valid & io_br_resolve_mispredict & (|_GEN_216);
-      _GEN_218 = ~_GEN_217 & _GEN_146;
-      _GEN_219 = tag_bit[3:0] & entries_8_branch_mask;
-      _GEN_220 =
-        io_br_resolve_valid & entries_8_valid & io_br_resolve_mispredict & (|_GEN_219);
-      _GEN_221 = ~_GEN_220 & _GEN_148;
-      _GEN_222 = tag_bit[3:0] & entries_9_branch_mask;
-      _GEN_223 =
-        io_br_resolve_valid & entries_9_valid & io_br_resolve_mispredict & (|_GEN_222);
-      _GEN_224 = ~_GEN_223 & _GEN_150;
-      _GEN_225 = tag_bit[3:0] & entries_10_branch_mask;
-      _GEN_226 =
-        io_br_resolve_valid & entries_10_valid & io_br_resolve_mispredict & (|_GEN_225);
-      _GEN_227 = ~_GEN_226 & _GEN_152;
-      _GEN_228 = tag_bit[3:0] & entries_11_branch_mask;
-      _GEN_229 =
-        io_br_resolve_valid & entries_11_valid & io_br_resolve_mispredict & (|_GEN_228);
-      _GEN_230 = ~_GEN_229 & _GEN_154;
-      _GEN_231 = tag_bit[3:0] & entries_12_branch_mask;
-      _GEN_232 =
-        io_br_resolve_valid & entries_12_valid & io_br_resolve_mispredict & (|_GEN_231);
-      _GEN_233 = ~_GEN_232 & _GEN_156;
-      _GEN_234 = tag_bit[3:0] & entries_13_branch_mask;
-      _GEN_235 =
-        io_br_resolve_valid & entries_13_valid & io_br_resolve_mispredict & (|_GEN_234);
-      _GEN_236 = ~_GEN_235 & _GEN_158;
-      _GEN_237 = tag_bit[3:0] & entries_14_branch_mask;
-      _GEN_238 =
-        io_br_resolve_valid & entries_14_valid & io_br_resolve_mispredict & (|_GEN_237);
-      _GEN_239 = ~_GEN_238 & _GEN_160;
-      _GEN_240 = tag_bit[3:0] & entries_15_branch_mask;
-      _GEN_241 =
-        io_br_resolve_valid & entries_15_valid & io_br_resolve_mispredict & (|_GEN_240);
-      _GEN_242 = ~_GEN_241 & _GEN_162;
-      _GEN_243 = tag_bit[3:0] & entries_16_branch_mask;
-      _GEN_244 =
-        io_br_resolve_valid & entries_16_valid & io_br_resolve_mispredict & (|_GEN_243);
-      _GEN_245 = ~_GEN_244 & _GEN_164;
-      _GEN_246 = tag_bit[3:0] & entries_17_branch_mask;
-      _GEN_247 =
-        io_br_resolve_valid & entries_17_valid & io_br_resolve_mispredict & (|_GEN_246);
-      _GEN_248 = ~_GEN_247 & _GEN_166;
-      _GEN_249 = tag_bit[3:0] & entries_18_branch_mask;
-      _GEN_250 =
-        io_br_resolve_valid & entries_18_valid & io_br_resolve_mispredict & (|_GEN_249);
-      _GEN_251 = ~_GEN_250 & _GEN_168;
-      _GEN_252 = tag_bit[3:0] & entries_19_branch_mask;
-      _GEN_253 =
-        io_br_resolve_valid & entries_19_valid & io_br_resolve_mispredict & (|_GEN_252);
-      _GEN_254 = ~_GEN_253 & _GEN_170;
-      _GEN_255 = tag_bit[3:0] & entries_20_branch_mask;
-      _GEN_256 =
-        io_br_resolve_valid & entries_20_valid & io_br_resolve_mispredict & (|_GEN_255);
-      _GEN_257 = ~_GEN_256 & _GEN_172;
-      _GEN_258 = tag_bit[3:0] & entries_21_branch_mask;
-      _GEN_259 =
-        io_br_resolve_valid & entries_21_valid & io_br_resolve_mispredict & (|_GEN_258);
-      _GEN_260 = ~_GEN_259 & _GEN_174;
-      _GEN_261 = tag_bit[3:0] & entries_22_branch_mask;
-      _GEN_262 =
-        io_br_resolve_valid & entries_22_valid & io_br_resolve_mispredict & (|_GEN_261);
-      _GEN_263 = ~_GEN_262 & _GEN_176;
-      _GEN_264 = tag_bit[3:0] & entries_23_branch_mask;
-      _GEN_265 =
-        io_br_resolve_valid & entries_23_valid & io_br_resolve_mispredict & (|_GEN_264);
-      _GEN_266 = ~_GEN_265 & _GEN_178;
-      _GEN_267 = tag_bit[3:0] & entries_24_branch_mask;
-      _GEN_268 =
-        io_br_resolve_valid & entries_24_valid & io_br_resolve_mispredict & (|_GEN_267);
-      _GEN_269 = ~_GEN_268 & _GEN_180;
-      _GEN_270 = tag_bit[3:0] & entries_25_branch_mask;
-      _GEN_271 =
-        io_br_resolve_valid & entries_25_valid & io_br_resolve_mispredict & (|_GEN_270);
-      _GEN_272 = ~_GEN_271 & _GEN_182;
-      _GEN_273 = tag_bit[3:0] & entries_26_branch_mask;
-      _GEN_274 =
-        io_br_resolve_valid & entries_26_valid & io_br_resolve_mispredict & (|_GEN_273);
-      _GEN_275 = ~_GEN_274 & _GEN_184;
-      _GEN_276 = tag_bit[3:0] & entries_27_branch_mask;
-      _GEN_277 =
-        io_br_resolve_valid & entries_27_valid & io_br_resolve_mispredict & (|_GEN_276);
-      _GEN_278 = ~_GEN_277 & _GEN_186;
-      _GEN_279 = tag_bit[3:0] & entries_28_branch_mask;
-      _GEN_280 =
-        io_br_resolve_valid & entries_28_valid & io_br_resolve_mispredict & (|_GEN_279);
-      _GEN_281 = ~_GEN_280 & _GEN_188;
-      _GEN_282 = tag_bit[3:0] & entries_29_branch_mask;
-      _GEN_283 =
-        io_br_resolve_valid & entries_29_valid & io_br_resolve_mispredict & (|_GEN_282);
-      _GEN_284 = ~_GEN_283 & _GEN_190;
-      _GEN_285 = tag_bit[3:0] & entries_30_branch_mask;
-      _GEN_286 =
-        io_br_resolve_valid & entries_30_valid & io_br_resolve_mispredict & (|_GEN_285);
-      _GEN_287 = ~_GEN_286 & _GEN_192;
-      _GEN_288 = tag_bit[3:0] & entries_31_branch_mask;
-      _GEN_289 =
-        io_br_resolve_valid & entries_31_valid & io_br_resolve_mispredict & (|_GEN_288);
-      _GEN_290 = ~_GEN_289 & _GEN_194;
+      _GEN_38 = fire0 & io_alloc1_valid & ~_real_alloc1_T & ~is_full_for_2;
+      _GEN_39 = tail == 5'h0;
+      _GEN_40 = tail == 5'h1;
+      _GEN_41 = tail == 5'h2;
+      _GEN_42 = tail == 5'h3;
+      _GEN_43 = tail == 5'h4;
+      _GEN_44 = tail == 5'h5;
+      _GEN_45 = tail == 5'h6;
+      _GEN_46 = tail == 5'h7;
+      _GEN_47 = tail == 5'h8;
+      _GEN_48 = tail == 5'h9;
+      _GEN_49 = tail == 5'hA;
+      _GEN_50 = tail == 5'hB;
+      _GEN_51 = tail == 5'hC;
+      _GEN_52 = tail == 5'hD;
+      _GEN_53 = tail == 5'hE;
+      _GEN_54 = tail == 5'hF;
+      _GEN_55 = tail == 5'h10;
+      _GEN_56 = tail == 5'h11;
+      _GEN_57 = tail == 5'h12;
+      _GEN_58 = tail == 5'h13;
+      _GEN_59 = tail == 5'h14;
+      _GEN_60 = tail == 5'h15;
+      _GEN_61 = tail == 5'h16;
+      _GEN_62 = tail == 5'h17;
+      _GEN_63 = tail == 5'h18;
+      _GEN_64 = tail == 5'h19;
+      _GEN_65 = tail == 5'h1A;
+      _GEN_66 = tail == 5'h1B;
+      _GEN_67 = tail == 5'h1C;
+      _GEN_68 = tail == 5'h1D;
+      _GEN_69 = tail == 5'h1E;
+      _GEN_70 = _tail_next_T == 5'h0;
+      _GEN_71 = _GEN_70 | _GEN_39;
+      _GEN_72 = _tail_next_T == 5'h1;
+      _GEN_73 = _GEN_72 | _GEN_40;
+      _GEN_74 = _tail_next_T == 5'h2;
+      _GEN_75 = _GEN_74 | _GEN_41;
+      _GEN_76 = _tail_next_T == 5'h3;
+      _GEN_77 = _GEN_76 | _GEN_42;
+      _GEN_78 = _tail_next_T == 5'h4;
+      _GEN_79 = _GEN_78 | _GEN_43;
+      _GEN_80 = _tail_next_T == 5'h5;
+      _GEN_81 = _GEN_80 | _GEN_44;
+      _GEN_82 = _tail_next_T == 5'h6;
+      _GEN_83 = _GEN_82 | _GEN_45;
+      _GEN_84 = _tail_next_T == 5'h7;
+      _GEN_85 = _GEN_84 | _GEN_46;
+      _GEN_86 = _tail_next_T == 5'h8;
+      _GEN_87 = _GEN_86 | _GEN_47;
+      _GEN_88 = _tail_next_T == 5'h9;
+      _GEN_89 = _GEN_88 | _GEN_48;
+      _GEN_90 = _tail_next_T == 5'hA;
+      _GEN_91 = _GEN_90 | _GEN_49;
+      _GEN_92 = _tail_next_T == 5'hB;
+      _GEN_93 = _GEN_92 | _GEN_50;
+      _GEN_94 = _tail_next_T == 5'hC;
+      _GEN_95 = _GEN_94 | _GEN_51;
+      _GEN_96 = _tail_next_T == 5'hD;
+      _GEN_97 = _GEN_96 | _GEN_52;
+      _GEN_98 = _tail_next_T == 5'hE;
+      _GEN_99 = _GEN_98 | _GEN_53;
+      _GEN_100 = _tail_next_T == 5'hF;
+      _GEN_101 = _GEN_100 | _GEN_54;
+      _GEN_102 = _tail_next_T == 5'h10;
+      _GEN_103 = _GEN_102 | _GEN_55;
+      _GEN_104 = _tail_next_T == 5'h11;
+      _GEN_105 = _GEN_104 | _GEN_56;
+      _GEN_106 = _tail_next_T == 5'h12;
+      _GEN_107 = _GEN_106 | _GEN_57;
+      _GEN_108 = _tail_next_T == 5'h13;
+      _GEN_109 = _GEN_108 | _GEN_58;
+      _GEN_110 = _tail_next_T == 5'h14;
+      _GEN_111 = _GEN_110 | _GEN_59;
+      _GEN_112 = _tail_next_T == 5'h15;
+      _GEN_113 = _GEN_112 | _GEN_60;
+      _GEN_114 = _tail_next_T == 5'h16;
+      _GEN_115 = _GEN_114 | _GEN_61;
+      _GEN_116 = _tail_next_T == 5'h17;
+      _GEN_117 = _GEN_116 | _GEN_62;
+      _GEN_118 = _tail_next_T == 5'h18;
+      _GEN_119 = _GEN_118 | _GEN_63;
+      _GEN_120 = _tail_next_T == 5'h19;
+      _GEN_121 = _GEN_120 | _GEN_64;
+      _GEN_122 = _tail_next_T == 5'h1A;
+      _GEN_123 = _GEN_122 | _GEN_65;
+      _GEN_124 = _tail_next_T == 5'h1B;
+      _GEN_125 = _GEN_124 | _GEN_66;
+      _GEN_126 = _tail_next_T == 5'h1C;
+      _GEN_127 = _GEN_126 | _GEN_67;
+      _GEN_128 = _tail_next_T == 5'h1D;
+      _GEN_129 = _GEN_128 | _GEN_68;
+      _GEN_130 = _tail_next_T == 5'h1E;
+      _GEN_131 = _GEN_130 | _GEN_69;
+      _GEN_132 = (&_tail_next_T) | (&tail);
+      _GEN_133 = fire0 & _GEN_39;
+      _GEN_134 = _GEN_38 ? _GEN_71 | entries_0_valid : _GEN_133 | entries_0_valid;
+      _GEN_135 = fire0 & _GEN_40;
+      _GEN_136 = _GEN_38 ? _GEN_73 | entries_1_valid : _GEN_135 | entries_1_valid;
+      _GEN_137 = fire0 & _GEN_41;
+      _GEN_138 = _GEN_38 ? _GEN_75 | entries_2_valid : _GEN_137 | entries_2_valid;
+      _GEN_139 = fire0 & _GEN_42;
+      _GEN_140 = _GEN_38 ? _GEN_77 | entries_3_valid : _GEN_139 | entries_3_valid;
+      _GEN_141 = fire0 & _GEN_43;
+      _GEN_142 = _GEN_38 ? _GEN_79 | entries_4_valid : _GEN_141 | entries_4_valid;
+      _GEN_143 = fire0 & _GEN_44;
+      _GEN_144 = _GEN_38 ? _GEN_81 | entries_5_valid : _GEN_143 | entries_5_valid;
+      _GEN_145 = fire0 & _GEN_45;
+      _GEN_146 = _GEN_38 ? _GEN_83 | entries_6_valid : _GEN_145 | entries_6_valid;
+      _GEN_147 = fire0 & _GEN_46;
+      _GEN_148 = _GEN_38 ? _GEN_85 | entries_7_valid : _GEN_147 | entries_7_valid;
+      _GEN_149 = fire0 & _GEN_47;
+      _GEN_150 = _GEN_38 ? _GEN_87 | entries_8_valid : _GEN_149 | entries_8_valid;
+      _GEN_151 = fire0 & _GEN_48;
+      _GEN_152 = _GEN_38 ? _GEN_89 | entries_9_valid : _GEN_151 | entries_9_valid;
+      _GEN_153 = fire0 & _GEN_49;
+      _GEN_154 = _GEN_38 ? _GEN_91 | entries_10_valid : _GEN_153 | entries_10_valid;
+      _GEN_155 = fire0 & _GEN_50;
+      _GEN_156 = _GEN_38 ? _GEN_93 | entries_11_valid : _GEN_155 | entries_11_valid;
+      _GEN_157 = fire0 & _GEN_51;
+      _GEN_158 = _GEN_38 ? _GEN_95 | entries_12_valid : _GEN_157 | entries_12_valid;
+      _GEN_159 = fire0 & _GEN_52;
+      _GEN_160 = _GEN_38 ? _GEN_97 | entries_13_valid : _GEN_159 | entries_13_valid;
+      _GEN_161 = fire0 & _GEN_53;
+      _GEN_162 = _GEN_38 ? _GEN_99 | entries_14_valid : _GEN_161 | entries_14_valid;
+      _GEN_163 = fire0 & _GEN_54;
+      _GEN_164 = _GEN_38 ? _GEN_101 | entries_15_valid : _GEN_163 | entries_15_valid;
+      _GEN_165 = fire0 & _GEN_55;
+      _GEN_166 = _GEN_38 ? _GEN_103 | entries_16_valid : _GEN_165 | entries_16_valid;
+      _GEN_167 = fire0 & _GEN_56;
+      _GEN_168 = _GEN_38 ? _GEN_105 | entries_17_valid : _GEN_167 | entries_17_valid;
+      _GEN_169 = fire0 & _GEN_57;
+      _GEN_170 = _GEN_38 ? _GEN_107 | entries_18_valid : _GEN_169 | entries_18_valid;
+      _GEN_171 = fire0 & _GEN_58;
+      _GEN_172 = _GEN_38 ? _GEN_109 | entries_19_valid : _GEN_171 | entries_19_valid;
+      _GEN_173 = fire0 & _GEN_59;
+      _GEN_174 = _GEN_38 ? _GEN_111 | entries_20_valid : _GEN_173 | entries_20_valid;
+      _GEN_175 = fire0 & _GEN_60;
+      _GEN_176 = _GEN_38 ? _GEN_113 | entries_21_valid : _GEN_175 | entries_21_valid;
+      _GEN_177 = fire0 & _GEN_61;
+      _GEN_178 = _GEN_38 ? _GEN_115 | entries_22_valid : _GEN_177 | entries_22_valid;
+      _GEN_179 = fire0 & _GEN_62;
+      _GEN_180 = _GEN_38 ? _GEN_117 | entries_23_valid : _GEN_179 | entries_23_valid;
+      _GEN_181 = fire0 & _GEN_63;
+      _GEN_182 = _GEN_38 ? _GEN_119 | entries_24_valid : _GEN_181 | entries_24_valid;
+      _GEN_183 = fire0 & _GEN_64;
+      _GEN_184 = _GEN_38 ? _GEN_121 | entries_25_valid : _GEN_183 | entries_25_valid;
+      _GEN_185 = fire0 & _GEN_65;
+      _GEN_186 = _GEN_38 ? _GEN_123 | entries_26_valid : _GEN_185 | entries_26_valid;
+      _GEN_187 = fire0 & _GEN_66;
+      _GEN_188 = _GEN_38 ? _GEN_125 | entries_27_valid : _GEN_187 | entries_27_valid;
+      _GEN_189 = fire0 & _GEN_67;
+      _GEN_190 = _GEN_38 ? _GEN_127 | entries_28_valid : _GEN_189 | entries_28_valid;
+      _GEN_191 = fire0 & _GEN_68;
+      _GEN_192 = _GEN_38 ? _GEN_129 | entries_29_valid : _GEN_191 | entries_29_valid;
+      _GEN_193 = fire0 & _GEN_69;
+      _GEN_194 = _GEN_38 ? _GEN_131 | entries_30_valid : _GEN_193 | entries_30_valid;
+      _GEN_195 = fire0 & (&tail);
+      _GEN_196 = _GEN_38 ? _GEN_132 | entries_31_valid : _GEN_195 | entries_31_valid;
+      _GEN_197 = tag_bit[3:0] & entries_0_branch_mask;
+      _GEN_198 =
+        io_br_resolve_valid & entries_0_valid & io_br_resolve_mispredict & (|_GEN_197);
+      _GEN_199 = ~_GEN_198 & _GEN_134;
+      _GEN_200 = tag_bit[3:0] & entries_1_branch_mask;
+      _GEN_201 =
+        io_br_resolve_valid & entries_1_valid & io_br_resolve_mispredict & (|_GEN_200);
+      _GEN_202 = ~_GEN_201 & _GEN_136;
+      _GEN_203 = tag_bit[3:0] & entries_2_branch_mask;
+      _GEN_204 =
+        io_br_resolve_valid & entries_2_valid & io_br_resolve_mispredict & (|_GEN_203);
+      _GEN_205 = ~_GEN_204 & _GEN_138;
+      _GEN_206 = tag_bit[3:0] & entries_3_branch_mask;
+      _GEN_207 =
+        io_br_resolve_valid & entries_3_valid & io_br_resolve_mispredict & (|_GEN_206);
+      _GEN_208 = ~_GEN_207 & _GEN_140;
+      _GEN_209 = tag_bit[3:0] & entries_4_branch_mask;
+      _GEN_210 =
+        io_br_resolve_valid & entries_4_valid & io_br_resolve_mispredict & (|_GEN_209);
+      _GEN_211 = ~_GEN_210 & _GEN_142;
+      _GEN_212 = tag_bit[3:0] & entries_5_branch_mask;
+      _GEN_213 =
+        io_br_resolve_valid & entries_5_valid & io_br_resolve_mispredict & (|_GEN_212);
+      _GEN_214 = ~_GEN_213 & _GEN_144;
+      _GEN_215 = tag_bit[3:0] & entries_6_branch_mask;
+      _GEN_216 =
+        io_br_resolve_valid & entries_6_valid & io_br_resolve_mispredict & (|_GEN_215);
+      _GEN_217 = ~_GEN_216 & _GEN_146;
+      _GEN_218 = tag_bit[3:0] & entries_7_branch_mask;
+      _GEN_219 =
+        io_br_resolve_valid & entries_7_valid & io_br_resolve_mispredict & (|_GEN_218);
+      _GEN_220 = ~_GEN_219 & _GEN_148;
+      _GEN_221 = tag_bit[3:0] & entries_8_branch_mask;
+      _GEN_222 =
+        io_br_resolve_valid & entries_8_valid & io_br_resolve_mispredict & (|_GEN_221);
+      _GEN_223 = ~_GEN_222 & _GEN_150;
+      _GEN_224 = tag_bit[3:0] & entries_9_branch_mask;
+      _GEN_225 =
+        io_br_resolve_valid & entries_9_valid & io_br_resolve_mispredict & (|_GEN_224);
+      _GEN_226 = ~_GEN_225 & _GEN_152;
+      _GEN_227 = tag_bit[3:0] & entries_10_branch_mask;
+      _GEN_228 =
+        io_br_resolve_valid & entries_10_valid & io_br_resolve_mispredict & (|_GEN_227);
+      _GEN_229 = ~_GEN_228 & _GEN_154;
+      _GEN_230 = tag_bit[3:0] & entries_11_branch_mask;
+      _GEN_231 =
+        io_br_resolve_valid & entries_11_valid & io_br_resolve_mispredict & (|_GEN_230);
+      _GEN_232 = ~_GEN_231 & _GEN_156;
+      _GEN_233 = tag_bit[3:0] & entries_12_branch_mask;
+      _GEN_234 =
+        io_br_resolve_valid & entries_12_valid & io_br_resolve_mispredict & (|_GEN_233);
+      _GEN_235 = ~_GEN_234 & _GEN_158;
+      _GEN_236 = tag_bit[3:0] & entries_13_branch_mask;
+      _GEN_237 =
+        io_br_resolve_valid & entries_13_valid & io_br_resolve_mispredict & (|_GEN_236);
+      _GEN_238 = ~_GEN_237 & _GEN_160;
+      _GEN_239 = tag_bit[3:0] & entries_14_branch_mask;
+      _GEN_240 =
+        io_br_resolve_valid & entries_14_valid & io_br_resolve_mispredict & (|_GEN_239);
+      _GEN_241 = ~_GEN_240 & _GEN_162;
+      _GEN_242 = tag_bit[3:0] & entries_15_branch_mask;
+      _GEN_243 =
+        io_br_resolve_valid & entries_15_valid & io_br_resolve_mispredict & (|_GEN_242);
+      _GEN_244 = ~_GEN_243 & _GEN_164;
+      _GEN_245 = tag_bit[3:0] & entries_16_branch_mask;
+      _GEN_246 =
+        io_br_resolve_valid & entries_16_valid & io_br_resolve_mispredict & (|_GEN_245);
+      _GEN_247 = ~_GEN_246 & _GEN_166;
+      _GEN_248 = tag_bit[3:0] & entries_17_branch_mask;
+      _GEN_249 =
+        io_br_resolve_valid & entries_17_valid & io_br_resolve_mispredict & (|_GEN_248);
+      _GEN_250 = ~_GEN_249 & _GEN_168;
+      _GEN_251 = tag_bit[3:0] & entries_18_branch_mask;
+      _GEN_252 =
+        io_br_resolve_valid & entries_18_valid & io_br_resolve_mispredict & (|_GEN_251);
+      _GEN_253 = ~_GEN_252 & _GEN_170;
+      _GEN_254 = tag_bit[3:0] & entries_19_branch_mask;
+      _GEN_255 =
+        io_br_resolve_valid & entries_19_valid & io_br_resolve_mispredict & (|_GEN_254);
+      _GEN_256 = ~_GEN_255 & _GEN_172;
+      _GEN_257 = tag_bit[3:0] & entries_20_branch_mask;
+      _GEN_258 =
+        io_br_resolve_valid & entries_20_valid & io_br_resolve_mispredict & (|_GEN_257);
+      _GEN_259 = ~_GEN_258 & _GEN_174;
+      _GEN_260 = tag_bit[3:0] & entries_21_branch_mask;
+      _GEN_261 =
+        io_br_resolve_valid & entries_21_valid & io_br_resolve_mispredict & (|_GEN_260);
+      _GEN_262 = ~_GEN_261 & _GEN_176;
+      _GEN_263 = tag_bit[3:0] & entries_22_branch_mask;
+      _GEN_264 =
+        io_br_resolve_valid & entries_22_valid & io_br_resolve_mispredict & (|_GEN_263);
+      _GEN_265 = ~_GEN_264 & _GEN_178;
+      _GEN_266 = tag_bit[3:0] & entries_23_branch_mask;
+      _GEN_267 =
+        io_br_resolve_valid & entries_23_valid & io_br_resolve_mispredict & (|_GEN_266);
+      _GEN_268 = ~_GEN_267 & _GEN_180;
+      _GEN_269 = tag_bit[3:0] & entries_24_branch_mask;
+      _GEN_270 =
+        io_br_resolve_valid & entries_24_valid & io_br_resolve_mispredict & (|_GEN_269);
+      _GEN_271 = ~_GEN_270 & _GEN_182;
+      _GEN_272 = tag_bit[3:0] & entries_25_branch_mask;
+      _GEN_273 =
+        io_br_resolve_valid & entries_25_valid & io_br_resolve_mispredict & (|_GEN_272);
+      _GEN_274 = ~_GEN_273 & _GEN_184;
+      _GEN_275 = tag_bit[3:0] & entries_26_branch_mask;
+      _GEN_276 =
+        io_br_resolve_valid & entries_26_valid & io_br_resolve_mispredict & (|_GEN_275);
+      _GEN_277 = ~_GEN_276 & _GEN_186;
+      _GEN_278 = tag_bit[3:0] & entries_27_branch_mask;
+      _GEN_279 =
+        io_br_resolve_valid & entries_27_valid & io_br_resolve_mispredict & (|_GEN_278);
+      _GEN_280 = ~_GEN_279 & _GEN_188;
+      _GEN_281 = tag_bit[3:0] & entries_28_branch_mask;
+      _GEN_282 =
+        io_br_resolve_valid & entries_28_valid & io_br_resolve_mispredict & (|_GEN_281);
+      _GEN_283 = ~_GEN_282 & _GEN_190;
+      _GEN_284 = tag_bit[3:0] & entries_29_branch_mask;
+      _GEN_285 =
+        io_br_resolve_valid & entries_29_valid & io_br_resolve_mispredict & (|_GEN_284);
+      _GEN_286 = ~_GEN_285 & _GEN_192;
+      _GEN_287 = tag_bit[3:0] & entries_30_branch_mask;
+      _GEN_288 =
+        io_br_resolve_valid & entries_30_valid & io_br_resolve_mispredict & (|_GEN_287);
+      _GEN_289 = ~_GEN_288 & _GEN_194;
+      _GEN_290 = tag_bit[3:0] & entries_31_branch_mask;
+      _GEN_291 =
+        io_br_resolve_valid & entries_31_valid & io_br_resolve_mispredict & (|_GEN_290);
+      _GEN_292 = ~_GEN_291 & _GEN_196;
       match0 = io_cdb0_valid & entries_0_valid & io_cdb0_bits_rob_idx == 5'h0;
       match1 = io_cdb1_valid & entries_0_valid & io_cdb1_bits_rob_idx == 5'h0;
       match0_1 = io_cdb0_valid & entries_1_valid & io_cdb0_bits_rob_idx == 5'h1;
@@ -3599,36 +3799,38 @@ module ROB(
       match0_31 = io_cdb0_valid & entries_31_valid & (&io_cdb0_bits_rob_idx);
       match1_31 = io_cdb1_valid & entries_31_valid & (&io_cdb1_bits_rob_idx);
       _head_T_3 = head + 5'h2;
-      _GEN_324 = _GEN[head + 5'h3];
-      _GEN_325 = _GEN[head + 5'h4];
-      _GEN_326 = _GEN[head + 5'h5];
-      _GEN_327 = _GEN[head + 5'h6];
-      _GEN_328 = _GEN[head + 5'h7];
-      _GEN_329 = _GEN[head + 5'h8];
-      _GEN_330 = _GEN[head + 5'h9];
-      _GEN_331 = _GEN[head + 5'hA];
-      _GEN_332 = _GEN[head + 5'hB];
-      _GEN_333 = _GEN[head + 5'hC];
-      _GEN_334 = _GEN[head + 5'hD];
-      _GEN_335 = _GEN[head + 5'hE];
-      _GEN_336 = _GEN[head + 5'hF];
-      _GEN_337 = _GEN[head - 5'h10];
-      _GEN_338 = _GEN[head - 5'hF];
-      _GEN_339 = _GEN[head - 5'hE];
-      _GEN_340 = _GEN[head - 5'hD];
-      _GEN_341 = _GEN[head - 5'hC];
-      _GEN_342 = _GEN[head - 5'hB];
-      _GEN_343 = _GEN[head - 5'hA];
-      _GEN_344 = _GEN[head - 5'h9];
-      _GEN_345 = _GEN[head - 5'h8];
-      _GEN_346 = _GEN[head - 5'h7];
-      _GEN_347 = _GEN[head - 5'h6];
-      _GEN_348 = _GEN[head - 5'h5];
-      _GEN_349 = _GEN[head - 5'h4];
-      _GEN_350 = _GEN[head - 5'h3];
-      _GEN_351 = _GEN[head - 5'h2];
+      _GEN_326 = _GEN[head + 5'h3];
+      _GEN_327 = _GEN[head + 5'h4];
+      _GEN_328 = _GEN[head + 5'h5];
+      _GEN_329 = _GEN[head + 5'h6];
+      _GEN_330 = _GEN[head + 5'h7];
+      _GEN_331 = _GEN[head + 5'h8];
+      _GEN_332 = _GEN[head + 5'h9];
+      _GEN_333 = _GEN[head + 5'hA];
+      _GEN_334 = _GEN[head + 5'hB];
+      _GEN_335 = _GEN[head + 5'hC];
+      _GEN_336 = _GEN[head + 5'hD];
+      _GEN_337 = _GEN[head + 5'hE];
+      _GEN_338 = _GEN[head + 5'hF];
+      _GEN_339 = _GEN[head - 5'h10];
+      _GEN_340 = _GEN[head - 5'hF];
+      _GEN_341 = _GEN[head - 5'hE];
+      _GEN_342 = _GEN[head - 5'hD];
+      _GEN_343 = _GEN[head - 5'hC];
+      _GEN_344 = _GEN[head - 5'hB];
+      _GEN_345 = _GEN[head - 5'hA];
+      _GEN_346 = _GEN[head - 5'h9];
+      _GEN_347 = _GEN[head - 5'h8];
+      _GEN_348 = _GEN[head - 5'h7];
+      _GEN_349 = _GEN[head - 5'h6];
+      _GEN_350 = _GEN[head - 5'h5];
+      _GEN_351 = _GEN[head - 5'h4];
+      _GEN_352 = _GEN[head - 5'h3];
+      _GEN_353 = _GEN[head - 5'h2];
       no_valid_left =
         {_GEN[head - 5'h1],
+         _GEN_353,
+         _GEN_352,
          _GEN_351,
          _GEN_350,
          _GEN_349,
@@ -3655,419 +3857,417 @@ module ROB(
          _GEN_328,
          _GEN_327,
          _GEN_326,
-         _GEN_325,
-         _GEN_324,
          _GEN[_head_T_3],
          _GEN[_head_T_6],
          _GEN_1} == 32'h0;
-      _GEN_352 = head == 5'h0 | _GEN_196;
-      _GEN_353 = head == 5'h1 | _GEN_199;
-      _GEN_354 = head == 5'h2 | _GEN_202;
-      _GEN_355 = head == 5'h3 | _GEN_205;
-      _GEN_356 = head == 5'h4 | _GEN_208;
-      _GEN_357 = head == 5'h5 | _GEN_211;
-      _GEN_358 = head == 5'h6 | _GEN_214;
-      _GEN_359 = head == 5'h7 | _GEN_217;
-      _GEN_360 = head == 5'h8 | _GEN_220;
-      _GEN_361 = head == 5'h9 | _GEN_223;
-      _GEN_362 = head == 5'hA | _GEN_226;
-      _GEN_363 = head == 5'hB | _GEN_229;
-      _GEN_364 = head == 5'hC | _GEN_232;
-      _GEN_365 = head == 5'hD | _GEN_235;
-      _GEN_366 = head == 5'hE | _GEN_238;
-      _GEN_367 = head == 5'hF | _GEN_241;
-      _GEN_368 = head == 5'h10 | _GEN_244;
-      _GEN_369 = head == 5'h11 | _GEN_247;
-      _GEN_370 = head == 5'h12 | _GEN_250;
-      _GEN_371 = head == 5'h13 | _GEN_253;
-      _GEN_372 = head == 5'h14 | _GEN_256;
-      _GEN_373 = head == 5'h15 | _GEN_259;
-      _GEN_374 = head == 5'h16 | _GEN_262;
-      _GEN_375 = head == 5'h17 | _GEN_265;
-      _GEN_376 = head == 5'h18 | _GEN_268;
-      _GEN_377 = head == 5'h19 | _GEN_271;
-      _GEN_378 = head == 5'h1A | _GEN_274;
-      _GEN_379 = head == 5'h1B | _GEN_277;
-      _GEN_380 = head == 5'h1C | _GEN_280;
-      _GEN_381 = head == 5'h1D | _GEN_283;
-      _GEN_382 = head == 5'h1E | _GEN_286;
-      _GEN_383 = (&head) | _GEN_289;
-      _GEN_384 = is_empty | no_valid_left | ~_GEN_1;
+      _GEN_354 = head == 5'h0 | _GEN_198;
+      _GEN_355 = head == 5'h1 | _GEN_201;
+      _GEN_356 = head == 5'h2 | _GEN_204;
+      _GEN_357 = head == 5'h3 | _GEN_207;
+      _GEN_358 = head == 5'h4 | _GEN_210;
+      _GEN_359 = head == 5'h5 | _GEN_213;
+      _GEN_360 = head == 5'h6 | _GEN_216;
+      _GEN_361 = head == 5'h7 | _GEN_219;
+      _GEN_362 = head == 5'h8 | _GEN_222;
+      _GEN_363 = head == 5'h9 | _GEN_225;
+      _GEN_364 = head == 5'hA | _GEN_228;
+      _GEN_365 = head == 5'hB | _GEN_231;
+      _GEN_366 = head == 5'hC | _GEN_234;
+      _GEN_367 = head == 5'hD | _GEN_237;
+      _GEN_368 = head == 5'hE | _GEN_240;
+      _GEN_369 = head == 5'hF | _GEN_243;
+      _GEN_370 = head == 5'h10 | _GEN_246;
+      _GEN_371 = head == 5'h11 | _GEN_249;
+      _GEN_372 = head == 5'h12 | _GEN_252;
+      _GEN_373 = head == 5'h13 | _GEN_255;
+      _GEN_374 = head == 5'h14 | _GEN_258;
+      _GEN_375 = head == 5'h15 | _GEN_261;
+      _GEN_376 = head == 5'h16 | _GEN_264;
+      _GEN_377 = head == 5'h17 | _GEN_267;
+      _GEN_378 = head == 5'h18 | _GEN_270;
+      _GEN_379 = head == 5'h19 | _GEN_273;
+      _GEN_380 = head == 5'h1A | _GEN_276;
+      _GEN_381 = head == 5'h1B | _GEN_279;
+      _GEN_382 = head == 5'h1C | _GEN_282;
+      _GEN_383 = head == 5'h1D | _GEN_285;
+      _GEN_384 = head == 5'h1E | _GEN_288;
+      _GEN_385 = (&head) | _GEN_291;
+      _GEN_386 = is_empty | no_valid_left | ~_GEN_1;
       entries_0_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_197
+        & (_GEN_386
+             ? _GEN_199
              : can_commit1
-                 ? ~(_head_T_6 == 5'h0 | _GEN_352) & _GEN_132
-                 : can_commit0 ? ~_GEN_352 & _GEN_132 : _GEN_197);
-      if (_GEN_36) begin
-        if (_GEN_68) begin
+                 ? ~(_head_T_6 == 5'h0 | _GEN_354) & _GEN_134
+                 : can_commit0 ? ~_GEN_354 & _GEN_134 : _GEN_199);
+      if (_GEN_38) begin
+        if (_GEN_70) begin
           entries_0_pc <= io_alloc1_pc;
           entries_0_rf_waddr <= io_alloc1_waddr;
           entries_0_rf_paddr <= io_alloc1_paddr;
           entries_0_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_37) begin
+        else if (_GEN_39) begin
           entries_0_pc <= io_alloc_pc;
           entries_0_rf_waddr <= io_alloc_waddr;
           entries_0_rf_paddr <= io_alloc_paddr;
           entries_0_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_70) begin
+        if (_GEN_72) begin
           entries_1_pc <= io_alloc1_pc;
           entries_1_rf_waddr <= io_alloc1_waddr;
           entries_1_rf_paddr <= io_alloc1_paddr;
           entries_1_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_38) begin
+        else if (_GEN_40) begin
           entries_1_pc <= io_alloc_pc;
           entries_1_rf_waddr <= io_alloc_waddr;
           entries_1_rf_paddr <= io_alloc_paddr;
           entries_1_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_72) begin
+        if (_GEN_74) begin
           entries_2_pc <= io_alloc1_pc;
           entries_2_rf_waddr <= io_alloc1_waddr;
           entries_2_rf_paddr <= io_alloc1_paddr;
           entries_2_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_39) begin
+        else if (_GEN_41) begin
           entries_2_pc <= io_alloc_pc;
           entries_2_rf_waddr <= io_alloc_waddr;
           entries_2_rf_paddr <= io_alloc_paddr;
           entries_2_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_74) begin
+        if (_GEN_76) begin
           entries_3_pc <= io_alloc1_pc;
           entries_3_rf_waddr <= io_alloc1_waddr;
           entries_3_rf_paddr <= io_alloc1_paddr;
           entries_3_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_40) begin
+        else if (_GEN_42) begin
           entries_3_pc <= io_alloc_pc;
           entries_3_rf_waddr <= io_alloc_waddr;
           entries_3_rf_paddr <= io_alloc_paddr;
           entries_3_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_76) begin
+        if (_GEN_78) begin
           entries_4_pc <= io_alloc1_pc;
           entries_4_rf_waddr <= io_alloc1_waddr;
           entries_4_rf_paddr <= io_alloc1_paddr;
           entries_4_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_41) begin
+        else if (_GEN_43) begin
           entries_4_pc <= io_alloc_pc;
           entries_4_rf_waddr <= io_alloc_waddr;
           entries_4_rf_paddr <= io_alloc_paddr;
           entries_4_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_78) begin
+        if (_GEN_80) begin
           entries_5_pc <= io_alloc1_pc;
           entries_5_rf_waddr <= io_alloc1_waddr;
           entries_5_rf_paddr <= io_alloc1_paddr;
           entries_5_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_42) begin
+        else if (_GEN_44) begin
           entries_5_pc <= io_alloc_pc;
           entries_5_rf_waddr <= io_alloc_waddr;
           entries_5_rf_paddr <= io_alloc_paddr;
           entries_5_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_80) begin
+        if (_GEN_82) begin
           entries_6_pc <= io_alloc1_pc;
           entries_6_rf_waddr <= io_alloc1_waddr;
           entries_6_rf_paddr <= io_alloc1_paddr;
           entries_6_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_43) begin
+        else if (_GEN_45) begin
           entries_6_pc <= io_alloc_pc;
           entries_6_rf_waddr <= io_alloc_waddr;
           entries_6_rf_paddr <= io_alloc_paddr;
           entries_6_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_82) begin
+        if (_GEN_84) begin
           entries_7_pc <= io_alloc1_pc;
           entries_7_rf_waddr <= io_alloc1_waddr;
           entries_7_rf_paddr <= io_alloc1_paddr;
           entries_7_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_44) begin
+        else if (_GEN_46) begin
           entries_7_pc <= io_alloc_pc;
           entries_7_rf_waddr <= io_alloc_waddr;
           entries_7_rf_paddr <= io_alloc_paddr;
           entries_7_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_84) begin
+        if (_GEN_86) begin
           entries_8_pc <= io_alloc1_pc;
           entries_8_rf_waddr <= io_alloc1_waddr;
           entries_8_rf_paddr <= io_alloc1_paddr;
           entries_8_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_45) begin
+        else if (_GEN_47) begin
           entries_8_pc <= io_alloc_pc;
           entries_8_rf_waddr <= io_alloc_waddr;
           entries_8_rf_paddr <= io_alloc_paddr;
           entries_8_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_86) begin
+        if (_GEN_88) begin
           entries_9_pc <= io_alloc1_pc;
           entries_9_rf_waddr <= io_alloc1_waddr;
           entries_9_rf_paddr <= io_alloc1_paddr;
           entries_9_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_46) begin
+        else if (_GEN_48) begin
           entries_9_pc <= io_alloc_pc;
           entries_9_rf_waddr <= io_alloc_waddr;
           entries_9_rf_paddr <= io_alloc_paddr;
           entries_9_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_88) begin
+        if (_GEN_90) begin
           entries_10_pc <= io_alloc1_pc;
           entries_10_rf_waddr <= io_alloc1_waddr;
           entries_10_rf_paddr <= io_alloc1_paddr;
           entries_10_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_47) begin
+        else if (_GEN_49) begin
           entries_10_pc <= io_alloc_pc;
           entries_10_rf_waddr <= io_alloc_waddr;
           entries_10_rf_paddr <= io_alloc_paddr;
           entries_10_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_90) begin
+        if (_GEN_92) begin
           entries_11_pc <= io_alloc1_pc;
           entries_11_rf_waddr <= io_alloc1_waddr;
           entries_11_rf_paddr <= io_alloc1_paddr;
           entries_11_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_48) begin
+        else if (_GEN_50) begin
           entries_11_pc <= io_alloc_pc;
           entries_11_rf_waddr <= io_alloc_waddr;
           entries_11_rf_paddr <= io_alloc_paddr;
           entries_11_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_92) begin
+        if (_GEN_94) begin
           entries_12_pc <= io_alloc1_pc;
           entries_12_rf_waddr <= io_alloc1_waddr;
           entries_12_rf_paddr <= io_alloc1_paddr;
           entries_12_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_49) begin
+        else if (_GEN_51) begin
           entries_12_pc <= io_alloc_pc;
           entries_12_rf_waddr <= io_alloc_waddr;
           entries_12_rf_paddr <= io_alloc_paddr;
           entries_12_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_94) begin
+        if (_GEN_96) begin
           entries_13_pc <= io_alloc1_pc;
           entries_13_rf_waddr <= io_alloc1_waddr;
           entries_13_rf_paddr <= io_alloc1_paddr;
           entries_13_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_50) begin
+        else if (_GEN_52) begin
           entries_13_pc <= io_alloc_pc;
           entries_13_rf_waddr <= io_alloc_waddr;
           entries_13_rf_paddr <= io_alloc_paddr;
           entries_13_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_96) begin
+        if (_GEN_98) begin
           entries_14_pc <= io_alloc1_pc;
           entries_14_rf_waddr <= io_alloc1_waddr;
           entries_14_rf_paddr <= io_alloc1_paddr;
           entries_14_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_51) begin
+        else if (_GEN_53) begin
           entries_14_pc <= io_alloc_pc;
           entries_14_rf_waddr <= io_alloc_waddr;
           entries_14_rf_paddr <= io_alloc_paddr;
           entries_14_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_98) begin
+        if (_GEN_100) begin
           entries_15_pc <= io_alloc1_pc;
           entries_15_rf_waddr <= io_alloc1_waddr;
           entries_15_rf_paddr <= io_alloc1_paddr;
           entries_15_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_52) begin
+        else if (_GEN_54) begin
           entries_15_pc <= io_alloc_pc;
           entries_15_rf_waddr <= io_alloc_waddr;
           entries_15_rf_paddr <= io_alloc_paddr;
           entries_15_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_100) begin
+        if (_GEN_102) begin
           entries_16_pc <= io_alloc1_pc;
           entries_16_rf_waddr <= io_alloc1_waddr;
           entries_16_rf_paddr <= io_alloc1_paddr;
           entries_16_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_53) begin
+        else if (_GEN_55) begin
           entries_16_pc <= io_alloc_pc;
           entries_16_rf_waddr <= io_alloc_waddr;
           entries_16_rf_paddr <= io_alloc_paddr;
           entries_16_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_102) begin
+        if (_GEN_104) begin
           entries_17_pc <= io_alloc1_pc;
           entries_17_rf_waddr <= io_alloc1_waddr;
           entries_17_rf_paddr <= io_alloc1_paddr;
           entries_17_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_54) begin
+        else if (_GEN_56) begin
           entries_17_pc <= io_alloc_pc;
           entries_17_rf_waddr <= io_alloc_waddr;
           entries_17_rf_paddr <= io_alloc_paddr;
           entries_17_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_104) begin
+        if (_GEN_106) begin
           entries_18_pc <= io_alloc1_pc;
           entries_18_rf_waddr <= io_alloc1_waddr;
           entries_18_rf_paddr <= io_alloc1_paddr;
           entries_18_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_55) begin
+        else if (_GEN_57) begin
           entries_18_pc <= io_alloc_pc;
           entries_18_rf_waddr <= io_alloc_waddr;
           entries_18_rf_paddr <= io_alloc_paddr;
           entries_18_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_106) begin
+        if (_GEN_108) begin
           entries_19_pc <= io_alloc1_pc;
           entries_19_rf_waddr <= io_alloc1_waddr;
           entries_19_rf_paddr <= io_alloc1_paddr;
           entries_19_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_56) begin
+        else if (_GEN_58) begin
           entries_19_pc <= io_alloc_pc;
           entries_19_rf_waddr <= io_alloc_waddr;
           entries_19_rf_paddr <= io_alloc_paddr;
           entries_19_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_108) begin
+        if (_GEN_110) begin
           entries_20_pc <= io_alloc1_pc;
           entries_20_rf_waddr <= io_alloc1_waddr;
           entries_20_rf_paddr <= io_alloc1_paddr;
           entries_20_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_57) begin
+        else if (_GEN_59) begin
           entries_20_pc <= io_alloc_pc;
           entries_20_rf_waddr <= io_alloc_waddr;
           entries_20_rf_paddr <= io_alloc_paddr;
           entries_20_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_110) begin
+        if (_GEN_112) begin
           entries_21_pc <= io_alloc1_pc;
           entries_21_rf_waddr <= io_alloc1_waddr;
           entries_21_rf_paddr <= io_alloc1_paddr;
           entries_21_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_58) begin
+        else if (_GEN_60) begin
           entries_21_pc <= io_alloc_pc;
           entries_21_rf_waddr <= io_alloc_waddr;
           entries_21_rf_paddr <= io_alloc_paddr;
           entries_21_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_112) begin
+        if (_GEN_114) begin
           entries_22_pc <= io_alloc1_pc;
           entries_22_rf_waddr <= io_alloc1_waddr;
           entries_22_rf_paddr <= io_alloc1_paddr;
           entries_22_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_59) begin
+        else if (_GEN_61) begin
           entries_22_pc <= io_alloc_pc;
           entries_22_rf_waddr <= io_alloc_waddr;
           entries_22_rf_paddr <= io_alloc_paddr;
           entries_22_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_114) begin
+        if (_GEN_116) begin
           entries_23_pc <= io_alloc1_pc;
           entries_23_rf_waddr <= io_alloc1_waddr;
           entries_23_rf_paddr <= io_alloc1_paddr;
           entries_23_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_60) begin
+        else if (_GEN_62) begin
           entries_23_pc <= io_alloc_pc;
           entries_23_rf_waddr <= io_alloc_waddr;
           entries_23_rf_paddr <= io_alloc_paddr;
           entries_23_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_116) begin
+        if (_GEN_118) begin
           entries_24_pc <= io_alloc1_pc;
           entries_24_rf_waddr <= io_alloc1_waddr;
           entries_24_rf_paddr <= io_alloc1_paddr;
           entries_24_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_61) begin
+        else if (_GEN_63) begin
           entries_24_pc <= io_alloc_pc;
           entries_24_rf_waddr <= io_alloc_waddr;
           entries_24_rf_paddr <= io_alloc_paddr;
           entries_24_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_118) begin
+        if (_GEN_120) begin
           entries_25_pc <= io_alloc1_pc;
           entries_25_rf_waddr <= io_alloc1_waddr;
           entries_25_rf_paddr <= io_alloc1_paddr;
           entries_25_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_62) begin
+        else if (_GEN_64) begin
           entries_25_pc <= io_alloc_pc;
           entries_25_rf_waddr <= io_alloc_waddr;
           entries_25_rf_paddr <= io_alloc_paddr;
           entries_25_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_120) begin
+        if (_GEN_122) begin
           entries_26_pc <= io_alloc1_pc;
           entries_26_rf_waddr <= io_alloc1_waddr;
           entries_26_rf_paddr <= io_alloc1_paddr;
           entries_26_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_63) begin
+        else if (_GEN_65) begin
           entries_26_pc <= io_alloc_pc;
           entries_26_rf_waddr <= io_alloc_waddr;
           entries_26_rf_paddr <= io_alloc_paddr;
           entries_26_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_122) begin
+        if (_GEN_124) begin
           entries_27_pc <= io_alloc1_pc;
           entries_27_rf_waddr <= io_alloc1_waddr;
           entries_27_rf_paddr <= io_alloc1_paddr;
           entries_27_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_64) begin
+        else if (_GEN_66) begin
           entries_27_pc <= io_alloc_pc;
           entries_27_rf_waddr <= io_alloc_waddr;
           entries_27_rf_paddr <= io_alloc_paddr;
           entries_27_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_124) begin
+        if (_GEN_126) begin
           entries_28_pc <= io_alloc1_pc;
           entries_28_rf_waddr <= io_alloc1_waddr;
           entries_28_rf_paddr <= io_alloc1_paddr;
           entries_28_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_65) begin
+        else if (_GEN_67) begin
           entries_28_pc <= io_alloc_pc;
           entries_28_rf_waddr <= io_alloc_waddr;
           entries_28_rf_paddr <= io_alloc_paddr;
           entries_28_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_126) begin
+        if (_GEN_128) begin
           entries_29_pc <= io_alloc1_pc;
           entries_29_rf_waddr <= io_alloc1_waddr;
           entries_29_rf_paddr <= io_alloc1_paddr;
           entries_29_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_66) begin
+        else if (_GEN_68) begin
           entries_29_pc <= io_alloc_pc;
           entries_29_rf_waddr <= io_alloc_waddr;
           entries_29_rf_paddr <= io_alloc_paddr;
           entries_29_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_128) begin
+        if (_GEN_130) begin
           entries_30_pc <= io_alloc1_pc;
           entries_30_rf_waddr <= io_alloc1_waddr;
           entries_30_rf_paddr <= io_alloc1_paddr;
           entries_30_old_paddr <= io_alloc1_old_p;
         end
-        else if (_GEN_67) begin
+        else if (_GEN_69) begin
           entries_30_pc <= io_alloc_pc;
           entries_30_rf_waddr <= io_alloc_waddr;
           entries_30_rf_paddr <= io_alloc_paddr;
@@ -4087,193 +4287,193 @@ module ROB(
         end
       end
       else begin
-        if (_GEN_131) begin
+        if (_GEN_133) begin
           entries_0_pc <= io_alloc_pc;
           entries_0_rf_waddr <= io_alloc_waddr;
           entries_0_rf_paddr <= io_alloc_paddr;
           entries_0_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_133) begin
+        if (_GEN_135) begin
           entries_1_pc <= io_alloc_pc;
           entries_1_rf_waddr <= io_alloc_waddr;
           entries_1_rf_paddr <= io_alloc_paddr;
           entries_1_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_135) begin
+        if (_GEN_137) begin
           entries_2_pc <= io_alloc_pc;
           entries_2_rf_waddr <= io_alloc_waddr;
           entries_2_rf_paddr <= io_alloc_paddr;
           entries_2_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_137) begin
+        if (_GEN_139) begin
           entries_3_pc <= io_alloc_pc;
           entries_3_rf_waddr <= io_alloc_waddr;
           entries_3_rf_paddr <= io_alloc_paddr;
           entries_3_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_139) begin
+        if (_GEN_141) begin
           entries_4_pc <= io_alloc_pc;
           entries_4_rf_waddr <= io_alloc_waddr;
           entries_4_rf_paddr <= io_alloc_paddr;
           entries_4_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_141) begin
+        if (_GEN_143) begin
           entries_5_pc <= io_alloc_pc;
           entries_5_rf_waddr <= io_alloc_waddr;
           entries_5_rf_paddr <= io_alloc_paddr;
           entries_5_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_143) begin
+        if (_GEN_145) begin
           entries_6_pc <= io_alloc_pc;
           entries_6_rf_waddr <= io_alloc_waddr;
           entries_6_rf_paddr <= io_alloc_paddr;
           entries_6_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_145) begin
+        if (_GEN_147) begin
           entries_7_pc <= io_alloc_pc;
           entries_7_rf_waddr <= io_alloc_waddr;
           entries_7_rf_paddr <= io_alloc_paddr;
           entries_7_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_147) begin
+        if (_GEN_149) begin
           entries_8_pc <= io_alloc_pc;
           entries_8_rf_waddr <= io_alloc_waddr;
           entries_8_rf_paddr <= io_alloc_paddr;
           entries_8_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_149) begin
+        if (_GEN_151) begin
           entries_9_pc <= io_alloc_pc;
           entries_9_rf_waddr <= io_alloc_waddr;
           entries_9_rf_paddr <= io_alloc_paddr;
           entries_9_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_151) begin
+        if (_GEN_153) begin
           entries_10_pc <= io_alloc_pc;
           entries_10_rf_waddr <= io_alloc_waddr;
           entries_10_rf_paddr <= io_alloc_paddr;
           entries_10_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_153) begin
+        if (_GEN_155) begin
           entries_11_pc <= io_alloc_pc;
           entries_11_rf_waddr <= io_alloc_waddr;
           entries_11_rf_paddr <= io_alloc_paddr;
           entries_11_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_155) begin
+        if (_GEN_157) begin
           entries_12_pc <= io_alloc_pc;
           entries_12_rf_waddr <= io_alloc_waddr;
           entries_12_rf_paddr <= io_alloc_paddr;
           entries_12_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_157) begin
+        if (_GEN_159) begin
           entries_13_pc <= io_alloc_pc;
           entries_13_rf_waddr <= io_alloc_waddr;
           entries_13_rf_paddr <= io_alloc_paddr;
           entries_13_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_159) begin
+        if (_GEN_161) begin
           entries_14_pc <= io_alloc_pc;
           entries_14_rf_waddr <= io_alloc_waddr;
           entries_14_rf_paddr <= io_alloc_paddr;
           entries_14_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_161) begin
+        if (_GEN_163) begin
           entries_15_pc <= io_alloc_pc;
           entries_15_rf_waddr <= io_alloc_waddr;
           entries_15_rf_paddr <= io_alloc_paddr;
           entries_15_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_163) begin
+        if (_GEN_165) begin
           entries_16_pc <= io_alloc_pc;
           entries_16_rf_waddr <= io_alloc_waddr;
           entries_16_rf_paddr <= io_alloc_paddr;
           entries_16_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_165) begin
+        if (_GEN_167) begin
           entries_17_pc <= io_alloc_pc;
           entries_17_rf_waddr <= io_alloc_waddr;
           entries_17_rf_paddr <= io_alloc_paddr;
           entries_17_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_167) begin
+        if (_GEN_169) begin
           entries_18_pc <= io_alloc_pc;
           entries_18_rf_waddr <= io_alloc_waddr;
           entries_18_rf_paddr <= io_alloc_paddr;
           entries_18_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_169) begin
+        if (_GEN_171) begin
           entries_19_pc <= io_alloc_pc;
           entries_19_rf_waddr <= io_alloc_waddr;
           entries_19_rf_paddr <= io_alloc_paddr;
           entries_19_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_171) begin
+        if (_GEN_173) begin
           entries_20_pc <= io_alloc_pc;
           entries_20_rf_waddr <= io_alloc_waddr;
           entries_20_rf_paddr <= io_alloc_paddr;
           entries_20_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_173) begin
+        if (_GEN_175) begin
           entries_21_pc <= io_alloc_pc;
           entries_21_rf_waddr <= io_alloc_waddr;
           entries_21_rf_paddr <= io_alloc_paddr;
           entries_21_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_175) begin
+        if (_GEN_177) begin
           entries_22_pc <= io_alloc_pc;
           entries_22_rf_waddr <= io_alloc_waddr;
           entries_22_rf_paddr <= io_alloc_paddr;
           entries_22_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_177) begin
+        if (_GEN_179) begin
           entries_23_pc <= io_alloc_pc;
           entries_23_rf_waddr <= io_alloc_waddr;
           entries_23_rf_paddr <= io_alloc_paddr;
           entries_23_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_179) begin
+        if (_GEN_181) begin
           entries_24_pc <= io_alloc_pc;
           entries_24_rf_waddr <= io_alloc_waddr;
           entries_24_rf_paddr <= io_alloc_paddr;
           entries_24_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_181) begin
+        if (_GEN_183) begin
           entries_25_pc <= io_alloc_pc;
           entries_25_rf_waddr <= io_alloc_waddr;
           entries_25_rf_paddr <= io_alloc_paddr;
           entries_25_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_183) begin
+        if (_GEN_185) begin
           entries_26_pc <= io_alloc_pc;
           entries_26_rf_waddr <= io_alloc_waddr;
           entries_26_rf_paddr <= io_alloc_paddr;
           entries_26_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_185) begin
+        if (_GEN_187) begin
           entries_27_pc <= io_alloc_pc;
           entries_27_rf_waddr <= io_alloc_waddr;
           entries_27_rf_paddr <= io_alloc_paddr;
           entries_27_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_187) begin
+        if (_GEN_189) begin
           entries_28_pc <= io_alloc_pc;
           entries_28_rf_waddr <= io_alloc_waddr;
           entries_28_rf_paddr <= io_alloc_paddr;
           entries_28_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_189) begin
+        if (_GEN_191) begin
           entries_29_pc <= io_alloc_pc;
           entries_29_rf_waddr <= io_alloc_waddr;
           entries_29_rf_paddr <= io_alloc_paddr;
           entries_29_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_191) begin
+        if (_GEN_193) begin
           entries_30_pc <= io_alloc_pc;
           entries_30_rf_waddr <= io_alloc_waddr;
           entries_30_rf_paddr <= io_alloc_paddr;
           entries_30_old_paddr <= io_alloc_old_p;
         end
-        if (_GEN_193) begin
+        if (_GEN_195) begin
           entries_31_pc <= io_alloc_pc;
           entries_31_rf_waddr <= io_alloc_waddr;
           entries_31_rf_paddr <= io_alloc_paddr;
@@ -4293,6 +4493,8 @@ module ROB(
         entries_0_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_0_br_type <= io_cdb1_bits_br_type;
         entries_0_ghr <= io_cdb1_bits_ghr;
+        entries_0_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_0_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0) begin
         entries_0_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -4307,41 +4509,43 @@ module ROB(
         entries_0_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_0_br_type <= io_cdb0_bits_br_type;
         entries_0_ghr <= io_cdb0_bits_ghr;
+        entries_0_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_0_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_68)
+      else if (_GEN_38) begin
+        if (_GEN_70)
           entries_0_rf_we <= io_alloc1_we;
-        else if (_GEN_37)
+        else if (_GEN_39)
           entries_0_rf_we <= io_alloc_we;
       end
-      else if (_GEN_131)
+      else if (_GEN_133)
         entries_0_rf_we <= io_alloc_we;
       entries_0_done <=
         match1 | match0
-        | (_GEN_36 ? ~_GEN_69 & entries_0_done : ~_GEN_131 & entries_0_done);
+        | (_GEN_38 ? ~_GEN_71 & entries_0_done : ~_GEN_133 & entries_0_done);
       if (~(io_br_resolve_valid & entries_0_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_195)) begin
-        if (_GEN_36) begin
-          if (_GEN_68)
+          | ~(|_GEN_197)) begin
+        if (_GEN_38) begin
+          if (_GEN_70)
             entries_0_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_37)
+          else if (_GEN_39)
             entries_0_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_131)
+        else if (_GEN_133)
           entries_0_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_0_branch_mask <= ~(tag_bit[3:0]) & entries_0_branch_mask;
       entries_0_has_exc <=
-        _GEN_292
+        _GEN_294
         | (match1
              ? io_cdb1_bits_hasException
              : match0
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_69 & entries_0_has_exc
-                     : ~_GEN_131 & entries_0_has_exc);
-      if (_GEN_292) begin
+                 : _GEN_38
+                     ? ~_GEN_71 & entries_0_has_exc
+                     : ~_GEN_133 & entries_0_has_exc);
+      if (_GEN_294) begin
         entries_0_ecode <= 6'h3E;
         entries_0_exc_addr <= io_lsq_violation_pc;
       end
@@ -4358,50 +4562,50 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_69 & entries_0_ertn : ~_GEN_131 & entries_0_ertn;
+              : _GEN_38 ? ~_GEN_71 & entries_0_ertn : ~_GEN_133 & entries_0_ertn;
       entries_0_is_refetch <=
         match1
           ? io_cdb1_bits_is_refetch
           : match0
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_69 & entries_0_is_refetch
-                  : ~_GEN_131 & entries_0_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_71 & entries_0_is_refetch
+                  : ~_GEN_133 & entries_0_is_refetch;
       entries_0_is_cacop <=
         match1
           ? io_cdb1_bits_is_cacop
-          : match0 ? io_cdb0_bits_is_cacop : ~(_GEN_36 & _GEN_69) & entries_0_is_cacop;
+          : match0 ? io_cdb0_bits_is_cacop : ~(_GEN_38 & _GEN_71) & entries_0_is_cacop;
       entries_0_csr_we <=
         match1
           ? io_cdb1_bits_csrWe
           : match0
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_69 & entries_0_csr_we : ~_GEN_131 & entries_0_csr_we;
+              : _GEN_38 ? ~_GEN_71 & entries_0_csr_we : ~_GEN_133 & entries_0_csr_we;
       entries_0_tlb_we <=
         match1
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_69 & entries_0_tlb_we : ~_GEN_131 & entries_0_tlb_we;
+              : _GEN_38 ? ~_GEN_71 & entries_0_tlb_we : ~_GEN_133 & entries_0_tlb_we;
       entries_0_tlb_fill <=
         match1
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36 ? ~_GEN_69 & entries_0_tlb_fill : ~_GEN_131 & entries_0_tlb_fill;
+              : _GEN_38 ? ~_GEN_71 & entries_0_tlb_fill : ~_GEN_133 & entries_0_tlb_fill;
       entries_0_tlbrd_we <=
         match1
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36 ? ~_GEN_69 & entries_0_tlbrd_we : ~_GEN_131 & entries_0_tlbrd_we;
+              : _GEN_38 ? ~_GEN_71 & entries_0_tlbrd_we : ~_GEN_133 & entries_0_tlbrd_we;
       entries_1_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_200
+        & (_GEN_386
+             ? _GEN_202
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1 | _GEN_353) & _GEN_134
-                 : can_commit0 ? ~_GEN_353 & _GEN_134 : _GEN_200);
+                 ? ~(_head_T_6 == 5'h1 | _GEN_355) & _GEN_136
+                 : can_commit0 ? ~_GEN_355 & _GEN_136 : _GEN_202);
       if (match1_1) begin
         entries_1_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_1_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4415,6 +4619,8 @@ module ROB(
         entries_1_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_1_br_type <= io_cdb1_bits_br_type;
         entries_1_ghr <= io_cdb1_bits_ghr;
+        entries_1_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_1_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_1) begin
         entries_1_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -4429,41 +4635,43 @@ module ROB(
         entries_1_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_1_br_type <= io_cdb0_bits_br_type;
         entries_1_ghr <= io_cdb0_bits_ghr;
+        entries_1_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_1_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_70)
+      else if (_GEN_38) begin
+        if (_GEN_72)
           entries_1_rf_we <= io_alloc1_we;
-        else if (_GEN_38)
+        else if (_GEN_40)
           entries_1_rf_we <= io_alloc_we;
       end
-      else if (_GEN_133)
+      else if (_GEN_135)
         entries_1_rf_we <= io_alloc_we;
       entries_1_done <=
         match1_1 | match0_1
-        | (_GEN_36 ? ~_GEN_71 & entries_1_done : ~_GEN_133 & entries_1_done);
+        | (_GEN_38 ? ~_GEN_73 & entries_1_done : ~_GEN_135 & entries_1_done);
       if (~(io_br_resolve_valid & entries_1_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_198)) begin
-        if (_GEN_36) begin
-          if (_GEN_70)
+          | ~(|_GEN_200)) begin
+        if (_GEN_38) begin
+          if (_GEN_72)
             entries_1_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_38)
+          else if (_GEN_40)
             entries_1_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_133)
+        else if (_GEN_135)
           entries_1_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_1_branch_mask <= ~(tag_bit[3:0]) & entries_1_branch_mask;
       entries_1_has_exc <=
-        _GEN_293
+        _GEN_295
         | (match1_1
              ? io_cdb1_bits_hasException
              : match0_1
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_71 & entries_1_has_exc
-                     : ~_GEN_133 & entries_1_has_exc);
-      if (_GEN_293) begin
+                 : _GEN_38
+                     ? ~_GEN_73 & entries_1_has_exc
+                     : ~_GEN_135 & entries_1_has_exc);
+      if (_GEN_295) begin
         entries_1_ecode <= 6'h3E;
         entries_1_exc_addr <= io_lsq_violation_pc;
       end
@@ -4480,50 +4688,50 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_1
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_71 & entries_1_ertn : ~_GEN_133 & entries_1_ertn;
+              : _GEN_38 ? ~_GEN_73 & entries_1_ertn : ~_GEN_135 & entries_1_ertn;
       entries_1_is_refetch <=
         match1_1
           ? io_cdb1_bits_is_refetch
           : match0_1
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_71 & entries_1_is_refetch
-                  : ~_GEN_133 & entries_1_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_73 & entries_1_is_refetch
+                  : ~_GEN_135 & entries_1_is_refetch;
       entries_1_is_cacop <=
         match1_1
           ? io_cdb1_bits_is_cacop
-          : match0_1 ? io_cdb0_bits_is_cacop : ~(_GEN_36 & _GEN_71) & entries_1_is_cacop;
+          : match0_1 ? io_cdb0_bits_is_cacop : ~(_GEN_38 & _GEN_73) & entries_1_is_cacop;
       entries_1_csr_we <=
         match1_1
           ? io_cdb1_bits_csrWe
           : match0_1
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_71 & entries_1_csr_we : ~_GEN_133 & entries_1_csr_we;
+              : _GEN_38 ? ~_GEN_73 & entries_1_csr_we : ~_GEN_135 & entries_1_csr_we;
       entries_1_tlb_we <=
         match1_1
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_1
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_71 & entries_1_tlb_we : ~_GEN_133 & entries_1_tlb_we;
+              : _GEN_38 ? ~_GEN_73 & entries_1_tlb_we : ~_GEN_135 & entries_1_tlb_we;
       entries_1_tlb_fill <=
         match1_1
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_1
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36 ? ~_GEN_71 & entries_1_tlb_fill : ~_GEN_133 & entries_1_tlb_fill;
+              : _GEN_38 ? ~_GEN_73 & entries_1_tlb_fill : ~_GEN_135 & entries_1_tlb_fill;
       entries_1_tlbrd_we <=
         match1_1
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_1
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36 ? ~_GEN_71 & entries_1_tlbrd_we : ~_GEN_133 & entries_1_tlbrd_we;
+              : _GEN_38 ? ~_GEN_73 & entries_1_tlbrd_we : ~_GEN_135 & entries_1_tlbrd_we;
       entries_2_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_203
+        & (_GEN_386
+             ? _GEN_205
              : can_commit1
-                 ? ~(_head_T_6 == 5'h2 | _GEN_354) & _GEN_136
-                 : can_commit0 ? ~_GEN_354 & _GEN_136 : _GEN_203);
+                 ? ~(_head_T_6 == 5'h2 | _GEN_356) & _GEN_138
+                 : can_commit0 ? ~_GEN_356 & _GEN_138 : _GEN_205);
       if (match1_2) begin
         entries_2_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_2_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4537,6 +4745,8 @@ module ROB(
         entries_2_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_2_br_type <= io_cdb1_bits_br_type;
         entries_2_ghr <= io_cdb1_bits_ghr;
+        entries_2_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_2_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_2) begin
         entries_2_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -4551,41 +4761,43 @@ module ROB(
         entries_2_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_2_br_type <= io_cdb0_bits_br_type;
         entries_2_ghr <= io_cdb0_bits_ghr;
+        entries_2_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_2_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_72)
+      else if (_GEN_38) begin
+        if (_GEN_74)
           entries_2_rf_we <= io_alloc1_we;
-        else if (_GEN_39)
+        else if (_GEN_41)
           entries_2_rf_we <= io_alloc_we;
       end
-      else if (_GEN_135)
+      else if (_GEN_137)
         entries_2_rf_we <= io_alloc_we;
       entries_2_done <=
         match1_2 | match0_2
-        | (_GEN_36 ? ~_GEN_73 & entries_2_done : ~_GEN_135 & entries_2_done);
+        | (_GEN_38 ? ~_GEN_75 & entries_2_done : ~_GEN_137 & entries_2_done);
       if (~(io_br_resolve_valid & entries_2_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_201)) begin
-        if (_GEN_36) begin
-          if (_GEN_72)
+          | ~(|_GEN_203)) begin
+        if (_GEN_38) begin
+          if (_GEN_74)
             entries_2_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_39)
+          else if (_GEN_41)
             entries_2_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_135)
+        else if (_GEN_137)
           entries_2_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_2_branch_mask <= ~(tag_bit[3:0]) & entries_2_branch_mask;
       entries_2_has_exc <=
-        _GEN_294
+        _GEN_296
         | (match1_2
              ? io_cdb1_bits_hasException
              : match0_2
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_73 & entries_2_has_exc
-                     : ~_GEN_135 & entries_2_has_exc);
-      if (_GEN_294) begin
+                 : _GEN_38
+                     ? ~_GEN_75 & entries_2_has_exc
+                     : ~_GEN_137 & entries_2_has_exc);
+      if (_GEN_296) begin
         entries_2_ecode <= 6'h3E;
         entries_2_exc_addr <= io_lsq_violation_pc;
       end
@@ -4602,50 +4814,50 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_2
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_73 & entries_2_ertn : ~_GEN_135 & entries_2_ertn;
+              : _GEN_38 ? ~_GEN_75 & entries_2_ertn : ~_GEN_137 & entries_2_ertn;
       entries_2_is_refetch <=
         match1_2
           ? io_cdb1_bits_is_refetch
           : match0_2
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_73 & entries_2_is_refetch
-                  : ~_GEN_135 & entries_2_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_75 & entries_2_is_refetch
+                  : ~_GEN_137 & entries_2_is_refetch;
       entries_2_is_cacop <=
         match1_2
           ? io_cdb1_bits_is_cacop
-          : match0_2 ? io_cdb0_bits_is_cacop : ~(_GEN_36 & _GEN_73) & entries_2_is_cacop;
+          : match0_2 ? io_cdb0_bits_is_cacop : ~(_GEN_38 & _GEN_75) & entries_2_is_cacop;
       entries_2_csr_we <=
         match1_2
           ? io_cdb1_bits_csrWe
           : match0_2
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_73 & entries_2_csr_we : ~_GEN_135 & entries_2_csr_we;
+              : _GEN_38 ? ~_GEN_75 & entries_2_csr_we : ~_GEN_137 & entries_2_csr_we;
       entries_2_tlb_we <=
         match1_2
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_2
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_73 & entries_2_tlb_we : ~_GEN_135 & entries_2_tlb_we;
+              : _GEN_38 ? ~_GEN_75 & entries_2_tlb_we : ~_GEN_137 & entries_2_tlb_we;
       entries_2_tlb_fill <=
         match1_2
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_2
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36 ? ~_GEN_73 & entries_2_tlb_fill : ~_GEN_135 & entries_2_tlb_fill;
+              : _GEN_38 ? ~_GEN_75 & entries_2_tlb_fill : ~_GEN_137 & entries_2_tlb_fill;
       entries_2_tlbrd_we <=
         match1_2
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_2
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36 ? ~_GEN_73 & entries_2_tlbrd_we : ~_GEN_135 & entries_2_tlbrd_we;
+              : _GEN_38 ? ~_GEN_75 & entries_2_tlbrd_we : ~_GEN_137 & entries_2_tlbrd_we;
       entries_3_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_206
+        & (_GEN_386
+             ? _GEN_208
              : can_commit1
-                 ? ~(_head_T_6 == 5'h3 | _GEN_355) & _GEN_138
-                 : can_commit0 ? ~_GEN_355 & _GEN_138 : _GEN_206);
+                 ? ~(_head_T_6 == 5'h3 | _GEN_357) & _GEN_140
+                 : can_commit0 ? ~_GEN_357 & _GEN_140 : _GEN_208);
       if (match1_3) begin
         entries_3_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_3_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4659,6 +4871,8 @@ module ROB(
         entries_3_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_3_br_type <= io_cdb1_bits_br_type;
         entries_3_ghr <= io_cdb1_bits_ghr;
+        entries_3_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_3_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_3) begin
         entries_3_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -4673,41 +4887,43 @@ module ROB(
         entries_3_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_3_br_type <= io_cdb0_bits_br_type;
         entries_3_ghr <= io_cdb0_bits_ghr;
+        entries_3_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_3_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_74)
+      else if (_GEN_38) begin
+        if (_GEN_76)
           entries_3_rf_we <= io_alloc1_we;
-        else if (_GEN_40)
+        else if (_GEN_42)
           entries_3_rf_we <= io_alloc_we;
       end
-      else if (_GEN_137)
+      else if (_GEN_139)
         entries_3_rf_we <= io_alloc_we;
       entries_3_done <=
         match1_3 | match0_3
-        | (_GEN_36 ? ~_GEN_75 & entries_3_done : ~_GEN_137 & entries_3_done);
+        | (_GEN_38 ? ~_GEN_77 & entries_3_done : ~_GEN_139 & entries_3_done);
       if (~(io_br_resolve_valid & entries_3_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_204)) begin
-        if (_GEN_36) begin
-          if (_GEN_74)
+          | ~(|_GEN_206)) begin
+        if (_GEN_38) begin
+          if (_GEN_76)
             entries_3_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_40)
+          else if (_GEN_42)
             entries_3_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_137)
+        else if (_GEN_139)
           entries_3_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_3_branch_mask <= ~(tag_bit[3:0]) & entries_3_branch_mask;
       entries_3_has_exc <=
-        _GEN_295
+        _GEN_297
         | (match1_3
              ? io_cdb1_bits_hasException
              : match0_3
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_75 & entries_3_has_exc
-                     : ~_GEN_137 & entries_3_has_exc);
-      if (_GEN_295) begin
+                 : _GEN_38
+                     ? ~_GEN_77 & entries_3_has_exc
+                     : ~_GEN_139 & entries_3_has_exc);
+      if (_GEN_297) begin
         entries_3_ecode <= 6'h3E;
         entries_3_exc_addr <= io_lsq_violation_pc;
       end
@@ -4724,50 +4940,50 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_3
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_75 & entries_3_ertn : ~_GEN_137 & entries_3_ertn;
+              : _GEN_38 ? ~_GEN_77 & entries_3_ertn : ~_GEN_139 & entries_3_ertn;
       entries_3_is_refetch <=
         match1_3
           ? io_cdb1_bits_is_refetch
           : match0_3
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_75 & entries_3_is_refetch
-                  : ~_GEN_137 & entries_3_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_77 & entries_3_is_refetch
+                  : ~_GEN_139 & entries_3_is_refetch;
       entries_3_is_cacop <=
         match1_3
           ? io_cdb1_bits_is_cacop
-          : match0_3 ? io_cdb0_bits_is_cacop : ~(_GEN_36 & _GEN_75) & entries_3_is_cacop;
+          : match0_3 ? io_cdb0_bits_is_cacop : ~(_GEN_38 & _GEN_77) & entries_3_is_cacop;
       entries_3_csr_we <=
         match1_3
           ? io_cdb1_bits_csrWe
           : match0_3
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_75 & entries_3_csr_we : ~_GEN_137 & entries_3_csr_we;
+              : _GEN_38 ? ~_GEN_77 & entries_3_csr_we : ~_GEN_139 & entries_3_csr_we;
       entries_3_tlb_we <=
         match1_3
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_3
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_75 & entries_3_tlb_we : ~_GEN_137 & entries_3_tlb_we;
+              : _GEN_38 ? ~_GEN_77 & entries_3_tlb_we : ~_GEN_139 & entries_3_tlb_we;
       entries_3_tlb_fill <=
         match1_3
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_3
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36 ? ~_GEN_75 & entries_3_tlb_fill : ~_GEN_137 & entries_3_tlb_fill;
+              : _GEN_38 ? ~_GEN_77 & entries_3_tlb_fill : ~_GEN_139 & entries_3_tlb_fill;
       entries_3_tlbrd_we <=
         match1_3
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_3
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36 ? ~_GEN_75 & entries_3_tlbrd_we : ~_GEN_137 & entries_3_tlbrd_we;
+              : _GEN_38 ? ~_GEN_77 & entries_3_tlbrd_we : ~_GEN_139 & entries_3_tlbrd_we;
       entries_4_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_209
+        & (_GEN_386
+             ? _GEN_211
              : can_commit1
-                 ? ~(_head_T_6 == 5'h4 | _GEN_356) & _GEN_140
-                 : can_commit0 ? ~_GEN_356 & _GEN_140 : _GEN_209);
+                 ? ~(_head_T_6 == 5'h4 | _GEN_358) & _GEN_142
+                 : can_commit0 ? ~_GEN_358 & _GEN_142 : _GEN_211);
       if (match1_4) begin
         entries_4_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_4_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4781,6 +4997,8 @@ module ROB(
         entries_4_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_4_br_type <= io_cdb1_bits_br_type;
         entries_4_ghr <= io_cdb1_bits_ghr;
+        entries_4_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_4_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_4) begin
         entries_4_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -4795,41 +5013,43 @@ module ROB(
         entries_4_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_4_br_type <= io_cdb0_bits_br_type;
         entries_4_ghr <= io_cdb0_bits_ghr;
+        entries_4_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_4_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_76)
+      else if (_GEN_38) begin
+        if (_GEN_78)
           entries_4_rf_we <= io_alloc1_we;
-        else if (_GEN_41)
+        else if (_GEN_43)
           entries_4_rf_we <= io_alloc_we;
       end
-      else if (_GEN_139)
+      else if (_GEN_141)
         entries_4_rf_we <= io_alloc_we;
       entries_4_done <=
         match1_4 | match0_4
-        | (_GEN_36 ? ~_GEN_77 & entries_4_done : ~_GEN_139 & entries_4_done);
+        | (_GEN_38 ? ~_GEN_79 & entries_4_done : ~_GEN_141 & entries_4_done);
       if (~(io_br_resolve_valid & entries_4_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_207)) begin
-        if (_GEN_36) begin
-          if (_GEN_76)
+          | ~(|_GEN_209)) begin
+        if (_GEN_38) begin
+          if (_GEN_78)
             entries_4_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_41)
+          else if (_GEN_43)
             entries_4_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_139)
+        else if (_GEN_141)
           entries_4_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_4_branch_mask <= ~(tag_bit[3:0]) & entries_4_branch_mask;
       entries_4_has_exc <=
-        _GEN_296
+        _GEN_298
         | (match1_4
              ? io_cdb1_bits_hasException
              : match0_4
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_77 & entries_4_has_exc
-                     : ~_GEN_139 & entries_4_has_exc);
-      if (_GEN_296) begin
+                 : _GEN_38
+                     ? ~_GEN_79 & entries_4_has_exc
+                     : ~_GEN_141 & entries_4_has_exc);
+      if (_GEN_298) begin
         entries_4_ecode <= 6'h3E;
         entries_4_exc_addr <= io_lsq_violation_pc;
       end
@@ -4846,50 +5066,50 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_4
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_77 & entries_4_ertn : ~_GEN_139 & entries_4_ertn;
+              : _GEN_38 ? ~_GEN_79 & entries_4_ertn : ~_GEN_141 & entries_4_ertn;
       entries_4_is_refetch <=
         match1_4
           ? io_cdb1_bits_is_refetch
           : match0_4
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_77 & entries_4_is_refetch
-                  : ~_GEN_139 & entries_4_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_79 & entries_4_is_refetch
+                  : ~_GEN_141 & entries_4_is_refetch;
       entries_4_is_cacop <=
         match1_4
           ? io_cdb1_bits_is_cacop
-          : match0_4 ? io_cdb0_bits_is_cacop : ~(_GEN_36 & _GEN_77) & entries_4_is_cacop;
+          : match0_4 ? io_cdb0_bits_is_cacop : ~(_GEN_38 & _GEN_79) & entries_4_is_cacop;
       entries_4_csr_we <=
         match1_4
           ? io_cdb1_bits_csrWe
           : match0_4
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_77 & entries_4_csr_we : ~_GEN_139 & entries_4_csr_we;
+              : _GEN_38 ? ~_GEN_79 & entries_4_csr_we : ~_GEN_141 & entries_4_csr_we;
       entries_4_tlb_we <=
         match1_4
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_4
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_77 & entries_4_tlb_we : ~_GEN_139 & entries_4_tlb_we;
+              : _GEN_38 ? ~_GEN_79 & entries_4_tlb_we : ~_GEN_141 & entries_4_tlb_we;
       entries_4_tlb_fill <=
         match1_4
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_4
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36 ? ~_GEN_77 & entries_4_tlb_fill : ~_GEN_139 & entries_4_tlb_fill;
+              : _GEN_38 ? ~_GEN_79 & entries_4_tlb_fill : ~_GEN_141 & entries_4_tlb_fill;
       entries_4_tlbrd_we <=
         match1_4
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_4
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36 ? ~_GEN_77 & entries_4_tlbrd_we : ~_GEN_139 & entries_4_tlbrd_we;
+              : _GEN_38 ? ~_GEN_79 & entries_4_tlbrd_we : ~_GEN_141 & entries_4_tlbrd_we;
       entries_5_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_212
+        & (_GEN_386
+             ? _GEN_214
              : can_commit1
-                 ? ~(_head_T_6 == 5'h5 | _GEN_357) & _GEN_142
-                 : can_commit0 ? ~_GEN_357 & _GEN_142 : _GEN_212);
+                 ? ~(_head_T_6 == 5'h5 | _GEN_359) & _GEN_144
+                 : can_commit0 ? ~_GEN_359 & _GEN_144 : _GEN_214);
       if (match1_5) begin
         entries_5_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_5_rf_wdata <= io_cdb1_bits_ex_result;
@@ -4903,6 +5123,8 @@ module ROB(
         entries_5_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_5_br_type <= io_cdb1_bits_br_type;
         entries_5_ghr <= io_cdb1_bits_ghr;
+        entries_5_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_5_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_5) begin
         entries_5_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -4917,41 +5139,43 @@ module ROB(
         entries_5_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_5_br_type <= io_cdb0_bits_br_type;
         entries_5_ghr <= io_cdb0_bits_ghr;
+        entries_5_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_5_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_78)
+      else if (_GEN_38) begin
+        if (_GEN_80)
           entries_5_rf_we <= io_alloc1_we;
-        else if (_GEN_42)
+        else if (_GEN_44)
           entries_5_rf_we <= io_alloc_we;
       end
-      else if (_GEN_141)
+      else if (_GEN_143)
         entries_5_rf_we <= io_alloc_we;
       entries_5_done <=
         match1_5 | match0_5
-        | (_GEN_36 ? ~_GEN_79 & entries_5_done : ~_GEN_141 & entries_5_done);
+        | (_GEN_38 ? ~_GEN_81 & entries_5_done : ~_GEN_143 & entries_5_done);
       if (~(io_br_resolve_valid & entries_5_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_210)) begin
-        if (_GEN_36) begin
-          if (_GEN_78)
+          | ~(|_GEN_212)) begin
+        if (_GEN_38) begin
+          if (_GEN_80)
             entries_5_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_42)
+          else if (_GEN_44)
             entries_5_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_141)
+        else if (_GEN_143)
           entries_5_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_5_branch_mask <= ~(tag_bit[3:0]) & entries_5_branch_mask;
       entries_5_has_exc <=
-        _GEN_297
+        _GEN_299
         | (match1_5
              ? io_cdb1_bits_hasException
              : match0_5
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_79 & entries_5_has_exc
-                     : ~_GEN_141 & entries_5_has_exc);
-      if (_GEN_297) begin
+                 : _GEN_38
+                     ? ~_GEN_81 & entries_5_has_exc
+                     : ~_GEN_143 & entries_5_has_exc);
+      if (_GEN_299) begin
         entries_5_ecode <= 6'h3E;
         entries_5_exc_addr <= io_lsq_violation_pc;
       end
@@ -4968,50 +5192,50 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_5
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_79 & entries_5_ertn : ~_GEN_141 & entries_5_ertn;
+              : _GEN_38 ? ~_GEN_81 & entries_5_ertn : ~_GEN_143 & entries_5_ertn;
       entries_5_is_refetch <=
         match1_5
           ? io_cdb1_bits_is_refetch
           : match0_5
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_79 & entries_5_is_refetch
-                  : ~_GEN_141 & entries_5_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_81 & entries_5_is_refetch
+                  : ~_GEN_143 & entries_5_is_refetch;
       entries_5_is_cacop <=
         match1_5
           ? io_cdb1_bits_is_cacop
-          : match0_5 ? io_cdb0_bits_is_cacop : ~(_GEN_36 & _GEN_79) & entries_5_is_cacop;
+          : match0_5 ? io_cdb0_bits_is_cacop : ~(_GEN_38 & _GEN_81) & entries_5_is_cacop;
       entries_5_csr_we <=
         match1_5
           ? io_cdb1_bits_csrWe
           : match0_5
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_79 & entries_5_csr_we : ~_GEN_141 & entries_5_csr_we;
+              : _GEN_38 ? ~_GEN_81 & entries_5_csr_we : ~_GEN_143 & entries_5_csr_we;
       entries_5_tlb_we <=
         match1_5
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_5
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_79 & entries_5_tlb_we : ~_GEN_141 & entries_5_tlb_we;
+              : _GEN_38 ? ~_GEN_81 & entries_5_tlb_we : ~_GEN_143 & entries_5_tlb_we;
       entries_5_tlb_fill <=
         match1_5
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_5
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36 ? ~_GEN_79 & entries_5_tlb_fill : ~_GEN_141 & entries_5_tlb_fill;
+              : _GEN_38 ? ~_GEN_81 & entries_5_tlb_fill : ~_GEN_143 & entries_5_tlb_fill;
       entries_5_tlbrd_we <=
         match1_5
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_5
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36 ? ~_GEN_79 & entries_5_tlbrd_we : ~_GEN_141 & entries_5_tlbrd_we;
+              : _GEN_38 ? ~_GEN_81 & entries_5_tlbrd_we : ~_GEN_143 & entries_5_tlbrd_we;
       entries_6_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_215
+        & (_GEN_386
+             ? _GEN_217
              : can_commit1
-                 ? ~(_head_T_6 == 5'h6 | _GEN_358) & _GEN_144
-                 : can_commit0 ? ~_GEN_358 & _GEN_144 : _GEN_215);
+                 ? ~(_head_T_6 == 5'h6 | _GEN_360) & _GEN_146
+                 : can_commit0 ? ~_GEN_360 & _GEN_146 : _GEN_217);
       if (match1_6) begin
         entries_6_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_6_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5025,6 +5249,8 @@ module ROB(
         entries_6_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_6_br_type <= io_cdb1_bits_br_type;
         entries_6_ghr <= io_cdb1_bits_ghr;
+        entries_6_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_6_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_6) begin
         entries_6_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -5039,41 +5265,43 @@ module ROB(
         entries_6_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_6_br_type <= io_cdb0_bits_br_type;
         entries_6_ghr <= io_cdb0_bits_ghr;
+        entries_6_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_6_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_80)
+      else if (_GEN_38) begin
+        if (_GEN_82)
           entries_6_rf_we <= io_alloc1_we;
-        else if (_GEN_43)
+        else if (_GEN_45)
           entries_6_rf_we <= io_alloc_we;
       end
-      else if (_GEN_143)
+      else if (_GEN_145)
         entries_6_rf_we <= io_alloc_we;
       entries_6_done <=
         match1_6 | match0_6
-        | (_GEN_36 ? ~_GEN_81 & entries_6_done : ~_GEN_143 & entries_6_done);
+        | (_GEN_38 ? ~_GEN_83 & entries_6_done : ~_GEN_145 & entries_6_done);
       if (~(io_br_resolve_valid & entries_6_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_213)) begin
-        if (_GEN_36) begin
-          if (_GEN_80)
+          | ~(|_GEN_215)) begin
+        if (_GEN_38) begin
+          if (_GEN_82)
             entries_6_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_43)
+          else if (_GEN_45)
             entries_6_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_143)
+        else if (_GEN_145)
           entries_6_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_6_branch_mask <= ~(tag_bit[3:0]) & entries_6_branch_mask;
       entries_6_has_exc <=
-        _GEN_298
+        _GEN_300
         | (match1_6
              ? io_cdb1_bits_hasException
              : match0_6
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_81 & entries_6_has_exc
-                     : ~_GEN_143 & entries_6_has_exc);
-      if (_GEN_298) begin
+                 : _GEN_38
+                     ? ~_GEN_83 & entries_6_has_exc
+                     : ~_GEN_145 & entries_6_has_exc);
+      if (_GEN_300) begin
         entries_6_ecode <= 6'h3E;
         entries_6_exc_addr <= io_lsq_violation_pc;
       end
@@ -5090,50 +5318,50 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_6
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_81 & entries_6_ertn : ~_GEN_143 & entries_6_ertn;
+              : _GEN_38 ? ~_GEN_83 & entries_6_ertn : ~_GEN_145 & entries_6_ertn;
       entries_6_is_refetch <=
         match1_6
           ? io_cdb1_bits_is_refetch
           : match0_6
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_81 & entries_6_is_refetch
-                  : ~_GEN_143 & entries_6_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_83 & entries_6_is_refetch
+                  : ~_GEN_145 & entries_6_is_refetch;
       entries_6_is_cacop <=
         match1_6
           ? io_cdb1_bits_is_cacop
-          : match0_6 ? io_cdb0_bits_is_cacop : ~(_GEN_36 & _GEN_81) & entries_6_is_cacop;
+          : match0_6 ? io_cdb0_bits_is_cacop : ~(_GEN_38 & _GEN_83) & entries_6_is_cacop;
       entries_6_csr_we <=
         match1_6
           ? io_cdb1_bits_csrWe
           : match0_6
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_81 & entries_6_csr_we : ~_GEN_143 & entries_6_csr_we;
+              : _GEN_38 ? ~_GEN_83 & entries_6_csr_we : ~_GEN_145 & entries_6_csr_we;
       entries_6_tlb_we <=
         match1_6
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_6
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_81 & entries_6_tlb_we : ~_GEN_143 & entries_6_tlb_we;
+              : _GEN_38 ? ~_GEN_83 & entries_6_tlb_we : ~_GEN_145 & entries_6_tlb_we;
       entries_6_tlb_fill <=
         match1_6
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_6
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36 ? ~_GEN_81 & entries_6_tlb_fill : ~_GEN_143 & entries_6_tlb_fill;
+              : _GEN_38 ? ~_GEN_83 & entries_6_tlb_fill : ~_GEN_145 & entries_6_tlb_fill;
       entries_6_tlbrd_we <=
         match1_6
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_6
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36 ? ~_GEN_81 & entries_6_tlbrd_we : ~_GEN_143 & entries_6_tlbrd_we;
+              : _GEN_38 ? ~_GEN_83 & entries_6_tlbrd_we : ~_GEN_145 & entries_6_tlbrd_we;
       entries_7_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_218
+        & (_GEN_386
+             ? _GEN_220
              : can_commit1
-                 ? ~(_head_T_6 == 5'h7 | _GEN_359) & _GEN_146
-                 : can_commit0 ? ~_GEN_359 & _GEN_146 : _GEN_218);
+                 ? ~(_head_T_6 == 5'h7 | _GEN_361) & _GEN_148
+                 : can_commit0 ? ~_GEN_361 & _GEN_148 : _GEN_220);
       if (match1_7) begin
         entries_7_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_7_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5147,6 +5375,8 @@ module ROB(
         entries_7_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_7_br_type <= io_cdb1_bits_br_type;
         entries_7_ghr <= io_cdb1_bits_ghr;
+        entries_7_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_7_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_7) begin
         entries_7_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -5161,41 +5391,43 @@ module ROB(
         entries_7_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_7_br_type <= io_cdb0_bits_br_type;
         entries_7_ghr <= io_cdb0_bits_ghr;
+        entries_7_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_7_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_82)
+      else if (_GEN_38) begin
+        if (_GEN_84)
           entries_7_rf_we <= io_alloc1_we;
-        else if (_GEN_44)
+        else if (_GEN_46)
           entries_7_rf_we <= io_alloc_we;
       end
-      else if (_GEN_145)
+      else if (_GEN_147)
         entries_7_rf_we <= io_alloc_we;
       entries_7_done <=
         match1_7 | match0_7
-        | (_GEN_36 ? ~_GEN_83 & entries_7_done : ~_GEN_145 & entries_7_done);
+        | (_GEN_38 ? ~_GEN_85 & entries_7_done : ~_GEN_147 & entries_7_done);
       if (~(io_br_resolve_valid & entries_7_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_216)) begin
-        if (_GEN_36) begin
-          if (_GEN_82)
+          | ~(|_GEN_218)) begin
+        if (_GEN_38) begin
+          if (_GEN_84)
             entries_7_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_44)
+          else if (_GEN_46)
             entries_7_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_145)
+        else if (_GEN_147)
           entries_7_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_7_branch_mask <= ~(tag_bit[3:0]) & entries_7_branch_mask;
       entries_7_has_exc <=
-        _GEN_299
+        _GEN_301
         | (match1_7
              ? io_cdb1_bits_hasException
              : match0_7
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_83 & entries_7_has_exc
-                     : ~_GEN_145 & entries_7_has_exc);
-      if (_GEN_299) begin
+                 : _GEN_38
+                     ? ~_GEN_85 & entries_7_has_exc
+                     : ~_GEN_147 & entries_7_has_exc);
+      if (_GEN_301) begin
         entries_7_ecode <= 6'h3E;
         entries_7_exc_addr <= io_lsq_violation_pc;
       end
@@ -5212,50 +5444,50 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_7
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_83 & entries_7_ertn : ~_GEN_145 & entries_7_ertn;
+              : _GEN_38 ? ~_GEN_85 & entries_7_ertn : ~_GEN_147 & entries_7_ertn;
       entries_7_is_refetch <=
         match1_7
           ? io_cdb1_bits_is_refetch
           : match0_7
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_83 & entries_7_is_refetch
-                  : ~_GEN_145 & entries_7_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_85 & entries_7_is_refetch
+                  : ~_GEN_147 & entries_7_is_refetch;
       entries_7_is_cacop <=
         match1_7
           ? io_cdb1_bits_is_cacop
-          : match0_7 ? io_cdb0_bits_is_cacop : ~(_GEN_36 & _GEN_83) & entries_7_is_cacop;
+          : match0_7 ? io_cdb0_bits_is_cacop : ~(_GEN_38 & _GEN_85) & entries_7_is_cacop;
       entries_7_csr_we <=
         match1_7
           ? io_cdb1_bits_csrWe
           : match0_7
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_83 & entries_7_csr_we : ~_GEN_145 & entries_7_csr_we;
+              : _GEN_38 ? ~_GEN_85 & entries_7_csr_we : ~_GEN_147 & entries_7_csr_we;
       entries_7_tlb_we <=
         match1_7
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_7
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_83 & entries_7_tlb_we : ~_GEN_145 & entries_7_tlb_we;
+              : _GEN_38 ? ~_GEN_85 & entries_7_tlb_we : ~_GEN_147 & entries_7_tlb_we;
       entries_7_tlb_fill <=
         match1_7
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_7
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36 ? ~_GEN_83 & entries_7_tlb_fill : ~_GEN_145 & entries_7_tlb_fill;
+              : _GEN_38 ? ~_GEN_85 & entries_7_tlb_fill : ~_GEN_147 & entries_7_tlb_fill;
       entries_7_tlbrd_we <=
         match1_7
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_7
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36 ? ~_GEN_83 & entries_7_tlbrd_we : ~_GEN_145 & entries_7_tlbrd_we;
+              : _GEN_38 ? ~_GEN_85 & entries_7_tlbrd_we : ~_GEN_147 & entries_7_tlbrd_we;
       entries_8_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_221
+        & (_GEN_386
+             ? _GEN_223
              : can_commit1
-                 ? ~(_head_T_6 == 5'h8 | _GEN_360) & _GEN_148
-                 : can_commit0 ? ~_GEN_360 & _GEN_148 : _GEN_221);
+                 ? ~(_head_T_6 == 5'h8 | _GEN_362) & _GEN_150
+                 : can_commit0 ? ~_GEN_362 & _GEN_150 : _GEN_223);
       if (match1_8) begin
         entries_8_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_8_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5269,6 +5501,8 @@ module ROB(
         entries_8_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_8_br_type <= io_cdb1_bits_br_type;
         entries_8_ghr <= io_cdb1_bits_ghr;
+        entries_8_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_8_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_8) begin
         entries_8_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -5283,41 +5517,43 @@ module ROB(
         entries_8_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_8_br_type <= io_cdb0_bits_br_type;
         entries_8_ghr <= io_cdb0_bits_ghr;
+        entries_8_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_8_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_84)
+      else if (_GEN_38) begin
+        if (_GEN_86)
           entries_8_rf_we <= io_alloc1_we;
-        else if (_GEN_45)
+        else if (_GEN_47)
           entries_8_rf_we <= io_alloc_we;
       end
-      else if (_GEN_147)
+      else if (_GEN_149)
         entries_8_rf_we <= io_alloc_we;
       entries_8_done <=
         match1_8 | match0_8
-        | (_GEN_36 ? ~_GEN_85 & entries_8_done : ~_GEN_147 & entries_8_done);
+        | (_GEN_38 ? ~_GEN_87 & entries_8_done : ~_GEN_149 & entries_8_done);
       if (~(io_br_resolve_valid & entries_8_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_219)) begin
-        if (_GEN_36) begin
-          if (_GEN_84)
+          | ~(|_GEN_221)) begin
+        if (_GEN_38) begin
+          if (_GEN_86)
             entries_8_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_45)
+          else if (_GEN_47)
             entries_8_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_147)
+        else if (_GEN_149)
           entries_8_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_8_branch_mask <= ~(tag_bit[3:0]) & entries_8_branch_mask;
       entries_8_has_exc <=
-        _GEN_300
+        _GEN_302
         | (match1_8
              ? io_cdb1_bits_hasException
              : match0_8
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_85 & entries_8_has_exc
-                     : ~_GEN_147 & entries_8_has_exc);
-      if (_GEN_300) begin
+                 : _GEN_38
+                     ? ~_GEN_87 & entries_8_has_exc
+                     : ~_GEN_149 & entries_8_has_exc);
+      if (_GEN_302) begin
         entries_8_ecode <= 6'h3E;
         entries_8_exc_addr <= io_lsq_violation_pc;
       end
@@ -5334,50 +5570,50 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_8
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_85 & entries_8_ertn : ~_GEN_147 & entries_8_ertn;
+              : _GEN_38 ? ~_GEN_87 & entries_8_ertn : ~_GEN_149 & entries_8_ertn;
       entries_8_is_refetch <=
         match1_8
           ? io_cdb1_bits_is_refetch
           : match0_8
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_85 & entries_8_is_refetch
-                  : ~_GEN_147 & entries_8_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_87 & entries_8_is_refetch
+                  : ~_GEN_149 & entries_8_is_refetch;
       entries_8_is_cacop <=
         match1_8
           ? io_cdb1_bits_is_cacop
-          : match0_8 ? io_cdb0_bits_is_cacop : ~(_GEN_36 & _GEN_85) & entries_8_is_cacop;
+          : match0_8 ? io_cdb0_bits_is_cacop : ~(_GEN_38 & _GEN_87) & entries_8_is_cacop;
       entries_8_csr_we <=
         match1_8
           ? io_cdb1_bits_csrWe
           : match0_8
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_85 & entries_8_csr_we : ~_GEN_147 & entries_8_csr_we;
+              : _GEN_38 ? ~_GEN_87 & entries_8_csr_we : ~_GEN_149 & entries_8_csr_we;
       entries_8_tlb_we <=
         match1_8
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_8
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_85 & entries_8_tlb_we : ~_GEN_147 & entries_8_tlb_we;
+              : _GEN_38 ? ~_GEN_87 & entries_8_tlb_we : ~_GEN_149 & entries_8_tlb_we;
       entries_8_tlb_fill <=
         match1_8
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_8
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36 ? ~_GEN_85 & entries_8_tlb_fill : ~_GEN_147 & entries_8_tlb_fill;
+              : _GEN_38 ? ~_GEN_87 & entries_8_tlb_fill : ~_GEN_149 & entries_8_tlb_fill;
       entries_8_tlbrd_we <=
         match1_8
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_8
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36 ? ~_GEN_85 & entries_8_tlbrd_we : ~_GEN_147 & entries_8_tlbrd_we;
+              : _GEN_38 ? ~_GEN_87 & entries_8_tlbrd_we : ~_GEN_149 & entries_8_tlbrd_we;
       entries_9_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_224
+        & (_GEN_386
+             ? _GEN_226
              : can_commit1
-                 ? ~(_head_T_6 == 5'h9 | _GEN_361) & _GEN_150
-                 : can_commit0 ? ~_GEN_361 & _GEN_150 : _GEN_224);
+                 ? ~(_head_T_6 == 5'h9 | _GEN_363) & _GEN_152
+                 : can_commit0 ? ~_GEN_363 & _GEN_152 : _GEN_226);
       if (match1_9) begin
         entries_9_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_9_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5391,6 +5627,8 @@ module ROB(
         entries_9_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_9_br_type <= io_cdb1_bits_br_type;
         entries_9_ghr <= io_cdb1_bits_ghr;
+        entries_9_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_9_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_9) begin
         entries_9_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -5405,41 +5643,43 @@ module ROB(
         entries_9_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_9_br_type <= io_cdb0_bits_br_type;
         entries_9_ghr <= io_cdb0_bits_ghr;
+        entries_9_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_9_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_86)
+      else if (_GEN_38) begin
+        if (_GEN_88)
           entries_9_rf_we <= io_alloc1_we;
-        else if (_GEN_46)
+        else if (_GEN_48)
           entries_9_rf_we <= io_alloc_we;
       end
-      else if (_GEN_149)
+      else if (_GEN_151)
         entries_9_rf_we <= io_alloc_we;
       entries_9_done <=
         match1_9 | match0_9
-        | (_GEN_36 ? ~_GEN_87 & entries_9_done : ~_GEN_149 & entries_9_done);
+        | (_GEN_38 ? ~_GEN_89 & entries_9_done : ~_GEN_151 & entries_9_done);
       if (~(io_br_resolve_valid & entries_9_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_222)) begin
-        if (_GEN_36) begin
-          if (_GEN_86)
+          | ~(|_GEN_224)) begin
+        if (_GEN_38) begin
+          if (_GEN_88)
             entries_9_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_46)
+          else if (_GEN_48)
             entries_9_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_149)
+        else if (_GEN_151)
           entries_9_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_9_branch_mask <= ~(tag_bit[3:0]) & entries_9_branch_mask;
       entries_9_has_exc <=
-        _GEN_301
+        _GEN_303
         | (match1_9
              ? io_cdb1_bits_hasException
              : match0_9
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_87 & entries_9_has_exc
-                     : ~_GEN_149 & entries_9_has_exc);
-      if (_GEN_301) begin
+                 : _GEN_38
+                     ? ~_GEN_89 & entries_9_has_exc
+                     : ~_GEN_151 & entries_9_has_exc);
+      if (_GEN_303) begin
         entries_9_ecode <= 6'h3E;
         entries_9_exc_addr <= io_lsq_violation_pc;
       end
@@ -5456,50 +5696,50 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_9
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_87 & entries_9_ertn : ~_GEN_149 & entries_9_ertn;
+              : _GEN_38 ? ~_GEN_89 & entries_9_ertn : ~_GEN_151 & entries_9_ertn;
       entries_9_is_refetch <=
         match1_9
           ? io_cdb1_bits_is_refetch
           : match0_9
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_87 & entries_9_is_refetch
-                  : ~_GEN_149 & entries_9_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_89 & entries_9_is_refetch
+                  : ~_GEN_151 & entries_9_is_refetch;
       entries_9_is_cacop <=
         match1_9
           ? io_cdb1_bits_is_cacop
-          : match0_9 ? io_cdb0_bits_is_cacop : ~(_GEN_36 & _GEN_87) & entries_9_is_cacop;
+          : match0_9 ? io_cdb0_bits_is_cacop : ~(_GEN_38 & _GEN_89) & entries_9_is_cacop;
       entries_9_csr_we <=
         match1_9
           ? io_cdb1_bits_csrWe
           : match0_9
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_87 & entries_9_csr_we : ~_GEN_149 & entries_9_csr_we;
+              : _GEN_38 ? ~_GEN_89 & entries_9_csr_we : ~_GEN_151 & entries_9_csr_we;
       entries_9_tlb_we <=
         match1_9
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_9
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_87 & entries_9_tlb_we : ~_GEN_149 & entries_9_tlb_we;
+              : _GEN_38 ? ~_GEN_89 & entries_9_tlb_we : ~_GEN_151 & entries_9_tlb_we;
       entries_9_tlb_fill <=
         match1_9
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_9
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36 ? ~_GEN_87 & entries_9_tlb_fill : ~_GEN_149 & entries_9_tlb_fill;
+              : _GEN_38 ? ~_GEN_89 & entries_9_tlb_fill : ~_GEN_151 & entries_9_tlb_fill;
       entries_9_tlbrd_we <=
         match1_9
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_9
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36 ? ~_GEN_87 & entries_9_tlbrd_we : ~_GEN_149 & entries_9_tlbrd_we;
+              : _GEN_38 ? ~_GEN_89 & entries_9_tlbrd_we : ~_GEN_151 & entries_9_tlbrd_we;
       entries_10_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_227
+        & (_GEN_386
+             ? _GEN_229
              : can_commit1
-                 ? ~(_head_T_6 == 5'hA | _GEN_362) & _GEN_152
-                 : can_commit0 ? ~_GEN_362 & _GEN_152 : _GEN_227);
+                 ? ~(_head_T_6 == 5'hA | _GEN_364) & _GEN_154
+                 : can_commit0 ? ~_GEN_364 & _GEN_154 : _GEN_229);
       if (match1_10) begin
         entries_10_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_10_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5513,6 +5753,8 @@ module ROB(
         entries_10_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_10_br_type <= io_cdb1_bits_br_type;
         entries_10_ghr <= io_cdb1_bits_ghr;
+        entries_10_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_10_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_10) begin
         entries_10_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -5527,41 +5769,43 @@ module ROB(
         entries_10_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_10_br_type <= io_cdb0_bits_br_type;
         entries_10_ghr <= io_cdb0_bits_ghr;
+        entries_10_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_10_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_88)
+      else if (_GEN_38) begin
+        if (_GEN_90)
           entries_10_rf_we <= io_alloc1_we;
-        else if (_GEN_47)
+        else if (_GEN_49)
           entries_10_rf_we <= io_alloc_we;
       end
-      else if (_GEN_151)
+      else if (_GEN_153)
         entries_10_rf_we <= io_alloc_we;
       entries_10_done <=
         match1_10 | match0_10
-        | (_GEN_36 ? ~_GEN_89 & entries_10_done : ~_GEN_151 & entries_10_done);
+        | (_GEN_38 ? ~_GEN_91 & entries_10_done : ~_GEN_153 & entries_10_done);
       if (~(io_br_resolve_valid & entries_10_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_225)) begin
-        if (_GEN_36) begin
-          if (_GEN_88)
+          | ~(|_GEN_227)) begin
+        if (_GEN_38) begin
+          if (_GEN_90)
             entries_10_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_47)
+          else if (_GEN_49)
             entries_10_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_151)
+        else if (_GEN_153)
           entries_10_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_10_branch_mask <= ~(tag_bit[3:0]) & entries_10_branch_mask;
       entries_10_has_exc <=
-        _GEN_302
+        _GEN_304
         | (match1_10
              ? io_cdb1_bits_hasException
              : match0_10
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_89 & entries_10_has_exc
-                     : ~_GEN_151 & entries_10_has_exc);
-      if (_GEN_302) begin
+                 : _GEN_38
+                     ? ~_GEN_91 & entries_10_has_exc
+                     : ~_GEN_153 & entries_10_has_exc);
+      if (_GEN_304) begin
         entries_10_ecode <= 6'h3E;
         entries_10_exc_addr <= io_lsq_violation_pc;
       end
@@ -5578,56 +5822,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_10
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_89 & entries_10_ertn : ~_GEN_151 & entries_10_ertn;
+              : _GEN_38 ? ~_GEN_91 & entries_10_ertn : ~_GEN_153 & entries_10_ertn;
       entries_10_is_refetch <=
         match1_10
           ? io_cdb1_bits_is_refetch
           : match0_10
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_89 & entries_10_is_refetch
-                  : ~_GEN_151 & entries_10_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_91 & entries_10_is_refetch
+                  : ~_GEN_153 & entries_10_is_refetch;
       entries_10_is_cacop <=
         match1_10
           ? io_cdb1_bits_is_cacop
           : match0_10
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_89) & entries_10_is_cacop;
+              : ~(_GEN_38 & _GEN_91) & entries_10_is_cacop;
       entries_10_csr_we <=
         match1_10
           ? io_cdb1_bits_csrWe
           : match0_10
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_89 & entries_10_csr_we : ~_GEN_151 & entries_10_csr_we;
+              : _GEN_38 ? ~_GEN_91 & entries_10_csr_we : ~_GEN_153 & entries_10_csr_we;
       entries_10_tlb_we <=
         match1_10
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_10
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_89 & entries_10_tlb_we : ~_GEN_151 & entries_10_tlb_we;
+              : _GEN_38 ? ~_GEN_91 & entries_10_tlb_we : ~_GEN_153 & entries_10_tlb_we;
       entries_10_tlb_fill <=
         match1_10
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_10
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_89 & entries_10_tlb_fill
-                  : ~_GEN_151 & entries_10_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_91 & entries_10_tlb_fill
+                  : ~_GEN_153 & entries_10_tlb_fill;
       entries_10_tlbrd_we <=
         match1_10
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_10
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_89 & entries_10_tlbrd_we
-                  : ~_GEN_151 & entries_10_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_91 & entries_10_tlbrd_we
+                  : ~_GEN_153 & entries_10_tlbrd_we;
       entries_11_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_230
+        & (_GEN_386
+             ? _GEN_232
              : can_commit1
-                 ? ~(_head_T_6 == 5'hB | _GEN_363) & _GEN_154
-                 : can_commit0 ? ~_GEN_363 & _GEN_154 : _GEN_230);
+                 ? ~(_head_T_6 == 5'hB | _GEN_365) & _GEN_156
+                 : can_commit0 ? ~_GEN_365 & _GEN_156 : _GEN_232);
       if (match1_11) begin
         entries_11_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_11_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5641,6 +5885,8 @@ module ROB(
         entries_11_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_11_br_type <= io_cdb1_bits_br_type;
         entries_11_ghr <= io_cdb1_bits_ghr;
+        entries_11_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_11_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_11) begin
         entries_11_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -5655,41 +5901,43 @@ module ROB(
         entries_11_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_11_br_type <= io_cdb0_bits_br_type;
         entries_11_ghr <= io_cdb0_bits_ghr;
+        entries_11_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_11_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_90)
+      else if (_GEN_38) begin
+        if (_GEN_92)
           entries_11_rf_we <= io_alloc1_we;
-        else if (_GEN_48)
+        else if (_GEN_50)
           entries_11_rf_we <= io_alloc_we;
       end
-      else if (_GEN_153)
+      else if (_GEN_155)
         entries_11_rf_we <= io_alloc_we;
       entries_11_done <=
         match1_11 | match0_11
-        | (_GEN_36 ? ~_GEN_91 & entries_11_done : ~_GEN_153 & entries_11_done);
+        | (_GEN_38 ? ~_GEN_93 & entries_11_done : ~_GEN_155 & entries_11_done);
       if (~(io_br_resolve_valid & entries_11_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_228)) begin
-        if (_GEN_36) begin
-          if (_GEN_90)
+          | ~(|_GEN_230)) begin
+        if (_GEN_38) begin
+          if (_GEN_92)
             entries_11_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_48)
+          else if (_GEN_50)
             entries_11_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_153)
+        else if (_GEN_155)
           entries_11_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_11_branch_mask <= ~(tag_bit[3:0]) & entries_11_branch_mask;
       entries_11_has_exc <=
-        _GEN_303
+        _GEN_305
         | (match1_11
              ? io_cdb1_bits_hasException
              : match0_11
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_91 & entries_11_has_exc
-                     : ~_GEN_153 & entries_11_has_exc);
-      if (_GEN_303) begin
+                 : _GEN_38
+                     ? ~_GEN_93 & entries_11_has_exc
+                     : ~_GEN_155 & entries_11_has_exc);
+      if (_GEN_305) begin
         entries_11_ecode <= 6'h3E;
         entries_11_exc_addr <= io_lsq_violation_pc;
       end
@@ -5706,56 +5954,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_11
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_91 & entries_11_ertn : ~_GEN_153 & entries_11_ertn;
+              : _GEN_38 ? ~_GEN_93 & entries_11_ertn : ~_GEN_155 & entries_11_ertn;
       entries_11_is_refetch <=
         match1_11
           ? io_cdb1_bits_is_refetch
           : match0_11
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_91 & entries_11_is_refetch
-                  : ~_GEN_153 & entries_11_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_93 & entries_11_is_refetch
+                  : ~_GEN_155 & entries_11_is_refetch;
       entries_11_is_cacop <=
         match1_11
           ? io_cdb1_bits_is_cacop
           : match0_11
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_91) & entries_11_is_cacop;
+              : ~(_GEN_38 & _GEN_93) & entries_11_is_cacop;
       entries_11_csr_we <=
         match1_11
           ? io_cdb1_bits_csrWe
           : match0_11
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_91 & entries_11_csr_we : ~_GEN_153 & entries_11_csr_we;
+              : _GEN_38 ? ~_GEN_93 & entries_11_csr_we : ~_GEN_155 & entries_11_csr_we;
       entries_11_tlb_we <=
         match1_11
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_11
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_91 & entries_11_tlb_we : ~_GEN_153 & entries_11_tlb_we;
+              : _GEN_38 ? ~_GEN_93 & entries_11_tlb_we : ~_GEN_155 & entries_11_tlb_we;
       entries_11_tlb_fill <=
         match1_11
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_11
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_91 & entries_11_tlb_fill
-                  : ~_GEN_153 & entries_11_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_93 & entries_11_tlb_fill
+                  : ~_GEN_155 & entries_11_tlb_fill;
       entries_11_tlbrd_we <=
         match1_11
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_11
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_91 & entries_11_tlbrd_we
-                  : ~_GEN_153 & entries_11_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_93 & entries_11_tlbrd_we
+                  : ~_GEN_155 & entries_11_tlbrd_we;
       entries_12_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_233
+        & (_GEN_386
+             ? _GEN_235
              : can_commit1
-                 ? ~(_head_T_6 == 5'hC | _GEN_364) & _GEN_156
-                 : can_commit0 ? ~_GEN_364 & _GEN_156 : _GEN_233);
+                 ? ~(_head_T_6 == 5'hC | _GEN_366) & _GEN_158
+                 : can_commit0 ? ~_GEN_366 & _GEN_158 : _GEN_235);
       if (match1_12) begin
         entries_12_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_12_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5769,6 +6017,8 @@ module ROB(
         entries_12_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_12_br_type <= io_cdb1_bits_br_type;
         entries_12_ghr <= io_cdb1_bits_ghr;
+        entries_12_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_12_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_12) begin
         entries_12_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -5783,41 +6033,43 @@ module ROB(
         entries_12_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_12_br_type <= io_cdb0_bits_br_type;
         entries_12_ghr <= io_cdb0_bits_ghr;
+        entries_12_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_12_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_92)
+      else if (_GEN_38) begin
+        if (_GEN_94)
           entries_12_rf_we <= io_alloc1_we;
-        else if (_GEN_49)
+        else if (_GEN_51)
           entries_12_rf_we <= io_alloc_we;
       end
-      else if (_GEN_155)
+      else if (_GEN_157)
         entries_12_rf_we <= io_alloc_we;
       entries_12_done <=
         match1_12 | match0_12
-        | (_GEN_36 ? ~_GEN_93 & entries_12_done : ~_GEN_155 & entries_12_done);
+        | (_GEN_38 ? ~_GEN_95 & entries_12_done : ~_GEN_157 & entries_12_done);
       if (~(io_br_resolve_valid & entries_12_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_231)) begin
-        if (_GEN_36) begin
-          if (_GEN_92)
+          | ~(|_GEN_233)) begin
+        if (_GEN_38) begin
+          if (_GEN_94)
             entries_12_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_49)
+          else if (_GEN_51)
             entries_12_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_155)
+        else if (_GEN_157)
           entries_12_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_12_branch_mask <= ~(tag_bit[3:0]) & entries_12_branch_mask;
       entries_12_has_exc <=
-        _GEN_304
+        _GEN_306
         | (match1_12
              ? io_cdb1_bits_hasException
              : match0_12
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_93 & entries_12_has_exc
-                     : ~_GEN_155 & entries_12_has_exc);
-      if (_GEN_304) begin
+                 : _GEN_38
+                     ? ~_GEN_95 & entries_12_has_exc
+                     : ~_GEN_157 & entries_12_has_exc);
+      if (_GEN_306) begin
         entries_12_ecode <= 6'h3E;
         entries_12_exc_addr <= io_lsq_violation_pc;
       end
@@ -5834,56 +6086,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_12
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_93 & entries_12_ertn : ~_GEN_155 & entries_12_ertn;
+              : _GEN_38 ? ~_GEN_95 & entries_12_ertn : ~_GEN_157 & entries_12_ertn;
       entries_12_is_refetch <=
         match1_12
           ? io_cdb1_bits_is_refetch
           : match0_12
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_93 & entries_12_is_refetch
-                  : ~_GEN_155 & entries_12_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_95 & entries_12_is_refetch
+                  : ~_GEN_157 & entries_12_is_refetch;
       entries_12_is_cacop <=
         match1_12
           ? io_cdb1_bits_is_cacop
           : match0_12
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_93) & entries_12_is_cacop;
+              : ~(_GEN_38 & _GEN_95) & entries_12_is_cacop;
       entries_12_csr_we <=
         match1_12
           ? io_cdb1_bits_csrWe
           : match0_12
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_93 & entries_12_csr_we : ~_GEN_155 & entries_12_csr_we;
+              : _GEN_38 ? ~_GEN_95 & entries_12_csr_we : ~_GEN_157 & entries_12_csr_we;
       entries_12_tlb_we <=
         match1_12
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_12
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_93 & entries_12_tlb_we : ~_GEN_155 & entries_12_tlb_we;
+              : _GEN_38 ? ~_GEN_95 & entries_12_tlb_we : ~_GEN_157 & entries_12_tlb_we;
       entries_12_tlb_fill <=
         match1_12
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_12
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_93 & entries_12_tlb_fill
-                  : ~_GEN_155 & entries_12_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_95 & entries_12_tlb_fill
+                  : ~_GEN_157 & entries_12_tlb_fill;
       entries_12_tlbrd_we <=
         match1_12
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_12
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_93 & entries_12_tlbrd_we
-                  : ~_GEN_155 & entries_12_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_95 & entries_12_tlbrd_we
+                  : ~_GEN_157 & entries_12_tlbrd_we;
       entries_13_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_236
+        & (_GEN_386
+             ? _GEN_238
              : can_commit1
-                 ? ~(_head_T_6 == 5'hD | _GEN_365) & _GEN_158
-                 : can_commit0 ? ~_GEN_365 & _GEN_158 : _GEN_236);
+                 ? ~(_head_T_6 == 5'hD | _GEN_367) & _GEN_160
+                 : can_commit0 ? ~_GEN_367 & _GEN_160 : _GEN_238);
       if (match1_13) begin
         entries_13_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_13_rf_wdata <= io_cdb1_bits_ex_result;
@@ -5897,6 +6149,8 @@ module ROB(
         entries_13_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_13_br_type <= io_cdb1_bits_br_type;
         entries_13_ghr <= io_cdb1_bits_ghr;
+        entries_13_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_13_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_13) begin
         entries_13_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -5911,41 +6165,43 @@ module ROB(
         entries_13_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_13_br_type <= io_cdb0_bits_br_type;
         entries_13_ghr <= io_cdb0_bits_ghr;
+        entries_13_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_13_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_94)
+      else if (_GEN_38) begin
+        if (_GEN_96)
           entries_13_rf_we <= io_alloc1_we;
-        else if (_GEN_50)
+        else if (_GEN_52)
           entries_13_rf_we <= io_alloc_we;
       end
-      else if (_GEN_157)
+      else if (_GEN_159)
         entries_13_rf_we <= io_alloc_we;
       entries_13_done <=
         match1_13 | match0_13
-        | (_GEN_36 ? ~_GEN_95 & entries_13_done : ~_GEN_157 & entries_13_done);
+        | (_GEN_38 ? ~_GEN_97 & entries_13_done : ~_GEN_159 & entries_13_done);
       if (~(io_br_resolve_valid & entries_13_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_234)) begin
-        if (_GEN_36) begin
-          if (_GEN_94)
+          | ~(|_GEN_236)) begin
+        if (_GEN_38) begin
+          if (_GEN_96)
             entries_13_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_50)
+          else if (_GEN_52)
             entries_13_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_157)
+        else if (_GEN_159)
           entries_13_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_13_branch_mask <= ~(tag_bit[3:0]) & entries_13_branch_mask;
       entries_13_has_exc <=
-        _GEN_305
+        _GEN_307
         | (match1_13
              ? io_cdb1_bits_hasException
              : match0_13
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_95 & entries_13_has_exc
-                     : ~_GEN_157 & entries_13_has_exc);
-      if (_GEN_305) begin
+                 : _GEN_38
+                     ? ~_GEN_97 & entries_13_has_exc
+                     : ~_GEN_159 & entries_13_has_exc);
+      if (_GEN_307) begin
         entries_13_ecode <= 6'h3E;
         entries_13_exc_addr <= io_lsq_violation_pc;
       end
@@ -5962,56 +6218,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_13
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_95 & entries_13_ertn : ~_GEN_157 & entries_13_ertn;
+              : _GEN_38 ? ~_GEN_97 & entries_13_ertn : ~_GEN_159 & entries_13_ertn;
       entries_13_is_refetch <=
         match1_13
           ? io_cdb1_bits_is_refetch
           : match0_13
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_95 & entries_13_is_refetch
-                  : ~_GEN_157 & entries_13_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_97 & entries_13_is_refetch
+                  : ~_GEN_159 & entries_13_is_refetch;
       entries_13_is_cacop <=
         match1_13
           ? io_cdb1_bits_is_cacop
           : match0_13
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_95) & entries_13_is_cacop;
+              : ~(_GEN_38 & _GEN_97) & entries_13_is_cacop;
       entries_13_csr_we <=
         match1_13
           ? io_cdb1_bits_csrWe
           : match0_13
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_95 & entries_13_csr_we : ~_GEN_157 & entries_13_csr_we;
+              : _GEN_38 ? ~_GEN_97 & entries_13_csr_we : ~_GEN_159 & entries_13_csr_we;
       entries_13_tlb_we <=
         match1_13
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_13
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_95 & entries_13_tlb_we : ~_GEN_157 & entries_13_tlb_we;
+              : _GEN_38 ? ~_GEN_97 & entries_13_tlb_we : ~_GEN_159 & entries_13_tlb_we;
       entries_13_tlb_fill <=
         match1_13
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_13
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_95 & entries_13_tlb_fill
-                  : ~_GEN_157 & entries_13_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_97 & entries_13_tlb_fill
+                  : ~_GEN_159 & entries_13_tlb_fill;
       entries_13_tlbrd_we <=
         match1_13
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_13
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_95 & entries_13_tlbrd_we
-                  : ~_GEN_157 & entries_13_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_97 & entries_13_tlbrd_we
+                  : ~_GEN_159 & entries_13_tlbrd_we;
       entries_14_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_239
+        & (_GEN_386
+             ? _GEN_241
              : can_commit1
-                 ? ~(_head_T_6 == 5'hE | _GEN_366) & _GEN_160
-                 : can_commit0 ? ~_GEN_366 & _GEN_160 : _GEN_239);
+                 ? ~(_head_T_6 == 5'hE | _GEN_368) & _GEN_162
+                 : can_commit0 ? ~_GEN_368 & _GEN_162 : _GEN_241);
       if (match1_14) begin
         entries_14_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_14_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6025,6 +6281,8 @@ module ROB(
         entries_14_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_14_br_type <= io_cdb1_bits_br_type;
         entries_14_ghr <= io_cdb1_bits_ghr;
+        entries_14_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_14_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_14) begin
         entries_14_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -6039,41 +6297,43 @@ module ROB(
         entries_14_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_14_br_type <= io_cdb0_bits_br_type;
         entries_14_ghr <= io_cdb0_bits_ghr;
+        entries_14_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_14_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_96)
+      else if (_GEN_38) begin
+        if (_GEN_98)
           entries_14_rf_we <= io_alloc1_we;
-        else if (_GEN_51)
+        else if (_GEN_53)
           entries_14_rf_we <= io_alloc_we;
       end
-      else if (_GEN_159)
+      else if (_GEN_161)
         entries_14_rf_we <= io_alloc_we;
       entries_14_done <=
         match1_14 | match0_14
-        | (_GEN_36 ? ~_GEN_97 & entries_14_done : ~_GEN_159 & entries_14_done);
+        | (_GEN_38 ? ~_GEN_99 & entries_14_done : ~_GEN_161 & entries_14_done);
       if (~(io_br_resolve_valid & entries_14_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_237)) begin
-        if (_GEN_36) begin
-          if (_GEN_96)
+          | ~(|_GEN_239)) begin
+        if (_GEN_38) begin
+          if (_GEN_98)
             entries_14_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_51)
+          else if (_GEN_53)
             entries_14_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_159)
+        else if (_GEN_161)
           entries_14_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_14_branch_mask <= ~(tag_bit[3:0]) & entries_14_branch_mask;
       entries_14_has_exc <=
-        _GEN_306
+        _GEN_308
         | (match1_14
              ? io_cdb1_bits_hasException
              : match0_14
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_97 & entries_14_has_exc
-                     : ~_GEN_159 & entries_14_has_exc);
-      if (_GEN_306) begin
+                 : _GEN_38
+                     ? ~_GEN_99 & entries_14_has_exc
+                     : ~_GEN_161 & entries_14_has_exc);
+      if (_GEN_308) begin
         entries_14_ecode <= 6'h3E;
         entries_14_exc_addr <= io_lsq_violation_pc;
       end
@@ -6090,56 +6350,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_14
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_97 & entries_14_ertn : ~_GEN_159 & entries_14_ertn;
+              : _GEN_38 ? ~_GEN_99 & entries_14_ertn : ~_GEN_161 & entries_14_ertn;
       entries_14_is_refetch <=
         match1_14
           ? io_cdb1_bits_is_refetch
           : match0_14
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_97 & entries_14_is_refetch
-                  : ~_GEN_159 & entries_14_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_99 & entries_14_is_refetch
+                  : ~_GEN_161 & entries_14_is_refetch;
       entries_14_is_cacop <=
         match1_14
           ? io_cdb1_bits_is_cacop
           : match0_14
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_97) & entries_14_is_cacop;
+              : ~(_GEN_38 & _GEN_99) & entries_14_is_cacop;
       entries_14_csr_we <=
         match1_14
           ? io_cdb1_bits_csrWe
           : match0_14
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_97 & entries_14_csr_we : ~_GEN_159 & entries_14_csr_we;
+              : _GEN_38 ? ~_GEN_99 & entries_14_csr_we : ~_GEN_161 & entries_14_csr_we;
       entries_14_tlb_we <=
         match1_14
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_14
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_97 & entries_14_tlb_we : ~_GEN_159 & entries_14_tlb_we;
+              : _GEN_38 ? ~_GEN_99 & entries_14_tlb_we : ~_GEN_161 & entries_14_tlb_we;
       entries_14_tlb_fill <=
         match1_14
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_14
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_97 & entries_14_tlb_fill
-                  : ~_GEN_159 & entries_14_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_99 & entries_14_tlb_fill
+                  : ~_GEN_161 & entries_14_tlb_fill;
       entries_14_tlbrd_we <=
         match1_14
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_14
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_97 & entries_14_tlbrd_we
-                  : ~_GEN_159 & entries_14_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_99 & entries_14_tlbrd_we
+                  : ~_GEN_161 & entries_14_tlbrd_we;
       entries_15_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_242
+        & (_GEN_386
+             ? _GEN_244
              : can_commit1
-                 ? ~(_head_T_6 == 5'hF | _GEN_367) & _GEN_162
-                 : can_commit0 ? ~_GEN_367 & _GEN_162 : _GEN_242);
+                 ? ~(_head_T_6 == 5'hF | _GEN_369) & _GEN_164
+                 : can_commit0 ? ~_GEN_369 & _GEN_164 : _GEN_244);
       if (match1_15) begin
         entries_15_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_15_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6153,6 +6413,8 @@ module ROB(
         entries_15_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_15_br_type <= io_cdb1_bits_br_type;
         entries_15_ghr <= io_cdb1_bits_ghr;
+        entries_15_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_15_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_15) begin
         entries_15_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -6167,41 +6429,43 @@ module ROB(
         entries_15_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_15_br_type <= io_cdb0_bits_br_type;
         entries_15_ghr <= io_cdb0_bits_ghr;
+        entries_15_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_15_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_98)
+      else if (_GEN_38) begin
+        if (_GEN_100)
           entries_15_rf_we <= io_alloc1_we;
-        else if (_GEN_52)
+        else if (_GEN_54)
           entries_15_rf_we <= io_alloc_we;
       end
-      else if (_GEN_161)
+      else if (_GEN_163)
         entries_15_rf_we <= io_alloc_we;
       entries_15_done <=
         match1_15 | match0_15
-        | (_GEN_36 ? ~_GEN_99 & entries_15_done : ~_GEN_161 & entries_15_done);
+        | (_GEN_38 ? ~_GEN_101 & entries_15_done : ~_GEN_163 & entries_15_done);
       if (~(io_br_resolve_valid & entries_15_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_240)) begin
-        if (_GEN_36) begin
-          if (_GEN_98)
+          | ~(|_GEN_242)) begin
+        if (_GEN_38) begin
+          if (_GEN_100)
             entries_15_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_52)
+          else if (_GEN_54)
             entries_15_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_161)
+        else if (_GEN_163)
           entries_15_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_15_branch_mask <= ~(tag_bit[3:0]) & entries_15_branch_mask;
       entries_15_has_exc <=
-        _GEN_307
+        _GEN_309
         | (match1_15
              ? io_cdb1_bits_hasException
              : match0_15
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_99 & entries_15_has_exc
-                     : ~_GEN_161 & entries_15_has_exc);
-      if (_GEN_307) begin
+                 : _GEN_38
+                     ? ~_GEN_101 & entries_15_has_exc
+                     : ~_GEN_163 & entries_15_has_exc);
+      if (_GEN_309) begin
         entries_15_ecode <= 6'h3E;
         entries_15_exc_addr <= io_lsq_violation_pc;
       end
@@ -6218,56 +6482,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_15
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_99 & entries_15_ertn : ~_GEN_161 & entries_15_ertn;
+              : _GEN_38 ? ~_GEN_101 & entries_15_ertn : ~_GEN_163 & entries_15_ertn;
       entries_15_is_refetch <=
         match1_15
           ? io_cdb1_bits_is_refetch
           : match0_15
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_99 & entries_15_is_refetch
-                  : ~_GEN_161 & entries_15_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_101 & entries_15_is_refetch
+                  : ~_GEN_163 & entries_15_is_refetch;
       entries_15_is_cacop <=
         match1_15
           ? io_cdb1_bits_is_cacop
           : match0_15
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_99) & entries_15_is_cacop;
+              : ~(_GEN_38 & _GEN_101) & entries_15_is_cacop;
       entries_15_csr_we <=
         match1_15
           ? io_cdb1_bits_csrWe
           : match0_15
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_99 & entries_15_csr_we : ~_GEN_161 & entries_15_csr_we;
+              : _GEN_38 ? ~_GEN_101 & entries_15_csr_we : ~_GEN_163 & entries_15_csr_we;
       entries_15_tlb_we <=
         match1_15
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_15
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_99 & entries_15_tlb_we : ~_GEN_161 & entries_15_tlb_we;
+              : _GEN_38 ? ~_GEN_101 & entries_15_tlb_we : ~_GEN_163 & entries_15_tlb_we;
       entries_15_tlb_fill <=
         match1_15
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_15
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_99 & entries_15_tlb_fill
-                  : ~_GEN_161 & entries_15_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_101 & entries_15_tlb_fill
+                  : ~_GEN_163 & entries_15_tlb_fill;
       entries_15_tlbrd_we <=
         match1_15
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_15
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_99 & entries_15_tlbrd_we
-                  : ~_GEN_161 & entries_15_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_101 & entries_15_tlbrd_we
+                  : ~_GEN_163 & entries_15_tlbrd_we;
       entries_16_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_245
+        & (_GEN_386
+             ? _GEN_247
              : can_commit1
-                 ? ~(_head_T_6 == 5'h10 | _GEN_368) & _GEN_164
-                 : can_commit0 ? ~_GEN_368 & _GEN_164 : _GEN_245);
+                 ? ~(_head_T_6 == 5'h10 | _GEN_370) & _GEN_166
+                 : can_commit0 ? ~_GEN_370 & _GEN_166 : _GEN_247);
       if (match1_16) begin
         entries_16_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_16_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6281,6 +6545,8 @@ module ROB(
         entries_16_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_16_br_type <= io_cdb1_bits_br_type;
         entries_16_ghr <= io_cdb1_bits_ghr;
+        entries_16_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_16_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_16) begin
         entries_16_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -6295,41 +6561,43 @@ module ROB(
         entries_16_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_16_br_type <= io_cdb0_bits_br_type;
         entries_16_ghr <= io_cdb0_bits_ghr;
+        entries_16_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_16_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_100)
+      else if (_GEN_38) begin
+        if (_GEN_102)
           entries_16_rf_we <= io_alloc1_we;
-        else if (_GEN_53)
+        else if (_GEN_55)
           entries_16_rf_we <= io_alloc_we;
       end
-      else if (_GEN_163)
+      else if (_GEN_165)
         entries_16_rf_we <= io_alloc_we;
       entries_16_done <=
         match1_16 | match0_16
-        | (_GEN_36 ? ~_GEN_101 & entries_16_done : ~_GEN_163 & entries_16_done);
+        | (_GEN_38 ? ~_GEN_103 & entries_16_done : ~_GEN_165 & entries_16_done);
       if (~(io_br_resolve_valid & entries_16_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_243)) begin
-        if (_GEN_36) begin
-          if (_GEN_100)
+          | ~(|_GEN_245)) begin
+        if (_GEN_38) begin
+          if (_GEN_102)
             entries_16_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_53)
+          else if (_GEN_55)
             entries_16_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_163)
+        else if (_GEN_165)
           entries_16_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_16_branch_mask <= ~(tag_bit[3:0]) & entries_16_branch_mask;
       entries_16_has_exc <=
-        _GEN_308
+        _GEN_310
         | (match1_16
              ? io_cdb1_bits_hasException
              : match0_16
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_101 & entries_16_has_exc
-                     : ~_GEN_163 & entries_16_has_exc);
-      if (_GEN_308) begin
+                 : _GEN_38
+                     ? ~_GEN_103 & entries_16_has_exc
+                     : ~_GEN_165 & entries_16_has_exc);
+      if (_GEN_310) begin
         entries_16_ecode <= 6'h3E;
         entries_16_exc_addr <= io_lsq_violation_pc;
       end
@@ -6346,56 +6614,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_16
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_101 & entries_16_ertn : ~_GEN_163 & entries_16_ertn;
+              : _GEN_38 ? ~_GEN_103 & entries_16_ertn : ~_GEN_165 & entries_16_ertn;
       entries_16_is_refetch <=
         match1_16
           ? io_cdb1_bits_is_refetch
           : match0_16
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_101 & entries_16_is_refetch
-                  : ~_GEN_163 & entries_16_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_103 & entries_16_is_refetch
+                  : ~_GEN_165 & entries_16_is_refetch;
       entries_16_is_cacop <=
         match1_16
           ? io_cdb1_bits_is_cacop
           : match0_16
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_101) & entries_16_is_cacop;
+              : ~(_GEN_38 & _GEN_103) & entries_16_is_cacop;
       entries_16_csr_we <=
         match1_16
           ? io_cdb1_bits_csrWe
           : match0_16
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_101 & entries_16_csr_we : ~_GEN_163 & entries_16_csr_we;
+              : _GEN_38 ? ~_GEN_103 & entries_16_csr_we : ~_GEN_165 & entries_16_csr_we;
       entries_16_tlb_we <=
         match1_16
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_16
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_101 & entries_16_tlb_we : ~_GEN_163 & entries_16_tlb_we;
+              : _GEN_38 ? ~_GEN_103 & entries_16_tlb_we : ~_GEN_165 & entries_16_tlb_we;
       entries_16_tlb_fill <=
         match1_16
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_16
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_101 & entries_16_tlb_fill
-                  : ~_GEN_163 & entries_16_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_103 & entries_16_tlb_fill
+                  : ~_GEN_165 & entries_16_tlb_fill;
       entries_16_tlbrd_we <=
         match1_16
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_16
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_101 & entries_16_tlbrd_we
-                  : ~_GEN_163 & entries_16_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_103 & entries_16_tlbrd_we
+                  : ~_GEN_165 & entries_16_tlbrd_we;
       entries_17_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_248
+        & (_GEN_386
+             ? _GEN_250
              : can_commit1
-                 ? ~(_head_T_6 == 5'h11 | _GEN_369) & _GEN_166
-                 : can_commit0 ? ~_GEN_369 & _GEN_166 : _GEN_248);
+                 ? ~(_head_T_6 == 5'h11 | _GEN_371) & _GEN_168
+                 : can_commit0 ? ~_GEN_371 & _GEN_168 : _GEN_250);
       if (match1_17) begin
         entries_17_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_17_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6409,6 +6677,8 @@ module ROB(
         entries_17_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_17_br_type <= io_cdb1_bits_br_type;
         entries_17_ghr <= io_cdb1_bits_ghr;
+        entries_17_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_17_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_17) begin
         entries_17_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -6423,41 +6693,43 @@ module ROB(
         entries_17_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_17_br_type <= io_cdb0_bits_br_type;
         entries_17_ghr <= io_cdb0_bits_ghr;
+        entries_17_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_17_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_102)
+      else if (_GEN_38) begin
+        if (_GEN_104)
           entries_17_rf_we <= io_alloc1_we;
-        else if (_GEN_54)
+        else if (_GEN_56)
           entries_17_rf_we <= io_alloc_we;
       end
-      else if (_GEN_165)
+      else if (_GEN_167)
         entries_17_rf_we <= io_alloc_we;
       entries_17_done <=
         match1_17 | match0_17
-        | (_GEN_36 ? ~_GEN_103 & entries_17_done : ~_GEN_165 & entries_17_done);
+        | (_GEN_38 ? ~_GEN_105 & entries_17_done : ~_GEN_167 & entries_17_done);
       if (~(io_br_resolve_valid & entries_17_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_246)) begin
-        if (_GEN_36) begin
-          if (_GEN_102)
+          | ~(|_GEN_248)) begin
+        if (_GEN_38) begin
+          if (_GEN_104)
             entries_17_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_54)
+          else if (_GEN_56)
             entries_17_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_165)
+        else if (_GEN_167)
           entries_17_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_17_branch_mask <= ~(tag_bit[3:0]) & entries_17_branch_mask;
       entries_17_has_exc <=
-        _GEN_309
+        _GEN_311
         | (match1_17
              ? io_cdb1_bits_hasException
              : match0_17
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_103 & entries_17_has_exc
-                     : ~_GEN_165 & entries_17_has_exc);
-      if (_GEN_309) begin
+                 : _GEN_38
+                     ? ~_GEN_105 & entries_17_has_exc
+                     : ~_GEN_167 & entries_17_has_exc);
+      if (_GEN_311) begin
         entries_17_ecode <= 6'h3E;
         entries_17_exc_addr <= io_lsq_violation_pc;
       end
@@ -6474,56 +6746,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_17
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_103 & entries_17_ertn : ~_GEN_165 & entries_17_ertn;
+              : _GEN_38 ? ~_GEN_105 & entries_17_ertn : ~_GEN_167 & entries_17_ertn;
       entries_17_is_refetch <=
         match1_17
           ? io_cdb1_bits_is_refetch
           : match0_17
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_103 & entries_17_is_refetch
-                  : ~_GEN_165 & entries_17_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_105 & entries_17_is_refetch
+                  : ~_GEN_167 & entries_17_is_refetch;
       entries_17_is_cacop <=
         match1_17
           ? io_cdb1_bits_is_cacop
           : match0_17
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_103) & entries_17_is_cacop;
+              : ~(_GEN_38 & _GEN_105) & entries_17_is_cacop;
       entries_17_csr_we <=
         match1_17
           ? io_cdb1_bits_csrWe
           : match0_17
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_103 & entries_17_csr_we : ~_GEN_165 & entries_17_csr_we;
+              : _GEN_38 ? ~_GEN_105 & entries_17_csr_we : ~_GEN_167 & entries_17_csr_we;
       entries_17_tlb_we <=
         match1_17
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_17
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_103 & entries_17_tlb_we : ~_GEN_165 & entries_17_tlb_we;
+              : _GEN_38 ? ~_GEN_105 & entries_17_tlb_we : ~_GEN_167 & entries_17_tlb_we;
       entries_17_tlb_fill <=
         match1_17
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_17
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_103 & entries_17_tlb_fill
-                  : ~_GEN_165 & entries_17_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_105 & entries_17_tlb_fill
+                  : ~_GEN_167 & entries_17_tlb_fill;
       entries_17_tlbrd_we <=
         match1_17
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_17
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_103 & entries_17_tlbrd_we
-                  : ~_GEN_165 & entries_17_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_105 & entries_17_tlbrd_we
+                  : ~_GEN_167 & entries_17_tlbrd_we;
       entries_18_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_251
+        & (_GEN_386
+             ? _GEN_253
              : can_commit1
-                 ? ~(_head_T_6 == 5'h12 | _GEN_370) & _GEN_168
-                 : can_commit0 ? ~_GEN_370 & _GEN_168 : _GEN_251);
+                 ? ~(_head_T_6 == 5'h12 | _GEN_372) & _GEN_170
+                 : can_commit0 ? ~_GEN_372 & _GEN_170 : _GEN_253);
       if (match1_18) begin
         entries_18_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_18_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6537,6 +6809,8 @@ module ROB(
         entries_18_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_18_br_type <= io_cdb1_bits_br_type;
         entries_18_ghr <= io_cdb1_bits_ghr;
+        entries_18_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_18_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_18) begin
         entries_18_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -6551,41 +6825,43 @@ module ROB(
         entries_18_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_18_br_type <= io_cdb0_bits_br_type;
         entries_18_ghr <= io_cdb0_bits_ghr;
+        entries_18_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_18_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_104)
+      else if (_GEN_38) begin
+        if (_GEN_106)
           entries_18_rf_we <= io_alloc1_we;
-        else if (_GEN_55)
+        else if (_GEN_57)
           entries_18_rf_we <= io_alloc_we;
       end
-      else if (_GEN_167)
+      else if (_GEN_169)
         entries_18_rf_we <= io_alloc_we;
       entries_18_done <=
         match1_18 | match0_18
-        | (_GEN_36 ? ~_GEN_105 & entries_18_done : ~_GEN_167 & entries_18_done);
+        | (_GEN_38 ? ~_GEN_107 & entries_18_done : ~_GEN_169 & entries_18_done);
       if (~(io_br_resolve_valid & entries_18_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_249)) begin
-        if (_GEN_36) begin
-          if (_GEN_104)
+          | ~(|_GEN_251)) begin
+        if (_GEN_38) begin
+          if (_GEN_106)
             entries_18_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_55)
+          else if (_GEN_57)
             entries_18_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_167)
+        else if (_GEN_169)
           entries_18_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_18_branch_mask <= ~(tag_bit[3:0]) & entries_18_branch_mask;
       entries_18_has_exc <=
-        _GEN_310
+        _GEN_312
         | (match1_18
              ? io_cdb1_bits_hasException
              : match0_18
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_105 & entries_18_has_exc
-                     : ~_GEN_167 & entries_18_has_exc);
-      if (_GEN_310) begin
+                 : _GEN_38
+                     ? ~_GEN_107 & entries_18_has_exc
+                     : ~_GEN_169 & entries_18_has_exc);
+      if (_GEN_312) begin
         entries_18_ecode <= 6'h3E;
         entries_18_exc_addr <= io_lsq_violation_pc;
       end
@@ -6602,56 +6878,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_18
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_105 & entries_18_ertn : ~_GEN_167 & entries_18_ertn;
+              : _GEN_38 ? ~_GEN_107 & entries_18_ertn : ~_GEN_169 & entries_18_ertn;
       entries_18_is_refetch <=
         match1_18
           ? io_cdb1_bits_is_refetch
           : match0_18
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_105 & entries_18_is_refetch
-                  : ~_GEN_167 & entries_18_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_107 & entries_18_is_refetch
+                  : ~_GEN_169 & entries_18_is_refetch;
       entries_18_is_cacop <=
         match1_18
           ? io_cdb1_bits_is_cacop
           : match0_18
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_105) & entries_18_is_cacop;
+              : ~(_GEN_38 & _GEN_107) & entries_18_is_cacop;
       entries_18_csr_we <=
         match1_18
           ? io_cdb1_bits_csrWe
           : match0_18
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_105 & entries_18_csr_we : ~_GEN_167 & entries_18_csr_we;
+              : _GEN_38 ? ~_GEN_107 & entries_18_csr_we : ~_GEN_169 & entries_18_csr_we;
       entries_18_tlb_we <=
         match1_18
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_18
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_105 & entries_18_tlb_we : ~_GEN_167 & entries_18_tlb_we;
+              : _GEN_38 ? ~_GEN_107 & entries_18_tlb_we : ~_GEN_169 & entries_18_tlb_we;
       entries_18_tlb_fill <=
         match1_18
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_18
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_105 & entries_18_tlb_fill
-                  : ~_GEN_167 & entries_18_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_107 & entries_18_tlb_fill
+                  : ~_GEN_169 & entries_18_tlb_fill;
       entries_18_tlbrd_we <=
         match1_18
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_18
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_105 & entries_18_tlbrd_we
-                  : ~_GEN_167 & entries_18_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_107 & entries_18_tlbrd_we
+                  : ~_GEN_169 & entries_18_tlbrd_we;
       entries_19_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_254
+        & (_GEN_386
+             ? _GEN_256
              : can_commit1
-                 ? ~(_head_T_6 == 5'h13 | _GEN_371) & _GEN_170
-                 : can_commit0 ? ~_GEN_371 & _GEN_170 : _GEN_254);
+                 ? ~(_head_T_6 == 5'h13 | _GEN_373) & _GEN_172
+                 : can_commit0 ? ~_GEN_373 & _GEN_172 : _GEN_256);
       if (match1_19) begin
         entries_19_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_19_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6665,6 +6941,8 @@ module ROB(
         entries_19_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_19_br_type <= io_cdb1_bits_br_type;
         entries_19_ghr <= io_cdb1_bits_ghr;
+        entries_19_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_19_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_19) begin
         entries_19_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -6679,41 +6957,43 @@ module ROB(
         entries_19_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_19_br_type <= io_cdb0_bits_br_type;
         entries_19_ghr <= io_cdb0_bits_ghr;
+        entries_19_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_19_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_106)
+      else if (_GEN_38) begin
+        if (_GEN_108)
           entries_19_rf_we <= io_alloc1_we;
-        else if (_GEN_56)
+        else if (_GEN_58)
           entries_19_rf_we <= io_alloc_we;
       end
-      else if (_GEN_169)
+      else if (_GEN_171)
         entries_19_rf_we <= io_alloc_we;
       entries_19_done <=
         match1_19 | match0_19
-        | (_GEN_36 ? ~_GEN_107 & entries_19_done : ~_GEN_169 & entries_19_done);
+        | (_GEN_38 ? ~_GEN_109 & entries_19_done : ~_GEN_171 & entries_19_done);
       if (~(io_br_resolve_valid & entries_19_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_252)) begin
-        if (_GEN_36) begin
-          if (_GEN_106)
+          | ~(|_GEN_254)) begin
+        if (_GEN_38) begin
+          if (_GEN_108)
             entries_19_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_56)
+          else if (_GEN_58)
             entries_19_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_169)
+        else if (_GEN_171)
           entries_19_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_19_branch_mask <= ~(tag_bit[3:0]) & entries_19_branch_mask;
       entries_19_has_exc <=
-        _GEN_311
+        _GEN_313
         | (match1_19
              ? io_cdb1_bits_hasException
              : match0_19
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_107 & entries_19_has_exc
-                     : ~_GEN_169 & entries_19_has_exc);
-      if (_GEN_311) begin
+                 : _GEN_38
+                     ? ~_GEN_109 & entries_19_has_exc
+                     : ~_GEN_171 & entries_19_has_exc);
+      if (_GEN_313) begin
         entries_19_ecode <= 6'h3E;
         entries_19_exc_addr <= io_lsq_violation_pc;
       end
@@ -6730,56 +7010,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_19
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_107 & entries_19_ertn : ~_GEN_169 & entries_19_ertn;
+              : _GEN_38 ? ~_GEN_109 & entries_19_ertn : ~_GEN_171 & entries_19_ertn;
       entries_19_is_refetch <=
         match1_19
           ? io_cdb1_bits_is_refetch
           : match0_19
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_107 & entries_19_is_refetch
-                  : ~_GEN_169 & entries_19_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_109 & entries_19_is_refetch
+                  : ~_GEN_171 & entries_19_is_refetch;
       entries_19_is_cacop <=
         match1_19
           ? io_cdb1_bits_is_cacop
           : match0_19
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_107) & entries_19_is_cacop;
+              : ~(_GEN_38 & _GEN_109) & entries_19_is_cacop;
       entries_19_csr_we <=
         match1_19
           ? io_cdb1_bits_csrWe
           : match0_19
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_107 & entries_19_csr_we : ~_GEN_169 & entries_19_csr_we;
+              : _GEN_38 ? ~_GEN_109 & entries_19_csr_we : ~_GEN_171 & entries_19_csr_we;
       entries_19_tlb_we <=
         match1_19
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_19
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_107 & entries_19_tlb_we : ~_GEN_169 & entries_19_tlb_we;
+              : _GEN_38 ? ~_GEN_109 & entries_19_tlb_we : ~_GEN_171 & entries_19_tlb_we;
       entries_19_tlb_fill <=
         match1_19
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_19
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_107 & entries_19_tlb_fill
-                  : ~_GEN_169 & entries_19_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_109 & entries_19_tlb_fill
+                  : ~_GEN_171 & entries_19_tlb_fill;
       entries_19_tlbrd_we <=
         match1_19
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_19
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_107 & entries_19_tlbrd_we
-                  : ~_GEN_169 & entries_19_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_109 & entries_19_tlbrd_we
+                  : ~_GEN_171 & entries_19_tlbrd_we;
       entries_20_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_257
+        & (_GEN_386
+             ? _GEN_259
              : can_commit1
-                 ? ~(_head_T_6 == 5'h14 | _GEN_372) & _GEN_172
-                 : can_commit0 ? ~_GEN_372 & _GEN_172 : _GEN_257);
+                 ? ~(_head_T_6 == 5'h14 | _GEN_374) & _GEN_174
+                 : can_commit0 ? ~_GEN_374 & _GEN_174 : _GEN_259);
       if (match1_20) begin
         entries_20_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_20_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6793,6 +7073,8 @@ module ROB(
         entries_20_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_20_br_type <= io_cdb1_bits_br_type;
         entries_20_ghr <= io_cdb1_bits_ghr;
+        entries_20_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_20_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_20) begin
         entries_20_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -6807,41 +7089,43 @@ module ROB(
         entries_20_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_20_br_type <= io_cdb0_bits_br_type;
         entries_20_ghr <= io_cdb0_bits_ghr;
+        entries_20_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_20_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_108)
+      else if (_GEN_38) begin
+        if (_GEN_110)
           entries_20_rf_we <= io_alloc1_we;
-        else if (_GEN_57)
+        else if (_GEN_59)
           entries_20_rf_we <= io_alloc_we;
       end
-      else if (_GEN_171)
+      else if (_GEN_173)
         entries_20_rf_we <= io_alloc_we;
       entries_20_done <=
         match1_20 | match0_20
-        | (_GEN_36 ? ~_GEN_109 & entries_20_done : ~_GEN_171 & entries_20_done);
+        | (_GEN_38 ? ~_GEN_111 & entries_20_done : ~_GEN_173 & entries_20_done);
       if (~(io_br_resolve_valid & entries_20_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_255)) begin
-        if (_GEN_36) begin
-          if (_GEN_108)
+          | ~(|_GEN_257)) begin
+        if (_GEN_38) begin
+          if (_GEN_110)
             entries_20_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_57)
+          else if (_GEN_59)
             entries_20_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_171)
+        else if (_GEN_173)
           entries_20_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_20_branch_mask <= ~(tag_bit[3:0]) & entries_20_branch_mask;
       entries_20_has_exc <=
-        _GEN_312
+        _GEN_314
         | (match1_20
              ? io_cdb1_bits_hasException
              : match0_20
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_109 & entries_20_has_exc
-                     : ~_GEN_171 & entries_20_has_exc);
-      if (_GEN_312) begin
+                 : _GEN_38
+                     ? ~_GEN_111 & entries_20_has_exc
+                     : ~_GEN_173 & entries_20_has_exc);
+      if (_GEN_314) begin
         entries_20_ecode <= 6'h3E;
         entries_20_exc_addr <= io_lsq_violation_pc;
       end
@@ -6858,56 +7142,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_20
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_109 & entries_20_ertn : ~_GEN_171 & entries_20_ertn;
+              : _GEN_38 ? ~_GEN_111 & entries_20_ertn : ~_GEN_173 & entries_20_ertn;
       entries_20_is_refetch <=
         match1_20
           ? io_cdb1_bits_is_refetch
           : match0_20
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_109 & entries_20_is_refetch
-                  : ~_GEN_171 & entries_20_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_111 & entries_20_is_refetch
+                  : ~_GEN_173 & entries_20_is_refetch;
       entries_20_is_cacop <=
         match1_20
           ? io_cdb1_bits_is_cacop
           : match0_20
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_109) & entries_20_is_cacop;
+              : ~(_GEN_38 & _GEN_111) & entries_20_is_cacop;
       entries_20_csr_we <=
         match1_20
           ? io_cdb1_bits_csrWe
           : match0_20
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_109 & entries_20_csr_we : ~_GEN_171 & entries_20_csr_we;
+              : _GEN_38 ? ~_GEN_111 & entries_20_csr_we : ~_GEN_173 & entries_20_csr_we;
       entries_20_tlb_we <=
         match1_20
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_20
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_109 & entries_20_tlb_we : ~_GEN_171 & entries_20_tlb_we;
+              : _GEN_38 ? ~_GEN_111 & entries_20_tlb_we : ~_GEN_173 & entries_20_tlb_we;
       entries_20_tlb_fill <=
         match1_20
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_20
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_109 & entries_20_tlb_fill
-                  : ~_GEN_171 & entries_20_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_111 & entries_20_tlb_fill
+                  : ~_GEN_173 & entries_20_tlb_fill;
       entries_20_tlbrd_we <=
         match1_20
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_20
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_109 & entries_20_tlbrd_we
-                  : ~_GEN_171 & entries_20_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_111 & entries_20_tlbrd_we
+                  : ~_GEN_173 & entries_20_tlbrd_we;
       entries_21_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_260
+        & (_GEN_386
+             ? _GEN_262
              : can_commit1
-                 ? ~(_head_T_6 == 5'h15 | _GEN_373) & _GEN_174
-                 : can_commit0 ? ~_GEN_373 & _GEN_174 : _GEN_260);
+                 ? ~(_head_T_6 == 5'h15 | _GEN_375) & _GEN_176
+                 : can_commit0 ? ~_GEN_375 & _GEN_176 : _GEN_262);
       if (match1_21) begin
         entries_21_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_21_rf_wdata <= io_cdb1_bits_ex_result;
@@ -6921,6 +7205,8 @@ module ROB(
         entries_21_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_21_br_type <= io_cdb1_bits_br_type;
         entries_21_ghr <= io_cdb1_bits_ghr;
+        entries_21_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_21_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_21) begin
         entries_21_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -6935,41 +7221,43 @@ module ROB(
         entries_21_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_21_br_type <= io_cdb0_bits_br_type;
         entries_21_ghr <= io_cdb0_bits_ghr;
+        entries_21_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_21_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_110)
+      else if (_GEN_38) begin
+        if (_GEN_112)
           entries_21_rf_we <= io_alloc1_we;
-        else if (_GEN_58)
+        else if (_GEN_60)
           entries_21_rf_we <= io_alloc_we;
       end
-      else if (_GEN_173)
+      else if (_GEN_175)
         entries_21_rf_we <= io_alloc_we;
       entries_21_done <=
         match1_21 | match0_21
-        | (_GEN_36 ? ~_GEN_111 & entries_21_done : ~_GEN_173 & entries_21_done);
+        | (_GEN_38 ? ~_GEN_113 & entries_21_done : ~_GEN_175 & entries_21_done);
       if (~(io_br_resolve_valid & entries_21_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_258)) begin
-        if (_GEN_36) begin
-          if (_GEN_110)
+          | ~(|_GEN_260)) begin
+        if (_GEN_38) begin
+          if (_GEN_112)
             entries_21_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_58)
+          else if (_GEN_60)
             entries_21_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_173)
+        else if (_GEN_175)
           entries_21_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_21_branch_mask <= ~(tag_bit[3:0]) & entries_21_branch_mask;
       entries_21_has_exc <=
-        _GEN_313
+        _GEN_315
         | (match1_21
              ? io_cdb1_bits_hasException
              : match0_21
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_111 & entries_21_has_exc
-                     : ~_GEN_173 & entries_21_has_exc);
-      if (_GEN_313) begin
+                 : _GEN_38
+                     ? ~_GEN_113 & entries_21_has_exc
+                     : ~_GEN_175 & entries_21_has_exc);
+      if (_GEN_315) begin
         entries_21_ecode <= 6'h3E;
         entries_21_exc_addr <= io_lsq_violation_pc;
       end
@@ -6986,56 +7274,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_21
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_111 & entries_21_ertn : ~_GEN_173 & entries_21_ertn;
+              : _GEN_38 ? ~_GEN_113 & entries_21_ertn : ~_GEN_175 & entries_21_ertn;
       entries_21_is_refetch <=
         match1_21
           ? io_cdb1_bits_is_refetch
           : match0_21
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_111 & entries_21_is_refetch
-                  : ~_GEN_173 & entries_21_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_113 & entries_21_is_refetch
+                  : ~_GEN_175 & entries_21_is_refetch;
       entries_21_is_cacop <=
         match1_21
           ? io_cdb1_bits_is_cacop
           : match0_21
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_111) & entries_21_is_cacop;
+              : ~(_GEN_38 & _GEN_113) & entries_21_is_cacop;
       entries_21_csr_we <=
         match1_21
           ? io_cdb1_bits_csrWe
           : match0_21
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_111 & entries_21_csr_we : ~_GEN_173 & entries_21_csr_we;
+              : _GEN_38 ? ~_GEN_113 & entries_21_csr_we : ~_GEN_175 & entries_21_csr_we;
       entries_21_tlb_we <=
         match1_21
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_21
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_111 & entries_21_tlb_we : ~_GEN_173 & entries_21_tlb_we;
+              : _GEN_38 ? ~_GEN_113 & entries_21_tlb_we : ~_GEN_175 & entries_21_tlb_we;
       entries_21_tlb_fill <=
         match1_21
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_21
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_111 & entries_21_tlb_fill
-                  : ~_GEN_173 & entries_21_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_113 & entries_21_tlb_fill
+                  : ~_GEN_175 & entries_21_tlb_fill;
       entries_21_tlbrd_we <=
         match1_21
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_21
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_111 & entries_21_tlbrd_we
-                  : ~_GEN_173 & entries_21_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_113 & entries_21_tlbrd_we
+                  : ~_GEN_175 & entries_21_tlbrd_we;
       entries_22_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_263
+        & (_GEN_386
+             ? _GEN_265
              : can_commit1
-                 ? ~(_head_T_6 == 5'h16 | _GEN_374) & _GEN_176
-                 : can_commit0 ? ~_GEN_374 & _GEN_176 : _GEN_263);
+                 ? ~(_head_T_6 == 5'h16 | _GEN_376) & _GEN_178
+                 : can_commit0 ? ~_GEN_376 & _GEN_178 : _GEN_265);
       if (match1_22) begin
         entries_22_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_22_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7049,6 +7337,8 @@ module ROB(
         entries_22_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_22_br_type <= io_cdb1_bits_br_type;
         entries_22_ghr <= io_cdb1_bits_ghr;
+        entries_22_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_22_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_22) begin
         entries_22_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -7063,41 +7353,43 @@ module ROB(
         entries_22_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_22_br_type <= io_cdb0_bits_br_type;
         entries_22_ghr <= io_cdb0_bits_ghr;
+        entries_22_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_22_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_112)
+      else if (_GEN_38) begin
+        if (_GEN_114)
           entries_22_rf_we <= io_alloc1_we;
-        else if (_GEN_59)
+        else if (_GEN_61)
           entries_22_rf_we <= io_alloc_we;
       end
-      else if (_GEN_175)
+      else if (_GEN_177)
         entries_22_rf_we <= io_alloc_we;
       entries_22_done <=
         match1_22 | match0_22
-        | (_GEN_36 ? ~_GEN_113 & entries_22_done : ~_GEN_175 & entries_22_done);
+        | (_GEN_38 ? ~_GEN_115 & entries_22_done : ~_GEN_177 & entries_22_done);
       if (~(io_br_resolve_valid & entries_22_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_261)) begin
-        if (_GEN_36) begin
-          if (_GEN_112)
+          | ~(|_GEN_263)) begin
+        if (_GEN_38) begin
+          if (_GEN_114)
             entries_22_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_59)
+          else if (_GEN_61)
             entries_22_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_175)
+        else if (_GEN_177)
           entries_22_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_22_branch_mask <= ~(tag_bit[3:0]) & entries_22_branch_mask;
       entries_22_has_exc <=
-        _GEN_314
+        _GEN_316
         | (match1_22
              ? io_cdb1_bits_hasException
              : match0_22
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_113 & entries_22_has_exc
-                     : ~_GEN_175 & entries_22_has_exc);
-      if (_GEN_314) begin
+                 : _GEN_38
+                     ? ~_GEN_115 & entries_22_has_exc
+                     : ~_GEN_177 & entries_22_has_exc);
+      if (_GEN_316) begin
         entries_22_ecode <= 6'h3E;
         entries_22_exc_addr <= io_lsq_violation_pc;
       end
@@ -7114,56 +7406,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_22
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_113 & entries_22_ertn : ~_GEN_175 & entries_22_ertn;
+              : _GEN_38 ? ~_GEN_115 & entries_22_ertn : ~_GEN_177 & entries_22_ertn;
       entries_22_is_refetch <=
         match1_22
           ? io_cdb1_bits_is_refetch
           : match0_22
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_113 & entries_22_is_refetch
-                  : ~_GEN_175 & entries_22_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_115 & entries_22_is_refetch
+                  : ~_GEN_177 & entries_22_is_refetch;
       entries_22_is_cacop <=
         match1_22
           ? io_cdb1_bits_is_cacop
           : match0_22
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_113) & entries_22_is_cacop;
+              : ~(_GEN_38 & _GEN_115) & entries_22_is_cacop;
       entries_22_csr_we <=
         match1_22
           ? io_cdb1_bits_csrWe
           : match0_22
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_113 & entries_22_csr_we : ~_GEN_175 & entries_22_csr_we;
+              : _GEN_38 ? ~_GEN_115 & entries_22_csr_we : ~_GEN_177 & entries_22_csr_we;
       entries_22_tlb_we <=
         match1_22
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_22
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_113 & entries_22_tlb_we : ~_GEN_175 & entries_22_tlb_we;
+              : _GEN_38 ? ~_GEN_115 & entries_22_tlb_we : ~_GEN_177 & entries_22_tlb_we;
       entries_22_tlb_fill <=
         match1_22
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_22
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_113 & entries_22_tlb_fill
-                  : ~_GEN_175 & entries_22_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_115 & entries_22_tlb_fill
+                  : ~_GEN_177 & entries_22_tlb_fill;
       entries_22_tlbrd_we <=
         match1_22
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_22
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_113 & entries_22_tlbrd_we
-                  : ~_GEN_175 & entries_22_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_115 & entries_22_tlbrd_we
+                  : ~_GEN_177 & entries_22_tlbrd_we;
       entries_23_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_266
+        & (_GEN_386
+             ? _GEN_268
              : can_commit1
-                 ? ~(_head_T_6 == 5'h17 | _GEN_375) & _GEN_178
-                 : can_commit0 ? ~_GEN_375 & _GEN_178 : _GEN_266);
+                 ? ~(_head_T_6 == 5'h17 | _GEN_377) & _GEN_180
+                 : can_commit0 ? ~_GEN_377 & _GEN_180 : _GEN_268);
       if (match1_23) begin
         entries_23_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_23_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7177,6 +7469,8 @@ module ROB(
         entries_23_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_23_br_type <= io_cdb1_bits_br_type;
         entries_23_ghr <= io_cdb1_bits_ghr;
+        entries_23_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_23_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_23) begin
         entries_23_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -7191,41 +7485,43 @@ module ROB(
         entries_23_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_23_br_type <= io_cdb0_bits_br_type;
         entries_23_ghr <= io_cdb0_bits_ghr;
+        entries_23_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_23_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_114)
+      else if (_GEN_38) begin
+        if (_GEN_116)
           entries_23_rf_we <= io_alloc1_we;
-        else if (_GEN_60)
+        else if (_GEN_62)
           entries_23_rf_we <= io_alloc_we;
       end
-      else if (_GEN_177)
+      else if (_GEN_179)
         entries_23_rf_we <= io_alloc_we;
       entries_23_done <=
         match1_23 | match0_23
-        | (_GEN_36 ? ~_GEN_115 & entries_23_done : ~_GEN_177 & entries_23_done);
+        | (_GEN_38 ? ~_GEN_117 & entries_23_done : ~_GEN_179 & entries_23_done);
       if (~(io_br_resolve_valid & entries_23_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_264)) begin
-        if (_GEN_36) begin
-          if (_GEN_114)
+          | ~(|_GEN_266)) begin
+        if (_GEN_38) begin
+          if (_GEN_116)
             entries_23_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_60)
+          else if (_GEN_62)
             entries_23_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_177)
+        else if (_GEN_179)
           entries_23_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_23_branch_mask <= ~(tag_bit[3:0]) & entries_23_branch_mask;
       entries_23_has_exc <=
-        _GEN_315
+        _GEN_317
         | (match1_23
              ? io_cdb1_bits_hasException
              : match0_23
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_115 & entries_23_has_exc
-                     : ~_GEN_177 & entries_23_has_exc);
-      if (_GEN_315) begin
+                 : _GEN_38
+                     ? ~_GEN_117 & entries_23_has_exc
+                     : ~_GEN_179 & entries_23_has_exc);
+      if (_GEN_317) begin
         entries_23_ecode <= 6'h3E;
         entries_23_exc_addr <= io_lsq_violation_pc;
       end
@@ -7242,56 +7538,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_23
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_115 & entries_23_ertn : ~_GEN_177 & entries_23_ertn;
+              : _GEN_38 ? ~_GEN_117 & entries_23_ertn : ~_GEN_179 & entries_23_ertn;
       entries_23_is_refetch <=
         match1_23
           ? io_cdb1_bits_is_refetch
           : match0_23
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_115 & entries_23_is_refetch
-                  : ~_GEN_177 & entries_23_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_117 & entries_23_is_refetch
+                  : ~_GEN_179 & entries_23_is_refetch;
       entries_23_is_cacop <=
         match1_23
           ? io_cdb1_bits_is_cacop
           : match0_23
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_115) & entries_23_is_cacop;
+              : ~(_GEN_38 & _GEN_117) & entries_23_is_cacop;
       entries_23_csr_we <=
         match1_23
           ? io_cdb1_bits_csrWe
           : match0_23
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_115 & entries_23_csr_we : ~_GEN_177 & entries_23_csr_we;
+              : _GEN_38 ? ~_GEN_117 & entries_23_csr_we : ~_GEN_179 & entries_23_csr_we;
       entries_23_tlb_we <=
         match1_23
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_23
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_115 & entries_23_tlb_we : ~_GEN_177 & entries_23_tlb_we;
+              : _GEN_38 ? ~_GEN_117 & entries_23_tlb_we : ~_GEN_179 & entries_23_tlb_we;
       entries_23_tlb_fill <=
         match1_23
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_23
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_115 & entries_23_tlb_fill
-                  : ~_GEN_177 & entries_23_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_117 & entries_23_tlb_fill
+                  : ~_GEN_179 & entries_23_tlb_fill;
       entries_23_tlbrd_we <=
         match1_23
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_23
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_115 & entries_23_tlbrd_we
-                  : ~_GEN_177 & entries_23_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_117 & entries_23_tlbrd_we
+                  : ~_GEN_179 & entries_23_tlbrd_we;
       entries_24_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_269
+        & (_GEN_386
+             ? _GEN_271
              : can_commit1
-                 ? ~(_head_T_6 == 5'h18 | _GEN_376) & _GEN_180
-                 : can_commit0 ? ~_GEN_376 & _GEN_180 : _GEN_269);
+                 ? ~(_head_T_6 == 5'h18 | _GEN_378) & _GEN_182
+                 : can_commit0 ? ~_GEN_378 & _GEN_182 : _GEN_271);
       if (match1_24) begin
         entries_24_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_24_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7305,6 +7601,8 @@ module ROB(
         entries_24_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_24_br_type <= io_cdb1_bits_br_type;
         entries_24_ghr <= io_cdb1_bits_ghr;
+        entries_24_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_24_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_24) begin
         entries_24_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -7319,41 +7617,43 @@ module ROB(
         entries_24_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_24_br_type <= io_cdb0_bits_br_type;
         entries_24_ghr <= io_cdb0_bits_ghr;
+        entries_24_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_24_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_116)
+      else if (_GEN_38) begin
+        if (_GEN_118)
           entries_24_rf_we <= io_alloc1_we;
-        else if (_GEN_61)
+        else if (_GEN_63)
           entries_24_rf_we <= io_alloc_we;
       end
-      else if (_GEN_179)
+      else if (_GEN_181)
         entries_24_rf_we <= io_alloc_we;
       entries_24_done <=
         match1_24 | match0_24
-        | (_GEN_36 ? ~_GEN_117 & entries_24_done : ~_GEN_179 & entries_24_done);
+        | (_GEN_38 ? ~_GEN_119 & entries_24_done : ~_GEN_181 & entries_24_done);
       if (~(io_br_resolve_valid & entries_24_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_267)) begin
-        if (_GEN_36) begin
-          if (_GEN_116)
+          | ~(|_GEN_269)) begin
+        if (_GEN_38) begin
+          if (_GEN_118)
             entries_24_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_61)
+          else if (_GEN_63)
             entries_24_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_179)
+        else if (_GEN_181)
           entries_24_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_24_branch_mask <= ~(tag_bit[3:0]) & entries_24_branch_mask;
       entries_24_has_exc <=
-        _GEN_316
+        _GEN_318
         | (match1_24
              ? io_cdb1_bits_hasException
              : match0_24
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_117 & entries_24_has_exc
-                     : ~_GEN_179 & entries_24_has_exc);
-      if (_GEN_316) begin
+                 : _GEN_38
+                     ? ~_GEN_119 & entries_24_has_exc
+                     : ~_GEN_181 & entries_24_has_exc);
+      if (_GEN_318) begin
         entries_24_ecode <= 6'h3E;
         entries_24_exc_addr <= io_lsq_violation_pc;
       end
@@ -7370,56 +7670,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_24
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_117 & entries_24_ertn : ~_GEN_179 & entries_24_ertn;
+              : _GEN_38 ? ~_GEN_119 & entries_24_ertn : ~_GEN_181 & entries_24_ertn;
       entries_24_is_refetch <=
         match1_24
           ? io_cdb1_bits_is_refetch
           : match0_24
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_117 & entries_24_is_refetch
-                  : ~_GEN_179 & entries_24_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_119 & entries_24_is_refetch
+                  : ~_GEN_181 & entries_24_is_refetch;
       entries_24_is_cacop <=
         match1_24
           ? io_cdb1_bits_is_cacop
           : match0_24
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_117) & entries_24_is_cacop;
+              : ~(_GEN_38 & _GEN_119) & entries_24_is_cacop;
       entries_24_csr_we <=
         match1_24
           ? io_cdb1_bits_csrWe
           : match0_24
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_117 & entries_24_csr_we : ~_GEN_179 & entries_24_csr_we;
+              : _GEN_38 ? ~_GEN_119 & entries_24_csr_we : ~_GEN_181 & entries_24_csr_we;
       entries_24_tlb_we <=
         match1_24
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_24
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_117 & entries_24_tlb_we : ~_GEN_179 & entries_24_tlb_we;
+              : _GEN_38 ? ~_GEN_119 & entries_24_tlb_we : ~_GEN_181 & entries_24_tlb_we;
       entries_24_tlb_fill <=
         match1_24
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_24
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_117 & entries_24_tlb_fill
-                  : ~_GEN_179 & entries_24_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_119 & entries_24_tlb_fill
+                  : ~_GEN_181 & entries_24_tlb_fill;
       entries_24_tlbrd_we <=
         match1_24
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_24
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_117 & entries_24_tlbrd_we
-                  : ~_GEN_179 & entries_24_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_119 & entries_24_tlbrd_we
+                  : ~_GEN_181 & entries_24_tlbrd_we;
       entries_25_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_272
+        & (_GEN_386
+             ? _GEN_274
              : can_commit1
-                 ? ~(_head_T_6 == 5'h19 | _GEN_377) & _GEN_182
-                 : can_commit0 ? ~_GEN_377 & _GEN_182 : _GEN_272);
+                 ? ~(_head_T_6 == 5'h19 | _GEN_379) & _GEN_184
+                 : can_commit0 ? ~_GEN_379 & _GEN_184 : _GEN_274);
       if (match1_25) begin
         entries_25_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_25_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7433,6 +7733,8 @@ module ROB(
         entries_25_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_25_br_type <= io_cdb1_bits_br_type;
         entries_25_ghr <= io_cdb1_bits_ghr;
+        entries_25_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_25_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_25) begin
         entries_25_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -7447,41 +7749,43 @@ module ROB(
         entries_25_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_25_br_type <= io_cdb0_bits_br_type;
         entries_25_ghr <= io_cdb0_bits_ghr;
+        entries_25_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_25_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_118)
+      else if (_GEN_38) begin
+        if (_GEN_120)
           entries_25_rf_we <= io_alloc1_we;
-        else if (_GEN_62)
+        else if (_GEN_64)
           entries_25_rf_we <= io_alloc_we;
       end
-      else if (_GEN_181)
+      else if (_GEN_183)
         entries_25_rf_we <= io_alloc_we;
       entries_25_done <=
         match1_25 | match0_25
-        | (_GEN_36 ? ~_GEN_119 & entries_25_done : ~_GEN_181 & entries_25_done);
+        | (_GEN_38 ? ~_GEN_121 & entries_25_done : ~_GEN_183 & entries_25_done);
       if (~(io_br_resolve_valid & entries_25_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_270)) begin
-        if (_GEN_36) begin
-          if (_GEN_118)
+          | ~(|_GEN_272)) begin
+        if (_GEN_38) begin
+          if (_GEN_120)
             entries_25_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_62)
+          else if (_GEN_64)
             entries_25_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_181)
+        else if (_GEN_183)
           entries_25_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_25_branch_mask <= ~(tag_bit[3:0]) & entries_25_branch_mask;
       entries_25_has_exc <=
-        _GEN_317
+        _GEN_319
         | (match1_25
              ? io_cdb1_bits_hasException
              : match0_25
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_119 & entries_25_has_exc
-                     : ~_GEN_181 & entries_25_has_exc);
-      if (_GEN_317) begin
+                 : _GEN_38
+                     ? ~_GEN_121 & entries_25_has_exc
+                     : ~_GEN_183 & entries_25_has_exc);
+      if (_GEN_319) begin
         entries_25_ecode <= 6'h3E;
         entries_25_exc_addr <= io_lsq_violation_pc;
       end
@@ -7498,56 +7802,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_25
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_119 & entries_25_ertn : ~_GEN_181 & entries_25_ertn;
+              : _GEN_38 ? ~_GEN_121 & entries_25_ertn : ~_GEN_183 & entries_25_ertn;
       entries_25_is_refetch <=
         match1_25
           ? io_cdb1_bits_is_refetch
           : match0_25
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_119 & entries_25_is_refetch
-                  : ~_GEN_181 & entries_25_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_121 & entries_25_is_refetch
+                  : ~_GEN_183 & entries_25_is_refetch;
       entries_25_is_cacop <=
         match1_25
           ? io_cdb1_bits_is_cacop
           : match0_25
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_119) & entries_25_is_cacop;
+              : ~(_GEN_38 & _GEN_121) & entries_25_is_cacop;
       entries_25_csr_we <=
         match1_25
           ? io_cdb1_bits_csrWe
           : match0_25
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_119 & entries_25_csr_we : ~_GEN_181 & entries_25_csr_we;
+              : _GEN_38 ? ~_GEN_121 & entries_25_csr_we : ~_GEN_183 & entries_25_csr_we;
       entries_25_tlb_we <=
         match1_25
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_25
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_119 & entries_25_tlb_we : ~_GEN_181 & entries_25_tlb_we;
+              : _GEN_38 ? ~_GEN_121 & entries_25_tlb_we : ~_GEN_183 & entries_25_tlb_we;
       entries_25_tlb_fill <=
         match1_25
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_25
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_119 & entries_25_tlb_fill
-                  : ~_GEN_181 & entries_25_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_121 & entries_25_tlb_fill
+                  : ~_GEN_183 & entries_25_tlb_fill;
       entries_25_tlbrd_we <=
         match1_25
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_25
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_119 & entries_25_tlbrd_we
-                  : ~_GEN_181 & entries_25_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_121 & entries_25_tlbrd_we
+                  : ~_GEN_183 & entries_25_tlbrd_we;
       entries_26_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_275
+        & (_GEN_386
+             ? _GEN_277
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1A | _GEN_378) & _GEN_184
-                 : can_commit0 ? ~_GEN_378 & _GEN_184 : _GEN_275);
+                 ? ~(_head_T_6 == 5'h1A | _GEN_380) & _GEN_186
+                 : can_commit0 ? ~_GEN_380 & _GEN_186 : _GEN_277);
       if (match1_26) begin
         entries_26_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_26_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7561,6 +7865,8 @@ module ROB(
         entries_26_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_26_br_type <= io_cdb1_bits_br_type;
         entries_26_ghr <= io_cdb1_bits_ghr;
+        entries_26_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_26_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_26) begin
         entries_26_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -7575,41 +7881,43 @@ module ROB(
         entries_26_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_26_br_type <= io_cdb0_bits_br_type;
         entries_26_ghr <= io_cdb0_bits_ghr;
+        entries_26_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_26_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_120)
+      else if (_GEN_38) begin
+        if (_GEN_122)
           entries_26_rf_we <= io_alloc1_we;
-        else if (_GEN_63)
+        else if (_GEN_65)
           entries_26_rf_we <= io_alloc_we;
       end
-      else if (_GEN_183)
+      else if (_GEN_185)
         entries_26_rf_we <= io_alloc_we;
       entries_26_done <=
         match1_26 | match0_26
-        | (_GEN_36 ? ~_GEN_121 & entries_26_done : ~_GEN_183 & entries_26_done);
+        | (_GEN_38 ? ~_GEN_123 & entries_26_done : ~_GEN_185 & entries_26_done);
       if (~(io_br_resolve_valid & entries_26_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_273)) begin
-        if (_GEN_36) begin
-          if (_GEN_120)
+          | ~(|_GEN_275)) begin
+        if (_GEN_38) begin
+          if (_GEN_122)
             entries_26_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_63)
+          else if (_GEN_65)
             entries_26_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_183)
+        else if (_GEN_185)
           entries_26_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_26_branch_mask <= ~(tag_bit[3:0]) & entries_26_branch_mask;
       entries_26_has_exc <=
-        _GEN_318
+        _GEN_320
         | (match1_26
              ? io_cdb1_bits_hasException
              : match0_26
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_121 & entries_26_has_exc
-                     : ~_GEN_183 & entries_26_has_exc);
-      if (_GEN_318) begin
+                 : _GEN_38
+                     ? ~_GEN_123 & entries_26_has_exc
+                     : ~_GEN_185 & entries_26_has_exc);
+      if (_GEN_320) begin
         entries_26_ecode <= 6'h3E;
         entries_26_exc_addr <= io_lsq_violation_pc;
       end
@@ -7626,56 +7934,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_26
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_121 & entries_26_ertn : ~_GEN_183 & entries_26_ertn;
+              : _GEN_38 ? ~_GEN_123 & entries_26_ertn : ~_GEN_185 & entries_26_ertn;
       entries_26_is_refetch <=
         match1_26
           ? io_cdb1_bits_is_refetch
           : match0_26
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_121 & entries_26_is_refetch
-                  : ~_GEN_183 & entries_26_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_123 & entries_26_is_refetch
+                  : ~_GEN_185 & entries_26_is_refetch;
       entries_26_is_cacop <=
         match1_26
           ? io_cdb1_bits_is_cacop
           : match0_26
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_121) & entries_26_is_cacop;
+              : ~(_GEN_38 & _GEN_123) & entries_26_is_cacop;
       entries_26_csr_we <=
         match1_26
           ? io_cdb1_bits_csrWe
           : match0_26
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_121 & entries_26_csr_we : ~_GEN_183 & entries_26_csr_we;
+              : _GEN_38 ? ~_GEN_123 & entries_26_csr_we : ~_GEN_185 & entries_26_csr_we;
       entries_26_tlb_we <=
         match1_26
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_26
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_121 & entries_26_tlb_we : ~_GEN_183 & entries_26_tlb_we;
+              : _GEN_38 ? ~_GEN_123 & entries_26_tlb_we : ~_GEN_185 & entries_26_tlb_we;
       entries_26_tlb_fill <=
         match1_26
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_26
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_121 & entries_26_tlb_fill
-                  : ~_GEN_183 & entries_26_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_123 & entries_26_tlb_fill
+                  : ~_GEN_185 & entries_26_tlb_fill;
       entries_26_tlbrd_we <=
         match1_26
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_26
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_121 & entries_26_tlbrd_we
-                  : ~_GEN_183 & entries_26_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_123 & entries_26_tlbrd_we
+                  : ~_GEN_185 & entries_26_tlbrd_we;
       entries_27_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_278
+        & (_GEN_386
+             ? _GEN_280
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1B | _GEN_379) & _GEN_186
-                 : can_commit0 ? ~_GEN_379 & _GEN_186 : _GEN_278);
+                 ? ~(_head_T_6 == 5'h1B | _GEN_381) & _GEN_188
+                 : can_commit0 ? ~_GEN_381 & _GEN_188 : _GEN_280);
       if (match1_27) begin
         entries_27_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_27_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7689,6 +7997,8 @@ module ROB(
         entries_27_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_27_br_type <= io_cdb1_bits_br_type;
         entries_27_ghr <= io_cdb1_bits_ghr;
+        entries_27_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_27_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_27) begin
         entries_27_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -7703,41 +8013,43 @@ module ROB(
         entries_27_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_27_br_type <= io_cdb0_bits_br_type;
         entries_27_ghr <= io_cdb0_bits_ghr;
+        entries_27_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_27_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_122)
+      else if (_GEN_38) begin
+        if (_GEN_124)
           entries_27_rf_we <= io_alloc1_we;
-        else if (_GEN_64)
+        else if (_GEN_66)
           entries_27_rf_we <= io_alloc_we;
       end
-      else if (_GEN_185)
+      else if (_GEN_187)
         entries_27_rf_we <= io_alloc_we;
       entries_27_done <=
         match1_27 | match0_27
-        | (_GEN_36 ? ~_GEN_123 & entries_27_done : ~_GEN_185 & entries_27_done);
+        | (_GEN_38 ? ~_GEN_125 & entries_27_done : ~_GEN_187 & entries_27_done);
       if (~(io_br_resolve_valid & entries_27_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_276)) begin
-        if (_GEN_36) begin
-          if (_GEN_122)
+          | ~(|_GEN_278)) begin
+        if (_GEN_38) begin
+          if (_GEN_124)
             entries_27_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_64)
+          else if (_GEN_66)
             entries_27_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_185)
+        else if (_GEN_187)
           entries_27_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_27_branch_mask <= ~(tag_bit[3:0]) & entries_27_branch_mask;
       entries_27_has_exc <=
-        _GEN_319
+        _GEN_321
         | (match1_27
              ? io_cdb1_bits_hasException
              : match0_27
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_123 & entries_27_has_exc
-                     : ~_GEN_185 & entries_27_has_exc);
-      if (_GEN_319) begin
+                 : _GEN_38
+                     ? ~_GEN_125 & entries_27_has_exc
+                     : ~_GEN_187 & entries_27_has_exc);
+      if (_GEN_321) begin
         entries_27_ecode <= 6'h3E;
         entries_27_exc_addr <= io_lsq_violation_pc;
       end
@@ -7754,56 +8066,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_27
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_123 & entries_27_ertn : ~_GEN_185 & entries_27_ertn;
+              : _GEN_38 ? ~_GEN_125 & entries_27_ertn : ~_GEN_187 & entries_27_ertn;
       entries_27_is_refetch <=
         match1_27
           ? io_cdb1_bits_is_refetch
           : match0_27
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_123 & entries_27_is_refetch
-                  : ~_GEN_185 & entries_27_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_125 & entries_27_is_refetch
+                  : ~_GEN_187 & entries_27_is_refetch;
       entries_27_is_cacop <=
         match1_27
           ? io_cdb1_bits_is_cacop
           : match0_27
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_123) & entries_27_is_cacop;
+              : ~(_GEN_38 & _GEN_125) & entries_27_is_cacop;
       entries_27_csr_we <=
         match1_27
           ? io_cdb1_bits_csrWe
           : match0_27
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_123 & entries_27_csr_we : ~_GEN_185 & entries_27_csr_we;
+              : _GEN_38 ? ~_GEN_125 & entries_27_csr_we : ~_GEN_187 & entries_27_csr_we;
       entries_27_tlb_we <=
         match1_27
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_27
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_123 & entries_27_tlb_we : ~_GEN_185 & entries_27_tlb_we;
+              : _GEN_38 ? ~_GEN_125 & entries_27_tlb_we : ~_GEN_187 & entries_27_tlb_we;
       entries_27_tlb_fill <=
         match1_27
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_27
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_123 & entries_27_tlb_fill
-                  : ~_GEN_185 & entries_27_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_125 & entries_27_tlb_fill
+                  : ~_GEN_187 & entries_27_tlb_fill;
       entries_27_tlbrd_we <=
         match1_27
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_27
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_123 & entries_27_tlbrd_we
-                  : ~_GEN_185 & entries_27_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_125 & entries_27_tlbrd_we
+                  : ~_GEN_187 & entries_27_tlbrd_we;
       entries_28_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_281
+        & (_GEN_386
+             ? _GEN_283
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1C | _GEN_380) & _GEN_188
-                 : can_commit0 ? ~_GEN_380 & _GEN_188 : _GEN_281);
+                 ? ~(_head_T_6 == 5'h1C | _GEN_382) & _GEN_190
+                 : can_commit0 ? ~_GEN_382 & _GEN_190 : _GEN_283);
       if (match1_28) begin
         entries_28_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_28_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7817,6 +8129,8 @@ module ROB(
         entries_28_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_28_br_type <= io_cdb1_bits_br_type;
         entries_28_ghr <= io_cdb1_bits_ghr;
+        entries_28_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_28_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_28) begin
         entries_28_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -7831,41 +8145,43 @@ module ROB(
         entries_28_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_28_br_type <= io_cdb0_bits_br_type;
         entries_28_ghr <= io_cdb0_bits_ghr;
+        entries_28_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_28_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_124)
+      else if (_GEN_38) begin
+        if (_GEN_126)
           entries_28_rf_we <= io_alloc1_we;
-        else if (_GEN_65)
+        else if (_GEN_67)
           entries_28_rf_we <= io_alloc_we;
       end
-      else if (_GEN_187)
+      else if (_GEN_189)
         entries_28_rf_we <= io_alloc_we;
       entries_28_done <=
         match1_28 | match0_28
-        | (_GEN_36 ? ~_GEN_125 & entries_28_done : ~_GEN_187 & entries_28_done);
+        | (_GEN_38 ? ~_GEN_127 & entries_28_done : ~_GEN_189 & entries_28_done);
       if (~(io_br_resolve_valid & entries_28_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_279)) begin
-        if (_GEN_36) begin
-          if (_GEN_124)
+          | ~(|_GEN_281)) begin
+        if (_GEN_38) begin
+          if (_GEN_126)
             entries_28_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_65)
+          else if (_GEN_67)
             entries_28_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_187)
+        else if (_GEN_189)
           entries_28_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_28_branch_mask <= ~(tag_bit[3:0]) & entries_28_branch_mask;
       entries_28_has_exc <=
-        _GEN_320
+        _GEN_322
         | (match1_28
              ? io_cdb1_bits_hasException
              : match0_28
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_125 & entries_28_has_exc
-                     : ~_GEN_187 & entries_28_has_exc);
-      if (_GEN_320) begin
+                 : _GEN_38
+                     ? ~_GEN_127 & entries_28_has_exc
+                     : ~_GEN_189 & entries_28_has_exc);
+      if (_GEN_322) begin
         entries_28_ecode <= 6'h3E;
         entries_28_exc_addr <= io_lsq_violation_pc;
       end
@@ -7882,56 +8198,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_28
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_125 & entries_28_ertn : ~_GEN_187 & entries_28_ertn;
+              : _GEN_38 ? ~_GEN_127 & entries_28_ertn : ~_GEN_189 & entries_28_ertn;
       entries_28_is_refetch <=
         match1_28
           ? io_cdb1_bits_is_refetch
           : match0_28
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_125 & entries_28_is_refetch
-                  : ~_GEN_187 & entries_28_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_127 & entries_28_is_refetch
+                  : ~_GEN_189 & entries_28_is_refetch;
       entries_28_is_cacop <=
         match1_28
           ? io_cdb1_bits_is_cacop
           : match0_28
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_125) & entries_28_is_cacop;
+              : ~(_GEN_38 & _GEN_127) & entries_28_is_cacop;
       entries_28_csr_we <=
         match1_28
           ? io_cdb1_bits_csrWe
           : match0_28
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_125 & entries_28_csr_we : ~_GEN_187 & entries_28_csr_we;
+              : _GEN_38 ? ~_GEN_127 & entries_28_csr_we : ~_GEN_189 & entries_28_csr_we;
       entries_28_tlb_we <=
         match1_28
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_28
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_125 & entries_28_tlb_we : ~_GEN_187 & entries_28_tlb_we;
+              : _GEN_38 ? ~_GEN_127 & entries_28_tlb_we : ~_GEN_189 & entries_28_tlb_we;
       entries_28_tlb_fill <=
         match1_28
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_28
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_125 & entries_28_tlb_fill
-                  : ~_GEN_187 & entries_28_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_127 & entries_28_tlb_fill
+                  : ~_GEN_189 & entries_28_tlb_fill;
       entries_28_tlbrd_we <=
         match1_28
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_28
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_125 & entries_28_tlbrd_we
-                  : ~_GEN_187 & entries_28_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_127 & entries_28_tlbrd_we
+                  : ~_GEN_189 & entries_28_tlbrd_we;
       entries_29_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_284
+        & (_GEN_386
+             ? _GEN_286
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1D | _GEN_381) & _GEN_190
-                 : can_commit0 ? ~_GEN_381 & _GEN_190 : _GEN_284);
+                 ? ~(_head_T_6 == 5'h1D | _GEN_383) & _GEN_192
+                 : can_commit0 ? ~_GEN_383 & _GEN_192 : _GEN_286);
       if (match1_29) begin
         entries_29_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_29_rf_wdata <= io_cdb1_bits_ex_result;
@@ -7945,6 +8261,8 @@ module ROB(
         entries_29_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_29_br_type <= io_cdb1_bits_br_type;
         entries_29_ghr <= io_cdb1_bits_ghr;
+        entries_29_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_29_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_29) begin
         entries_29_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -7959,41 +8277,43 @@ module ROB(
         entries_29_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_29_br_type <= io_cdb0_bits_br_type;
         entries_29_ghr <= io_cdb0_bits_ghr;
+        entries_29_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_29_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_126)
+      else if (_GEN_38) begin
+        if (_GEN_128)
           entries_29_rf_we <= io_alloc1_we;
-        else if (_GEN_66)
+        else if (_GEN_68)
           entries_29_rf_we <= io_alloc_we;
       end
-      else if (_GEN_189)
+      else if (_GEN_191)
         entries_29_rf_we <= io_alloc_we;
       entries_29_done <=
         match1_29 | match0_29
-        | (_GEN_36 ? ~_GEN_127 & entries_29_done : ~_GEN_189 & entries_29_done);
+        | (_GEN_38 ? ~_GEN_129 & entries_29_done : ~_GEN_191 & entries_29_done);
       if (~(io_br_resolve_valid & entries_29_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_282)) begin
-        if (_GEN_36) begin
-          if (_GEN_126)
+          | ~(|_GEN_284)) begin
+        if (_GEN_38) begin
+          if (_GEN_128)
             entries_29_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_66)
+          else if (_GEN_68)
             entries_29_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_189)
+        else if (_GEN_191)
           entries_29_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_29_branch_mask <= ~(tag_bit[3:0]) & entries_29_branch_mask;
       entries_29_has_exc <=
-        _GEN_321
+        _GEN_323
         | (match1_29
              ? io_cdb1_bits_hasException
              : match0_29
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_127 & entries_29_has_exc
-                     : ~_GEN_189 & entries_29_has_exc);
-      if (_GEN_321) begin
+                 : _GEN_38
+                     ? ~_GEN_129 & entries_29_has_exc
+                     : ~_GEN_191 & entries_29_has_exc);
+      if (_GEN_323) begin
         entries_29_ecode <= 6'h3E;
         entries_29_exc_addr <= io_lsq_violation_pc;
       end
@@ -8010,56 +8330,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_29
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_127 & entries_29_ertn : ~_GEN_189 & entries_29_ertn;
+              : _GEN_38 ? ~_GEN_129 & entries_29_ertn : ~_GEN_191 & entries_29_ertn;
       entries_29_is_refetch <=
         match1_29
           ? io_cdb1_bits_is_refetch
           : match0_29
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_127 & entries_29_is_refetch
-                  : ~_GEN_189 & entries_29_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_129 & entries_29_is_refetch
+                  : ~_GEN_191 & entries_29_is_refetch;
       entries_29_is_cacop <=
         match1_29
           ? io_cdb1_bits_is_cacop
           : match0_29
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_127) & entries_29_is_cacop;
+              : ~(_GEN_38 & _GEN_129) & entries_29_is_cacop;
       entries_29_csr_we <=
         match1_29
           ? io_cdb1_bits_csrWe
           : match0_29
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_127 & entries_29_csr_we : ~_GEN_189 & entries_29_csr_we;
+              : _GEN_38 ? ~_GEN_129 & entries_29_csr_we : ~_GEN_191 & entries_29_csr_we;
       entries_29_tlb_we <=
         match1_29
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_29
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_127 & entries_29_tlb_we : ~_GEN_189 & entries_29_tlb_we;
+              : _GEN_38 ? ~_GEN_129 & entries_29_tlb_we : ~_GEN_191 & entries_29_tlb_we;
       entries_29_tlb_fill <=
         match1_29
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_29
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_127 & entries_29_tlb_fill
-                  : ~_GEN_189 & entries_29_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_129 & entries_29_tlb_fill
+                  : ~_GEN_191 & entries_29_tlb_fill;
       entries_29_tlbrd_we <=
         match1_29
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_29
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_127 & entries_29_tlbrd_we
-                  : ~_GEN_189 & entries_29_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_129 & entries_29_tlbrd_we
+                  : ~_GEN_191 & entries_29_tlbrd_we;
       entries_30_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_287
+        & (_GEN_386
+             ? _GEN_289
              : can_commit1
-                 ? ~(_head_T_6 == 5'h1E | _GEN_382) & _GEN_192
-                 : can_commit0 ? ~_GEN_382 & _GEN_192 : _GEN_287);
+                 ? ~(_head_T_6 == 5'h1E | _GEN_384) & _GEN_194
+                 : can_commit0 ? ~_GEN_384 & _GEN_194 : _GEN_289);
       if (match1_30) begin
         entries_30_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_30_rf_wdata <= io_cdb1_bits_ex_result;
@@ -8073,6 +8393,8 @@ module ROB(
         entries_30_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_30_br_type <= io_cdb1_bits_br_type;
         entries_30_ghr <= io_cdb1_bits_ghr;
+        entries_30_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_30_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_30) begin
         entries_30_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -8087,41 +8409,43 @@ module ROB(
         entries_30_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_30_br_type <= io_cdb0_bits_br_type;
         entries_30_ghr <= io_cdb0_bits_ghr;
+        entries_30_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_30_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
-        if (_GEN_128)
+      else if (_GEN_38) begin
+        if (_GEN_130)
           entries_30_rf_we <= io_alloc1_we;
-        else if (_GEN_67)
+        else if (_GEN_69)
           entries_30_rf_we <= io_alloc_we;
       end
-      else if (_GEN_191)
+      else if (_GEN_193)
         entries_30_rf_we <= io_alloc_we;
       entries_30_done <=
         match1_30 | match0_30
-        | (_GEN_36 ? ~_GEN_129 & entries_30_done : ~_GEN_191 & entries_30_done);
+        | (_GEN_38 ? ~_GEN_131 & entries_30_done : ~_GEN_193 & entries_30_done);
       if (~(io_br_resolve_valid & entries_30_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_285)) begin
-        if (_GEN_36) begin
-          if (_GEN_128)
+          | ~(|_GEN_287)) begin
+        if (_GEN_38) begin
+          if (_GEN_130)
             entries_30_branch_mask <= io_alloc1_br_mask;
-          else if (_GEN_67)
+          else if (_GEN_69)
             entries_30_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_191)
+        else if (_GEN_193)
           entries_30_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_30_branch_mask <= ~(tag_bit[3:0]) & entries_30_branch_mask;
       entries_30_has_exc <=
-        _GEN_322
+        _GEN_324
         | (match1_30
              ? io_cdb1_bits_hasException
              : match0_30
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_129 & entries_30_has_exc
-                     : ~_GEN_191 & entries_30_has_exc);
-      if (_GEN_322) begin
+                 : _GEN_38
+                     ? ~_GEN_131 & entries_30_has_exc
+                     : ~_GEN_193 & entries_30_has_exc);
+      if (_GEN_324) begin
         entries_30_ecode <= 6'h3E;
         entries_30_exc_addr <= io_lsq_violation_pc;
       end
@@ -8138,56 +8462,56 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_30
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_129 & entries_30_ertn : ~_GEN_191 & entries_30_ertn;
+              : _GEN_38 ? ~_GEN_131 & entries_30_ertn : ~_GEN_193 & entries_30_ertn;
       entries_30_is_refetch <=
         match1_30
           ? io_cdb1_bits_is_refetch
           : match0_30
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_129 & entries_30_is_refetch
-                  : ~_GEN_191 & entries_30_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_131 & entries_30_is_refetch
+                  : ~_GEN_193 & entries_30_is_refetch;
       entries_30_is_cacop <=
         match1_30
           ? io_cdb1_bits_is_cacop
           : match0_30
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_129) & entries_30_is_cacop;
+              : ~(_GEN_38 & _GEN_131) & entries_30_is_cacop;
       entries_30_csr_we <=
         match1_30
           ? io_cdb1_bits_csrWe
           : match0_30
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_129 & entries_30_csr_we : ~_GEN_191 & entries_30_csr_we;
+              : _GEN_38 ? ~_GEN_131 & entries_30_csr_we : ~_GEN_193 & entries_30_csr_we;
       entries_30_tlb_we <=
         match1_30
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_30
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_129 & entries_30_tlb_we : ~_GEN_191 & entries_30_tlb_we;
+              : _GEN_38 ? ~_GEN_131 & entries_30_tlb_we : ~_GEN_193 & entries_30_tlb_we;
       entries_30_tlb_fill <=
         match1_30
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_30
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_129 & entries_30_tlb_fill
-                  : ~_GEN_191 & entries_30_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_131 & entries_30_tlb_fill
+                  : ~_GEN_193 & entries_30_tlb_fill;
       entries_30_tlbrd_we <=
         match1_30
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_30
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_129 & entries_30_tlbrd_we
-                  : ~_GEN_191 & entries_30_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_131 & entries_30_tlbrd_we
+                  : ~_GEN_193 & entries_30_tlbrd_we;
       entries_31_valid <=
         ~io_flush
-        & (_GEN_384
-             ? _GEN_290
+        & (_GEN_386
+             ? _GEN_292
              : can_commit1
-                 ? ~((&_head_T_6) | _GEN_383) & _GEN_194
-                 : can_commit0 ? ~_GEN_383 & _GEN_194 : _GEN_290);
+                 ? ~((&_head_T_6) | _GEN_385) & _GEN_196
+                 : can_commit0 ? ~_GEN_385 & _GEN_196 : _GEN_292);
       if (match1_31) begin
         entries_31_rf_we <= io_cdb1_bits_regWriteEn & ~io_cdb1_bits_hasException;
         entries_31_rf_wdata <= io_cdb1_bits_ex_result;
@@ -8201,6 +8525,8 @@ module ROB(
         entries_31_br_actual_taken <= io_cdb1_bits_br_actual_taken;
         entries_31_br_type <= io_cdb1_bits_br_type;
         entries_31_ghr <= io_cdb1_bits_ghr;
+        entries_31_bimodal_pred <= io_cdb1_bits_bimodal_pred;
+        entries_31_gshare_pred <= io_cdb1_bits_gshare_pred;
       end
       else if (match0_31) begin
         entries_31_rf_we <= io_cdb0_bits_regWriteEn & ~io_cdb0_bits_hasException;
@@ -8215,41 +8541,43 @@ module ROB(
         entries_31_br_actual_taken <= io_cdb0_bits_br_actual_taken;
         entries_31_br_type <= io_cdb0_bits_br_type;
         entries_31_ghr <= io_cdb0_bits_ghr;
+        entries_31_bimodal_pred <= io_cdb0_bits_bimodal_pred;
+        entries_31_gshare_pred <= io_cdb0_bits_gshare_pred;
       end
-      else if (_GEN_36) begin
+      else if (_GEN_38) begin
         if (&_tail_next_T)
           entries_31_rf_we <= io_alloc1_we;
         else if (&tail)
           entries_31_rf_we <= io_alloc_we;
       end
-      else if (_GEN_193)
+      else if (_GEN_195)
         entries_31_rf_we <= io_alloc_we;
       entries_31_done <=
         match1_31 | match0_31
-        | (_GEN_36 ? ~_GEN_130 & entries_31_done : ~_GEN_193 & entries_31_done);
+        | (_GEN_38 ? ~_GEN_132 & entries_31_done : ~_GEN_195 & entries_31_done);
       if (~(io_br_resolve_valid & entries_31_valid) | io_br_resolve_mispredict
-          | ~(|_GEN_288)) begin
-        if (_GEN_36) begin
+          | ~(|_GEN_290)) begin
+        if (_GEN_38) begin
           if (&_tail_next_T)
             entries_31_branch_mask <= io_alloc1_br_mask;
           else if (&tail)
             entries_31_branch_mask <= io_alloc_br_mask;
         end
-        else if (_GEN_193)
+        else if (_GEN_195)
           entries_31_branch_mask <= io_alloc_br_mask;
       end
       else
         entries_31_branch_mask <= ~(tag_bit[3:0]) & entries_31_branch_mask;
       entries_31_has_exc <=
-        _GEN_323
+        _GEN_325
         | (match1_31
              ? io_cdb1_bits_hasException
              : match0_31
                  ? io_cdb0_bits_hasException
-                 : _GEN_36
-                     ? ~_GEN_130 & entries_31_has_exc
-                     : ~_GEN_193 & entries_31_has_exc);
-      if (_GEN_323) begin
+                 : _GEN_38
+                     ? ~_GEN_132 & entries_31_has_exc
+                     : ~_GEN_195 & entries_31_has_exc);
+      if (_GEN_325) begin
         entries_31_ecode <= 6'h3E;
         entries_31_exc_addr <= io_lsq_violation_pc;
       end
@@ -8266,49 +8594,49 @@ module ROB(
           ? io_cdb1_bits_inst_ertn
           : match0_31
               ? io_cdb0_bits_inst_ertn
-              : _GEN_36 ? ~_GEN_130 & entries_31_ertn : ~_GEN_193 & entries_31_ertn;
+              : _GEN_38 ? ~_GEN_132 & entries_31_ertn : ~_GEN_195 & entries_31_ertn;
       entries_31_is_refetch <=
         match1_31
           ? io_cdb1_bits_is_refetch
           : match0_31
               ? io_cdb0_bits_is_refetch
-              : _GEN_36
-                  ? ~_GEN_130 & entries_31_is_refetch
-                  : ~_GEN_193 & entries_31_is_refetch;
+              : _GEN_38
+                  ? ~_GEN_132 & entries_31_is_refetch
+                  : ~_GEN_195 & entries_31_is_refetch;
       entries_31_is_cacop <=
         match1_31
           ? io_cdb1_bits_is_cacop
           : match0_31
               ? io_cdb0_bits_is_cacop
-              : ~(_GEN_36 & _GEN_130) & entries_31_is_cacop;
+              : ~(_GEN_38 & _GEN_132) & entries_31_is_cacop;
       entries_31_csr_we <=
         match1_31
           ? io_cdb1_bits_csrWe
           : match0_31
               ? io_cdb0_bits_csrWe
-              : _GEN_36 ? ~_GEN_130 & entries_31_csr_we : ~_GEN_193 & entries_31_csr_we;
+              : _GEN_38 ? ~_GEN_132 & entries_31_csr_we : ~_GEN_195 & entries_31_csr_we;
       entries_31_tlb_we <=
         match1_31
           ? io_cdb1_bits_tlbOp == 5'h4
           : match0_31
               ? io_cdb0_bits_tlbOp == 5'h4
-              : _GEN_36 ? ~_GEN_130 & entries_31_tlb_we : ~_GEN_193 & entries_31_tlb_we;
+              : _GEN_38 ? ~_GEN_132 & entries_31_tlb_we : ~_GEN_195 & entries_31_tlb_we;
       entries_31_tlb_fill <=
         match1_31
           ? io_cdb1_bits_tlbOp == 5'h8
           : match0_31
               ? io_cdb0_bits_tlbOp == 5'h8
-              : _GEN_36
-                  ? ~_GEN_130 & entries_31_tlb_fill
-                  : ~_GEN_193 & entries_31_tlb_fill;
+              : _GEN_38
+                  ? ~_GEN_132 & entries_31_tlb_fill
+                  : ~_GEN_195 & entries_31_tlb_fill;
       entries_31_tlbrd_we <=
         match1_31
           ? io_cdb1_bits_tlbOp == 5'h2
           : match0_31
               ? io_cdb0_bits_tlbOp == 5'h2
-              : _GEN_36
-                  ? ~_GEN_130 & entries_31_tlbrd_we
-                  : ~_GEN_193 & entries_31_tlbrd_we;
+              : _GEN_38
+                  ? ~_GEN_132 & entries_31_tlbrd_we
+                  : ~_GEN_195 & entries_31_tlbrd_we;
       if (io_flush) begin
         head <= 5'h0;
         tail <= 5'h0;
@@ -8332,71 +8660,71 @@ module ROB(
                        ? 5'h1
                        : _GEN[_head_T_3]
                            ? 5'h2
-                           : _GEN_324
+                           : _GEN_326
                                ? 5'h3
-                               : _GEN_325
+                               : _GEN_327
                                    ? 5'h4
-                                   : _GEN_326
+                                   : _GEN_328
                                        ? 5'h5
-                                       : _GEN_327
+                                       : _GEN_329
                                            ? 5'h6
-                                           : _GEN_328
+                                           : _GEN_330
                                                ? 5'h7
-                                               : _GEN_329
+                                               : _GEN_331
                                                    ? 5'h8
-                                                   : _GEN_330
+                                                   : _GEN_332
                                                        ? 5'h9
-                                                       : _GEN_331
+                                                       : _GEN_333
                                                            ? 5'hA
-                                                           : _GEN_332
+                                                           : _GEN_334
                                                                ? 5'hB
-                                                               : _GEN_333
+                                                               : _GEN_335
                                                                    ? 5'hC
-                                                                   : _GEN_334
+                                                                   : _GEN_336
                                                                        ? 5'hD
-                                                                       : _GEN_335
+                                                                       : _GEN_337
                                                                            ? 5'hE
-                                                                           : _GEN_336
+                                                                           : _GEN_338
                                                                                ? 5'hF
-                                                                               : _GEN_337
+                                                                               : _GEN_339
                                                                                    ? 5'h10
-                                                                                   : _GEN_338
+                                                                                   : _GEN_340
                                                                                        ? 5'h11
-                                                                                       : _GEN_339
+                                                                                       : _GEN_341
                                                                                            ? 5'h12
-                                                                                           : _GEN_340
+                                                                                           : _GEN_342
                                                                                                ? 5'h13
-                                                                                               : _GEN_341
+                                                                                               : _GEN_343
                                                                                                    ? 5'h14
-                                                                                                   : _GEN_342
+                                                                                                   : _GEN_344
                                                                                                        ? 5'h15
-                                                                                                       : _GEN_343
+                                                                                                       : _GEN_345
                                                                                                            ? 5'h16
-                                                                                                           : _GEN_344
+                                                                                                           : _GEN_346
                                                                                                                ? 5'h17
-                                                                                                               : _GEN_345
+                                                                                                               : _GEN_347
                                                                                                                    ? 5'h18
-                                                                                                                   : _GEN_346
+                                                                                                                   : _GEN_348
                                                                                                                        ? 5'h19
-                                                                                                                       : _GEN_347
+                                                                                                                       : _GEN_349
                                                                                                                            ? 5'h1A
-                                                                                                                           : _GEN_348
+                                                                                                                           : _GEN_350
                                                                                                                                ? 5'h1B
-                                                                                                                               : _GEN_349
+                                                                                                                               : _GEN_351
                                                                                                                                    ? 5'h1C
-                                                                                                                                   : _GEN_350
+                                                                                                                                   : _GEN_352
                                                                                                                                        ? 5'h1D
                                                                                                                                        : {4'hF,
-                                                                                                                                          ~_GEN_351});
+                                                                                                                                          ~_GEN_353});
         end
-        if (_GEN_36)
+        if (_GEN_38)
           tail <= _tail_next2_T;
         else if (fire0)
           tail <= _tail_next_T;
       end
       is_full <=
         ~(io_flush | ~is_empty & (no_valid_left | ~_GEN_1 | can_commit1 | can_commit0))
-        & (_GEN_36
+        & (_GEN_38
              ? _tail_next2_T == head | is_full
              : fire0 & _is_full_for_2_T | is_full);
       rand_idx <= rand_idx + 4'h1;
@@ -8445,6 +8773,8 @@ module ROB(
         entries_0_br_actual_taken = 1'h0;
         entries_0_br_type = 2'h0;
         entries_0_ghr = 10'h0;
+        entries_0_bimodal_pred = 1'h0;
+        entries_0_gshare_pred = 1'h0;
         entries_1_valid = 1'h0;
         entries_1_pc = 32'h0;
         entries_1_rf_we = 1'h0;
@@ -8472,6 +8802,8 @@ module ROB(
         entries_1_br_actual_taken = 1'h0;
         entries_1_br_type = 2'h0;
         entries_1_ghr = 10'h0;
+        entries_1_bimodal_pred = 1'h0;
+        entries_1_gshare_pred = 1'h0;
         entries_2_valid = 1'h0;
         entries_2_pc = 32'h0;
         entries_2_rf_we = 1'h0;
@@ -8499,6 +8831,8 @@ module ROB(
         entries_2_br_actual_taken = 1'h0;
         entries_2_br_type = 2'h0;
         entries_2_ghr = 10'h0;
+        entries_2_bimodal_pred = 1'h0;
+        entries_2_gshare_pred = 1'h0;
         entries_3_valid = 1'h0;
         entries_3_pc = 32'h0;
         entries_3_rf_we = 1'h0;
@@ -8526,6 +8860,8 @@ module ROB(
         entries_3_br_actual_taken = 1'h0;
         entries_3_br_type = 2'h0;
         entries_3_ghr = 10'h0;
+        entries_3_bimodal_pred = 1'h0;
+        entries_3_gshare_pred = 1'h0;
         entries_4_valid = 1'h0;
         entries_4_pc = 32'h0;
         entries_4_rf_we = 1'h0;
@@ -8553,6 +8889,8 @@ module ROB(
         entries_4_br_actual_taken = 1'h0;
         entries_4_br_type = 2'h0;
         entries_4_ghr = 10'h0;
+        entries_4_bimodal_pred = 1'h0;
+        entries_4_gshare_pred = 1'h0;
         entries_5_valid = 1'h0;
         entries_5_pc = 32'h0;
         entries_5_rf_we = 1'h0;
@@ -8580,6 +8918,8 @@ module ROB(
         entries_5_br_actual_taken = 1'h0;
         entries_5_br_type = 2'h0;
         entries_5_ghr = 10'h0;
+        entries_5_bimodal_pred = 1'h0;
+        entries_5_gshare_pred = 1'h0;
         entries_6_valid = 1'h0;
         entries_6_pc = 32'h0;
         entries_6_rf_we = 1'h0;
@@ -8607,6 +8947,8 @@ module ROB(
         entries_6_br_actual_taken = 1'h0;
         entries_6_br_type = 2'h0;
         entries_6_ghr = 10'h0;
+        entries_6_bimodal_pred = 1'h0;
+        entries_6_gshare_pred = 1'h0;
         entries_7_valid = 1'h0;
         entries_7_pc = 32'h0;
         entries_7_rf_we = 1'h0;
@@ -8634,6 +8976,8 @@ module ROB(
         entries_7_br_actual_taken = 1'h0;
         entries_7_br_type = 2'h0;
         entries_7_ghr = 10'h0;
+        entries_7_bimodal_pred = 1'h0;
+        entries_7_gshare_pred = 1'h0;
         entries_8_valid = 1'h0;
         entries_8_pc = 32'h0;
         entries_8_rf_we = 1'h0;
@@ -8661,6 +9005,8 @@ module ROB(
         entries_8_br_actual_taken = 1'h0;
         entries_8_br_type = 2'h0;
         entries_8_ghr = 10'h0;
+        entries_8_bimodal_pred = 1'h0;
+        entries_8_gshare_pred = 1'h0;
         entries_9_valid = 1'h0;
         entries_9_pc = 32'h0;
         entries_9_rf_we = 1'h0;
@@ -8688,6 +9034,8 @@ module ROB(
         entries_9_br_actual_taken = 1'h0;
         entries_9_br_type = 2'h0;
         entries_9_ghr = 10'h0;
+        entries_9_bimodal_pred = 1'h0;
+        entries_9_gshare_pred = 1'h0;
         entries_10_valid = 1'h0;
         entries_10_pc = 32'h0;
         entries_10_rf_we = 1'h0;
@@ -8715,6 +9063,8 @@ module ROB(
         entries_10_br_actual_taken = 1'h0;
         entries_10_br_type = 2'h0;
         entries_10_ghr = 10'h0;
+        entries_10_bimodal_pred = 1'h0;
+        entries_10_gshare_pred = 1'h0;
         entries_11_valid = 1'h0;
         entries_11_pc = 32'h0;
         entries_11_rf_we = 1'h0;
@@ -8742,6 +9092,8 @@ module ROB(
         entries_11_br_actual_taken = 1'h0;
         entries_11_br_type = 2'h0;
         entries_11_ghr = 10'h0;
+        entries_11_bimodal_pred = 1'h0;
+        entries_11_gshare_pred = 1'h0;
         entries_12_valid = 1'h0;
         entries_12_pc = 32'h0;
         entries_12_rf_we = 1'h0;
@@ -8769,6 +9121,8 @@ module ROB(
         entries_12_br_actual_taken = 1'h0;
         entries_12_br_type = 2'h0;
         entries_12_ghr = 10'h0;
+        entries_12_bimodal_pred = 1'h0;
+        entries_12_gshare_pred = 1'h0;
         entries_13_valid = 1'h0;
         entries_13_pc = 32'h0;
         entries_13_rf_we = 1'h0;
@@ -8796,6 +9150,8 @@ module ROB(
         entries_13_br_actual_taken = 1'h0;
         entries_13_br_type = 2'h0;
         entries_13_ghr = 10'h0;
+        entries_13_bimodal_pred = 1'h0;
+        entries_13_gshare_pred = 1'h0;
         entries_14_valid = 1'h0;
         entries_14_pc = 32'h0;
         entries_14_rf_we = 1'h0;
@@ -8823,6 +9179,8 @@ module ROB(
         entries_14_br_actual_taken = 1'h0;
         entries_14_br_type = 2'h0;
         entries_14_ghr = 10'h0;
+        entries_14_bimodal_pred = 1'h0;
+        entries_14_gshare_pred = 1'h0;
         entries_15_valid = 1'h0;
         entries_15_pc = 32'h0;
         entries_15_rf_we = 1'h0;
@@ -8850,6 +9208,8 @@ module ROB(
         entries_15_br_actual_taken = 1'h0;
         entries_15_br_type = 2'h0;
         entries_15_ghr = 10'h0;
+        entries_15_bimodal_pred = 1'h0;
+        entries_15_gshare_pred = 1'h0;
         entries_16_valid = 1'h0;
         entries_16_pc = 32'h0;
         entries_16_rf_we = 1'h0;
@@ -8877,6 +9237,8 @@ module ROB(
         entries_16_br_actual_taken = 1'h0;
         entries_16_br_type = 2'h0;
         entries_16_ghr = 10'h0;
+        entries_16_bimodal_pred = 1'h0;
+        entries_16_gshare_pred = 1'h0;
         entries_17_valid = 1'h0;
         entries_17_pc = 32'h0;
         entries_17_rf_we = 1'h0;
@@ -8904,6 +9266,8 @@ module ROB(
         entries_17_br_actual_taken = 1'h0;
         entries_17_br_type = 2'h0;
         entries_17_ghr = 10'h0;
+        entries_17_bimodal_pred = 1'h0;
+        entries_17_gshare_pred = 1'h0;
         entries_18_valid = 1'h0;
         entries_18_pc = 32'h0;
         entries_18_rf_we = 1'h0;
@@ -8931,6 +9295,8 @@ module ROB(
         entries_18_br_actual_taken = 1'h0;
         entries_18_br_type = 2'h0;
         entries_18_ghr = 10'h0;
+        entries_18_bimodal_pred = 1'h0;
+        entries_18_gshare_pred = 1'h0;
         entries_19_valid = 1'h0;
         entries_19_pc = 32'h0;
         entries_19_rf_we = 1'h0;
@@ -8958,6 +9324,8 @@ module ROB(
         entries_19_br_actual_taken = 1'h0;
         entries_19_br_type = 2'h0;
         entries_19_ghr = 10'h0;
+        entries_19_bimodal_pred = 1'h0;
+        entries_19_gshare_pred = 1'h0;
         entries_20_valid = 1'h0;
         entries_20_pc = 32'h0;
         entries_20_rf_we = 1'h0;
@@ -8985,6 +9353,8 @@ module ROB(
         entries_20_br_actual_taken = 1'h0;
         entries_20_br_type = 2'h0;
         entries_20_ghr = 10'h0;
+        entries_20_bimodal_pred = 1'h0;
+        entries_20_gshare_pred = 1'h0;
         entries_21_valid = 1'h0;
         entries_21_pc = 32'h0;
         entries_21_rf_we = 1'h0;
@@ -9012,6 +9382,8 @@ module ROB(
         entries_21_br_actual_taken = 1'h0;
         entries_21_br_type = 2'h0;
         entries_21_ghr = 10'h0;
+        entries_21_bimodal_pred = 1'h0;
+        entries_21_gshare_pred = 1'h0;
         entries_22_valid = 1'h0;
         entries_22_pc = 32'h0;
         entries_22_rf_we = 1'h0;
@@ -9039,6 +9411,8 @@ module ROB(
         entries_22_br_actual_taken = 1'h0;
         entries_22_br_type = 2'h0;
         entries_22_ghr = 10'h0;
+        entries_22_bimodal_pred = 1'h0;
+        entries_22_gshare_pred = 1'h0;
         entries_23_valid = 1'h0;
         entries_23_pc = 32'h0;
         entries_23_rf_we = 1'h0;
@@ -9066,6 +9440,8 @@ module ROB(
         entries_23_br_actual_taken = 1'h0;
         entries_23_br_type = 2'h0;
         entries_23_ghr = 10'h0;
+        entries_23_bimodal_pred = 1'h0;
+        entries_23_gshare_pred = 1'h0;
         entries_24_valid = 1'h0;
         entries_24_pc = 32'h0;
         entries_24_rf_we = 1'h0;
@@ -9093,6 +9469,8 @@ module ROB(
         entries_24_br_actual_taken = 1'h0;
         entries_24_br_type = 2'h0;
         entries_24_ghr = 10'h0;
+        entries_24_bimodal_pred = 1'h0;
+        entries_24_gshare_pred = 1'h0;
         entries_25_valid = 1'h0;
         entries_25_pc = 32'h0;
         entries_25_rf_we = 1'h0;
@@ -9120,6 +9498,8 @@ module ROB(
         entries_25_br_actual_taken = 1'h0;
         entries_25_br_type = 2'h0;
         entries_25_ghr = 10'h0;
+        entries_25_bimodal_pred = 1'h0;
+        entries_25_gshare_pred = 1'h0;
         entries_26_valid = 1'h0;
         entries_26_pc = 32'h0;
         entries_26_rf_we = 1'h0;
@@ -9147,6 +9527,8 @@ module ROB(
         entries_26_br_actual_taken = 1'h0;
         entries_26_br_type = 2'h0;
         entries_26_ghr = 10'h0;
+        entries_26_bimodal_pred = 1'h0;
+        entries_26_gshare_pred = 1'h0;
         entries_27_valid = 1'h0;
         entries_27_pc = 32'h0;
         entries_27_rf_we = 1'h0;
@@ -9174,6 +9556,8 @@ module ROB(
         entries_27_br_actual_taken = 1'h0;
         entries_27_br_type = 2'h0;
         entries_27_ghr = 10'h0;
+        entries_27_bimodal_pred = 1'h0;
+        entries_27_gshare_pred = 1'h0;
         entries_28_valid = 1'h0;
         entries_28_pc = 32'h0;
         entries_28_rf_we = 1'h0;
@@ -9201,6 +9585,8 @@ module ROB(
         entries_28_br_actual_taken = 1'h0;
         entries_28_br_type = 2'h0;
         entries_28_ghr = 10'h0;
+        entries_28_bimodal_pred = 1'h0;
+        entries_28_gshare_pred = 1'h0;
         entries_29_valid = 1'h0;
         entries_29_pc = 32'h0;
         entries_29_rf_we = 1'h0;
@@ -9228,6 +9614,8 @@ module ROB(
         entries_29_br_actual_taken = 1'h0;
         entries_29_br_type = 2'h0;
         entries_29_ghr = 10'h0;
+        entries_29_bimodal_pred = 1'h0;
+        entries_29_gshare_pred = 1'h0;
         entries_30_valid = 1'h0;
         entries_30_pc = 32'h0;
         entries_30_rf_we = 1'h0;
@@ -9255,6 +9643,8 @@ module ROB(
         entries_30_br_actual_taken = 1'h0;
         entries_30_br_type = 2'h0;
         entries_30_ghr = 10'h0;
+        entries_30_bimodal_pred = 1'h0;
+        entries_30_gshare_pred = 1'h0;
         entries_31_valid = 1'h0;
         entries_31_pc = 32'h0;
         entries_31_rf_we = 1'h0;
@@ -9282,6 +9672,8 @@ module ROB(
         entries_31_br_actual_taken = 1'h0;
         entries_31_br_type = 2'h0;
         entries_31_ghr = 10'h0;
+        entries_31_bimodal_pred = 1'h0;
+        entries_31_gshare_pred = 1'h0;
         head = 5'h0;
         tail = 5'h0;
         is_full = 1'h0;
@@ -9363,5 +9755,9 @@ module ROB(
     bpu_src_is_e1 ? _GEN_34[_head_T_6] : _GEN_34[head];
   assign io_commit_bpu_update_bits_ghr =
     bpu_src_is_e1 ? _GEN_35[_head_T_6] : _GEN_35[head];
+  assign io_commit_bpu_update_bits_bimodal_pred =
+    bpu_src_is_e1 ? _GEN_36[_head_T_6] : _GEN_36[head];
+  assign io_commit_bpu_update_bits_gshare_pred =
+    bpu_src_is_e1 ? _GEN_37[_head_T_6] : _GEN_37[head];
 endmodule
 

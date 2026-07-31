@@ -29,7 +29,9 @@ module MduUnit(
   input  [9:0]  io_in_bits_ghr,
   input         io_in_bits_br_actual_taken,
   input  [1:0]  io_in_bits_br_type,
-  input         io_out_ready,
+  input         io_in_bits_bimodal_pred,
+                io_in_bits_gshare_pred,
+                io_out_ready,
   output        io_out_valid,
   output [31:0] io_out_bits_pc,
                 io_out_bits_src2_value,
@@ -53,6 +55,8 @@ module MduUnit(
   output [9:0]  io_out_bits_ghr,
   output        io_out_bits_br_actual_taken,
   output [1:0]  io_out_bits_br_type,
+  output        io_out_bits_bimodal_pred,
+                io_out_bits_gshare_pred,
   input         io_flush,
                 io_br_resolve_in_valid,
                 io_br_resolve_in_mispredict,
@@ -91,6 +95,8 @@ module MduUnit(
   reg  [9:0]  data_reg_ghr;
   reg         data_reg_br_actual_taken;
   reg  [1:0]  data_reg_br_type;
+  reg         data_reg_bimodal_pred;
+  reg         data_reg_gshare_pred;
   wire [3:0]  _GEN = br_tag_bit[3:0] & data_reg_branch_mask;
   wire        active = valid_reg & ~(br_fail & (|_GEN));
   reg         mdu_busy;
@@ -138,6 +144,8 @@ module MduUnit(
       data_reg_ghr <= 10'h0;
       data_reg_br_actual_taken <= 1'h0;
       data_reg_br_type <= 2'h0;
+      data_reg_bimodal_pred <= 1'h0;
+      data_reg_gshare_pred <= 1'h0;
       mdu_busy <= 1'h0;
       mdu_finished <= 1'h0;
       mul_done <= 1'h0;
@@ -192,6 +200,8 @@ module MduUnit(
         data_reg_ghr <= io_in_bits_ghr;
         data_reg_br_actual_taken <= io_in_bits_br_actual_taken;
         data_reg_br_type <= io_in_bits_br_type;
+        data_reg_bimodal_pred <= io_in_bits_bimodal_pred;
+        data_reg_gshare_pred <= io_in_bits_gshare_pred;
       end
       mdu_busy <= ~_GEN_3 & (start_pulse | ~_GEN_2 & mdu_busy);
       mdu_finished <= ~_GEN_3 & (~start_pulse & _GEN_2 | mdu_finished);
@@ -230,6 +240,8 @@ module MduUnit(
         data_reg_ghr = 10'h0;
         data_reg_br_actual_taken = 1'h0;
         data_reg_br_type = 2'h0;
+        data_reg_bimodal_pred = 1'h0;
+        data_reg_gshare_pred = 1'h0;
         mdu_busy = 1'h0;
         mdu_finished = 1'h0;
         mul_done = 1'h0;
@@ -299,5 +311,7 @@ module MduUnit(
   assign io_out_bits_ghr = data_reg_ghr;
   assign io_out_bits_br_actual_taken = data_reg_br_actual_taken;
   assign io_out_bits_br_type = data_reg_br_type;
+  assign io_out_bits_bimodal_pred = data_reg_bimodal_pred;
+  assign io_out_bits_gshare_pred = data_reg_gshare_pred;
 endmodule
 

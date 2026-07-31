@@ -803,6 +803,8 @@ class AluUnit extends Module {
     io.bpu_update.bits.ghr        := data_reg.ghr
     io.bpu_update.bits.ras_tos    := data_reg.ras_tos
     io.bpu_update.bits.mispredict := mispredict
+    io.bpu_update.bits.bimodal_pred := data_reg.bimodal_pred
+    io.bpu_update.bits.gshare_pred  := data_reg.gshare_pred
 
     //==========================================
     // ALU

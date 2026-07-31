@@ -32,7 +32,9 @@ module AguUnit(
   input  [9:0]  io_in_bits_ghr,
   input         io_in_bits_br_actual_taken,
   input  [1:0]  io_in_bits_br_type,
-  input         io_out_ready,
+  input         io_in_bits_bimodal_pred,
+                io_in_bits_gshare_pred,
+                io_out_ready,
   output        io_out_valid,
   output [31:0] io_out_bits_pc,
                 io_out_bits_src2_value,
@@ -57,7 +59,9 @@ module AguUnit(
   output [9:0]  io_out_bits_ghr,
   output        io_out_bits_br_actual_taken,
   output [1:0]  io_out_bits_br_type,
-  output        io_to_lsq_valid,
+  output        io_out_bits_bimodal_pred,
+                io_out_bits_gshare_pred,
+                io_to_lsq_valid,
   output [3:0]  io_to_lsq_bits_lsqIdx,
   output [31:0] io_to_lsq_bits_paddr,
   output [1:0]  io_to_lsq_bits_size,
@@ -133,6 +137,8 @@ module AguUnit(
   reg  [9:0]  ex1_data_ghr;
   reg         ex1_data_br_actual_taken;
   reg  [1:0]  ex1_data_br_type;
+  reg         ex1_data_bimodal_pred;
+  reg         ex1_data_gshare_pred;
   reg         ex2_valid;
   reg  [31:0] ex2_data_data_pc;
   reg  [31:0] ex2_data_data_src2_value;
@@ -158,6 +164,8 @@ module AguUnit(
   reg  [9:0]  ex2_data_data_ghr;
   reg         ex2_data_data_br_actual_taken;
   reg  [1:0]  ex2_data_data_br_type;
+  reg         ex2_data_data_bimodal_pred;
+  reg         ex2_data_data_gshare_pred;
   reg  [31:0] ex2_data_va;
   reg  [31:0] ex2_data_src2;
   reg         ex2_data_is_tlbsrch;
@@ -239,6 +247,8 @@ module AguUnit(
       ex1_data_ghr <= 10'h0;
       ex1_data_br_actual_taken <= 1'h0;
       ex1_data_br_type <= 2'h0;
+      ex1_data_bimodal_pred <= 1'h0;
+      ex1_data_gshare_pred <= 1'h0;
       ex2_valid <= 1'h0;
       ex2_data_data_pc <= 32'h0;
       ex2_data_data_src2_value <= 32'h0;
@@ -264,6 +274,8 @@ module AguUnit(
       ex2_data_data_ghr <= 10'h0;
       ex2_data_data_br_actual_taken <= 1'h0;
       ex2_data_data_br_type <= 2'h0;
+      ex2_data_data_bimodal_pred <= 1'h0;
+      ex2_data_data_gshare_pred <= 1'h0;
       ex2_data_va <= 32'h0;
       ex2_data_src2 <= 32'h0;
       ex2_data_is_tlbsrch <= 1'h0;
@@ -336,6 +348,8 @@ module AguUnit(
         ex1_data_ghr <= io_in_bits_ghr;
         ex1_data_br_actual_taken <= io_in_bits_br_actual_taken;
         ex1_data_br_type <= io_in_bits_br_type;
+        ex1_data_bimodal_pred <= io_in_bits_bimodal_pred;
+        ex1_data_gshare_pred <= io_in_bits_gshare_pred;
       end
       ex2_valid <= ~io_flush & (ex2_ready ? ex1_active : ex2_valid);
       if (io_flush | ~ex2_ready) begin
@@ -370,6 +384,8 @@ module AguUnit(
         ex2_data_data_ghr <= ex1_data_ghr;
         ex2_data_data_br_actual_taken <= ex1_data_br_actual_taken;
         ex2_data_data_br_type <= ex1_data_br_type;
+        ex2_data_data_bimodal_pred <= ex1_data_bimodal_pred;
+        ex2_data_data_gshare_pred <= ex1_data_gshare_pred;
         ex2_data_va <= _ex1_va_T_1;
         ex2_data_src2 <= ex1_data_src2_value;
         ex2_data_is_tlbsrch <= is_tlbsrch;
@@ -431,6 +447,8 @@ module AguUnit(
         ex1_data_ghr = 10'h0;
         ex1_data_br_actual_taken = 1'h0;
         ex1_data_br_type = 2'h0;
+        ex1_data_bimodal_pred = 1'h0;
+        ex1_data_gshare_pred = 1'h0;
         ex2_valid = 1'h0;
         ex2_data_data_pc = 32'h0;
         ex2_data_data_src2_value = 32'h0;
@@ -456,6 +474,8 @@ module AguUnit(
         ex2_data_data_ghr = 10'h0;
         ex2_data_data_br_actual_taken = 1'h0;
         ex2_data_data_br_type = 2'h0;
+        ex2_data_data_bimodal_pred = 1'h0;
+        ex2_data_data_gshare_pred = 1'h0;
         ex2_data_va = 32'h0;
         ex2_data_src2 = 32'h0;
         ex2_data_is_tlbsrch = 1'h0;
@@ -507,6 +527,8 @@ module AguUnit(
   assign io_out_bits_ghr = ex2_data_data_ghr;
   assign io_out_bits_br_actual_taken = ex2_data_data_br_actual_taken;
   assign io_out_bits_br_type = ex2_data_data_br_type;
+  assign io_out_bits_bimodal_pred = ex2_data_data_bimodal_pred;
+  assign io_out_bits_gshare_pred = ex2_data_data_gshare_pred;
   assign io_to_lsq_valid =
     (_is_lsq_inst_T | ex2_data_data_is_cacop) & ex2_active & ~io_flush;
   assign io_to_lsq_bits_lsqIdx = ex2_data_data_lsq_idx;

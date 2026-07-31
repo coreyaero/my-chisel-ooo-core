@@ -54,7 +54,9 @@ module IssueBuffer(
   input  [3:0]  io_enq_bits_ras_tos,
   input         io_enq_bits_br_actual_taken,
   input  [1:0]  io_enq_bits_br_type,
-  input         io_deq_ready,
+  input         io_enq_bits_bimodal_pred,
+                io_enq_bits_gshare_pred,
+                io_deq_ready,
   output        io_deq_valid,
   output [31:0] io_deq_bits_pc,
                 io_deq_bits_inst,
@@ -101,7 +103,9 @@ module IssueBuffer(
   output [9:0]  io_deq_bits_ghr,
   output [3:0]  io_deq_bits_ras_tos,
   output        io_deq_bits_br_actual_taken,
-  output [1:0]  io_deq_bits_br_type
+  output [1:0]  io_deq_bits_br_type,
+  output        io_deq_bits_bimodal_pred,
+                io_deq_bits_gshare_pred
 );
 
   reg         valid_reg;
@@ -151,6 +155,8 @@ module IssueBuffer(
   reg  [3:0]  data_reg_ras_tos;
   reg         data_reg_br_actual_taken;
   reg  [1:0]  data_reg_br_type;
+  reg         data_reg_bimodal_pred;
+  reg         data_reg_gshare_pred;
   wire [6:0]  _clear_mask_T_1 = 7'h1 << io_br_resolve_tag;
   wire        current_is_killed =
     valid_reg & io_br_resolve_valid & io_br_resolve_mispredict
@@ -206,6 +212,8 @@ module IssueBuffer(
       data_reg_ras_tos <= 4'h0;
       data_reg_br_actual_taken <= 1'h0;
       data_reg_br_type <= 2'h0;
+      data_reg_bimodal_pred <= 1'h0;
+      data_reg_gshare_pred <= 1'h0;
     end
     else begin
       automatic logic _data_reg_branch_mask_T;
@@ -263,6 +271,8 @@ module IssueBuffer(
         data_reg_ras_tos <= io_enq_bits_ras_tos;
         data_reg_br_actual_taken <= io_enq_bits_br_actual_taken;
         data_reg_br_type <= io_enq_bits_br_type;
+        data_reg_bimodal_pred <= io_enq_bits_bimodal_pred;
+        data_reg_gshare_pred <= io_enq_bits_gshare_pred;
       end
       if (_GEN)
         data_reg_branch_mask <=
@@ -325,6 +335,8 @@ module IssueBuffer(
         data_reg_ras_tos = 4'h0;
         data_reg_br_actual_taken = 1'h0;
         data_reg_br_type = 2'h0;
+        data_reg_bimodal_pred = 1'h0;
+        data_reg_gshare_pred = 1'h0;
       end
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -380,5 +392,7 @@ module IssueBuffer(
   assign io_deq_bits_ras_tos = data_reg_ras_tos;
   assign io_deq_bits_br_actual_taken = data_reg_br_actual_taken;
   assign io_deq_bits_br_type = data_reg_br_type;
+  assign io_deq_bits_bimodal_pred = data_reg_bimodal_pred;
+  assign io_deq_bits_gshare_pred = data_reg_gshare_pred;
 endmodule
 

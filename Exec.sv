@@ -39,6 +39,8 @@ module Exec(
   input  [1:0]  io_in_alu0_bits_bpu_type,
   input  [9:0]  io_in_alu0_bits_ghr,
   input  [3:0]  io_in_alu0_bits_ras_tos,
+  input         io_in_alu0_bits_bimodal_pred,
+                io_in_alu0_bits_gshare_pred,
   output        io_in_alu1_ready,
   input         io_in_alu1_valid,
   input  [31:0] io_in_alu1_bits_pc,
@@ -69,6 +71,8 @@ module Exec(
   input  [9:0]  io_in_alu1_bits_ghr,
   input         io_in_alu1_bits_br_actual_taken,
   input  [1:0]  io_in_alu1_bits_br_type,
+  input         io_in_alu1_bits_bimodal_pred,
+                io_in_alu1_bits_gshare_pred,
   output        io_in_mdu_ready,
   input         io_in_mdu_valid,
   input  [31:0] io_in_mdu_bits_pc,
@@ -96,6 +100,8 @@ module Exec(
   input  [9:0]  io_in_mdu_bits_ghr,
   input         io_in_mdu_bits_br_actual_taken,
   input  [1:0]  io_in_mdu_bits_br_type,
+  input         io_in_mdu_bits_bimodal_pred,
+                io_in_mdu_bits_gshare_pred,
   output        io_in_agu_ready,
   input         io_in_agu_valid,
   input  [31:0] io_in_agu_bits_pc,
@@ -126,6 +132,8 @@ module Exec(
   input  [9:0]  io_in_agu_bits_ghr,
   input         io_in_agu_bits_br_actual_taken,
   input  [1:0]  io_in_agu_bits_br_type,
+  input         io_in_agu_bits_bimodal_pred,
+                io_in_agu_bits_gshare_pred,
   input  [63:0] io_timer_in,
   output [13:0] io_csr_raddr,
   input  [31:0] io_csr_rdata,
@@ -167,7 +175,9 @@ module Exec(
   output [9:0]  io_cdb0_bits_ghr,
   output        io_cdb0_bits_br_actual_taken,
   output [1:0]  io_cdb0_bits_br_type,
-  output        io_cdb1_valid,
+  output        io_cdb0_bits_bimodal_pred,
+                io_cdb0_bits_gshare_pred,
+                io_cdb1_valid,
   output [31:0] io_cdb1_bits_src2_value,
   output        io_cdb1_bits_memWe,
                 io_cdb1_bits_resFromMem,
@@ -189,6 +199,8 @@ module Exec(
   output [9:0]  io_cdb1_bits_ghr,
   output        io_cdb1_bits_br_actual_taken,
   output [1:0]  io_cdb1_bits_br_type,
+  output        io_cdb1_bits_bimodal_pred,
+                io_cdb1_bits_gshare_pred,
   input         io_flush,
   output        io_br_resolve_valid,
                 io_br_resolve_mispredict,
@@ -280,6 +292,8 @@ module Exec(
   wire [9:0]  _agu_cdb_q_io_deq_bits_ghr;
   wire        _agu_cdb_q_io_deq_bits_br_actual_taken;
   wire [1:0]  _agu_cdb_q_io_deq_bits_br_type;
+  wire        _agu_cdb_q_io_deq_bits_bimodal_pred;
+  wire        _agu_cdb_q_io_deq_bits_gshare_pred;
   wire        _arbiter_io_reqs_0_ready;
   wire        _arbiter_io_reqs_1_ready;
   wire        _arbiter_io_reqs_2_ready;
@@ -317,6 +331,8 @@ module Exec(
   wire [9:0]  _agu_io_out_bits_ghr;
   wire        _agu_io_out_bits_br_actual_taken;
   wire [1:0]  _agu_io_out_bits_br_type;
+  wire        _agu_io_out_bits_bimodal_pred;
+  wire        _agu_io_out_bits_gshare_pred;
   wire        _agu_io_to_lsq_valid;
   wire [3:0]  _agu_io_to_lsq_bits_lsqIdx;
   wire [31:0] _agu_io_to_lsq_bits_paddr;
@@ -350,6 +366,8 @@ module Exec(
   wire [9:0]  _mdu_io_out_bits_ghr;
   wire        _mdu_io_out_bits_br_actual_taken;
   wire [1:0]  _mdu_io_out_bits_br_type;
+  wire        _mdu_io_out_bits_bimodal_pred;
+  wire        _mdu_io_out_bits_gshare_pred;
   wire        _alu1_io_out_valid;
   wire [31:0] _alu1_io_out_bits_pc;
   wire [31:0] _alu1_io_out_bits_src2_value;
@@ -373,6 +391,8 @@ module Exec(
   wire [9:0]  _alu1_io_out_bits_ghr;
   wire        _alu1_io_out_bits_br_actual_taken;
   wire [1:0]  _alu1_io_out_bits_br_type;
+  wire        _alu1_io_out_bits_bimodal_pred;
+  wire        _alu1_io_out_bits_gshare_pred;
   wire        _alu0_io_out_valid;
   wire [31:0] _alu0_io_out_bits_pc;
   wire [31:0] _alu0_io_out_bits_src2_value;
@@ -396,6 +416,8 @@ module Exec(
   wire [9:0]  _alu0_io_out_bits_ghr;
   wire        _alu0_io_out_bits_br_actual_taken;
   wire [1:0]  _alu0_io_out_bits_br_type;
+  wire        _alu0_io_out_bits_bimodal_pred;
+  wire        _alu0_io_out_bits_gshare_pred;
   wire        _alu0_io_br_resolve_valid;
   wire        _alu0_io_br_resolve_mispredict;
   wire [1:0]  _alu0_io_br_resolve_tag;
@@ -440,6 +462,8 @@ module Exec(
     .io_in_bits_bpu_type           (io_in_alu0_bits_bpu_type),
     .io_in_bits_ghr                (io_in_alu0_bits_ghr),
     .io_in_bits_ras_tos            (io_in_alu0_bits_ras_tos),
+    .io_in_bits_bimodal_pred       (io_in_alu0_bits_bimodal_pred),
+    .io_in_bits_gshare_pred        (io_in_alu0_bits_gshare_pred),
     .io_out_ready                  (_arbiter_io_reqs_3_ready),
     .io_out_valid                  (_alu0_io_out_valid),
     .io_out_bits_pc                (_alu0_io_out_bits_pc),
@@ -464,6 +488,8 @@ module Exec(
     .io_out_bits_ghr               (_alu0_io_out_bits_ghr),
     .io_out_bits_br_actual_taken   (_alu0_io_out_bits_br_actual_taken),
     .io_out_bits_br_type           (_alu0_io_out_bits_br_type),
+    .io_out_bits_bimodal_pred      (_alu0_io_out_bits_bimodal_pred),
+    .io_out_bits_gshare_pred       (_alu0_io_out_bits_gshare_pred),
     .io_branch_req                 (io_branch_req),
     .io_branch_pc                  (io_branch_pc),
     .io_br_resolve_valid           (_alu0_io_br_resolve_valid),
@@ -518,6 +544,8 @@ module Exec(
     .io_in_bits_ghr              (io_in_alu1_bits_ghr),
     .io_in_bits_br_actual_taken  (io_in_alu1_bits_br_actual_taken),
     .io_in_bits_br_type          (io_in_alu1_bits_br_type),
+    .io_in_bits_bimodal_pred     (io_in_alu1_bits_bimodal_pred),
+    .io_in_bits_gshare_pred      (io_in_alu1_bits_gshare_pred),
     .io_out_ready                (_arbiter_io_reqs_4_ready),
     .io_out_valid                (_alu1_io_out_valid),
     .io_out_bits_pc              (_alu1_io_out_bits_pc),
@@ -542,6 +570,8 @@ module Exec(
     .io_out_bits_ghr             (_alu1_io_out_bits_ghr),
     .io_out_bits_br_actual_taken (_alu1_io_out_bits_br_actual_taken),
     .io_out_bits_br_type         (_alu1_io_out_bits_br_type),
+    .io_out_bits_bimodal_pred    (_alu1_io_out_bits_bimodal_pred),
+    .io_out_bits_gshare_pred     (_alu1_io_out_bits_gshare_pred),
     .io_flush                    (io_flush),
     .io_br_resolve_in_valid      (_alu0_io_br_resolve_valid),
     .io_br_resolve_in_mispredict (_alu0_io_br_resolve_mispredict),
@@ -577,6 +607,8 @@ module Exec(
     .io_in_bits_ghr              (io_in_mdu_bits_ghr),
     .io_in_bits_br_actual_taken  (io_in_mdu_bits_br_actual_taken),
     .io_in_bits_br_type          (io_in_mdu_bits_br_type),
+    .io_in_bits_bimodal_pred     (io_in_mdu_bits_bimodal_pred),
+    .io_in_bits_gshare_pred      (io_in_mdu_bits_gshare_pred),
     .io_out_ready                (_arbiter_io_reqs_0_ready),
     .io_out_valid                (_mdu_io_out_valid),
     .io_out_bits_pc              (_mdu_io_out_bits_pc),
@@ -601,6 +633,8 @@ module Exec(
     .io_out_bits_ghr             (_mdu_io_out_bits_ghr),
     .io_out_bits_br_actual_taken (_mdu_io_out_bits_br_actual_taken),
     .io_out_bits_br_type         (_mdu_io_out_bits_br_type),
+    .io_out_bits_bimodal_pred    (_mdu_io_out_bits_bimodal_pred),
+    .io_out_bits_gshare_pred     (_mdu_io_out_bits_gshare_pred),
     .io_flush                    (io_flush),
     .io_br_resolve_in_valid      (_alu0_io_br_resolve_valid),
     .io_br_resolve_in_mispredict (_alu0_io_br_resolve_mispredict),
@@ -639,6 +673,8 @@ module Exec(
     .io_in_bits_ghr              (io_in_agu_bits_ghr),
     .io_in_bits_br_actual_taken  (io_in_agu_bits_br_actual_taken),
     .io_in_bits_br_type          (io_in_agu_bits_br_type),
+    .io_in_bits_bimodal_pred     (io_in_agu_bits_bimodal_pred),
+    .io_in_bits_gshare_pred      (io_in_agu_bits_gshare_pred),
     .io_out_ready                (agu_io_out_ready),
     .io_out_valid                (_agu_io_out_valid),
     .io_out_bits_pc              (_agu_io_out_bits_pc),
@@ -664,6 +700,8 @@ module Exec(
     .io_out_bits_ghr             (_agu_io_out_bits_ghr),
     .io_out_bits_br_actual_taken (_agu_io_out_bits_br_actual_taken),
     .io_out_bits_br_type         (_agu_io_out_bits_br_type),
+    .io_out_bits_bimodal_pred    (_agu_io_out_bits_bimodal_pred),
+    .io_out_bits_gshare_pred     (_agu_io_out_bits_gshare_pred),
     .io_to_lsq_valid             (_agu_io_to_lsq_valid),
     .io_to_lsq_bits_lsqIdx       (_agu_io_to_lsq_bits_lsqIdx),
     .io_to_lsq_bits_paddr        (_agu_io_to_lsq_bits_paddr),
@@ -796,6 +834,8 @@ module Exec(
     .io_reqs_0_bits_ghr             (_mdu_io_out_bits_ghr),
     .io_reqs_0_bits_br_actual_taken (_mdu_io_out_bits_br_actual_taken),
     .io_reqs_0_bits_br_type         (_mdu_io_out_bits_br_type),
+    .io_reqs_0_bits_bimodal_pred    (_mdu_io_out_bits_bimodal_pred),
+    .io_reqs_0_bits_gshare_pred     (_mdu_io_out_bits_gshare_pred),
     .io_reqs_1_ready                (_arbiter_io_reqs_1_ready),
     .io_reqs_1_valid                (_lsq_io_lsq_wb_valid),
     .io_reqs_1_bits_pc              (_lsq_io_lsq_wb_bits_pc),
@@ -829,6 +869,8 @@ module Exec(
     .io_reqs_2_bits_ghr             (_agu_cdb_q_io_deq_bits_ghr),
     .io_reqs_2_bits_br_actual_taken (_agu_cdb_q_io_deq_bits_br_actual_taken),
     .io_reqs_2_bits_br_type         (_agu_cdb_q_io_deq_bits_br_type),
+    .io_reqs_2_bits_bimodal_pred    (_agu_cdb_q_io_deq_bits_bimodal_pred),
+    .io_reqs_2_bits_gshare_pred     (_agu_cdb_q_io_deq_bits_gshare_pred),
     .io_reqs_3_ready                (_arbiter_io_reqs_3_ready),
     .io_reqs_3_valid                (_alu0_io_out_valid),
     .io_reqs_3_bits_pc              (_alu0_io_out_bits_pc),
@@ -853,6 +895,8 @@ module Exec(
     .io_reqs_3_bits_ghr             (_alu0_io_out_bits_ghr),
     .io_reqs_3_bits_br_actual_taken (_alu0_io_out_bits_br_actual_taken),
     .io_reqs_3_bits_br_type         (_alu0_io_out_bits_br_type),
+    .io_reqs_3_bits_bimodal_pred    (_alu0_io_out_bits_bimodal_pred),
+    .io_reqs_3_bits_gshare_pred     (_alu0_io_out_bits_gshare_pred),
     .io_reqs_4_ready                (_arbiter_io_reqs_4_ready),
     .io_reqs_4_valid                (_alu1_io_out_valid),
     .io_reqs_4_bits_pc              (_alu1_io_out_bits_pc),
@@ -877,6 +921,8 @@ module Exec(
     .io_reqs_4_bits_ghr             (_alu1_io_out_bits_ghr),
     .io_reqs_4_bits_br_actual_taken (_alu1_io_out_bits_br_actual_taken),
     .io_reqs_4_bits_br_type         (_alu1_io_out_bits_br_type),
+    .io_reqs_4_bits_bimodal_pred    (_alu1_io_out_bits_bimodal_pred),
+    .io_reqs_4_bits_gshare_pred     (_alu1_io_out_bits_gshare_pred),
     .io_cdb0_valid                  (io_cdb0_valid),
     .io_cdb0_bits_pc                (io_debug_cdb0_pc),
     .io_cdb0_bits_src2_value        (io_cdb0_bits_src2_value),
@@ -900,6 +946,8 @@ module Exec(
     .io_cdb0_bits_ghr               (io_cdb0_bits_ghr),
     .io_cdb0_bits_br_actual_taken   (io_cdb0_bits_br_actual_taken),
     .io_cdb0_bits_br_type           (io_cdb0_bits_br_type),
+    .io_cdb0_bits_bimodal_pred      (io_cdb0_bits_bimodal_pred),
+    .io_cdb0_bits_gshare_pred       (io_cdb0_bits_gshare_pred),
     .io_cdb1_valid                  (io_cdb1_valid),
     .io_cdb1_bits_pc                (io_debug_cdb1_pc),
     .io_cdb1_bits_src2_value        (io_cdb1_bits_src2_value),
@@ -922,7 +970,9 @@ module Exec(
     .io_cdb1_bits_is_branch         (io_cdb1_bits_is_branch),
     .io_cdb1_bits_ghr               (io_cdb1_bits_ghr),
     .io_cdb1_bits_br_actual_taken   (io_cdb1_bits_br_actual_taken),
-    .io_cdb1_bits_br_type           (io_cdb1_bits_br_type)
+    .io_cdb1_bits_br_type           (io_cdb1_bits_br_type),
+    .io_cdb1_bits_bimodal_pred      (io_cdb1_bits_bimodal_pred),
+    .io_cdb1_bits_gshare_pred       (io_cdb1_bits_gshare_pred)
   );
   MaskedQueue agu_cdb_q (
     .clock                       (clock),
@@ -952,6 +1002,8 @@ module Exec(
     .io_enq_bits_ghr             (_agu_io_out_bits_ghr),
     .io_enq_bits_br_actual_taken (_agu_io_out_bits_br_actual_taken),
     .io_enq_bits_br_type         (_agu_io_out_bits_br_type),
+    .io_enq_bits_bimodal_pred    (_agu_io_out_bits_bimodal_pred),
+    .io_enq_bits_gshare_pred     (_agu_io_out_bits_gshare_pred),
     .io_deq_ready                (_arbiter_io_reqs_2_ready),
     .io_deq_valid                (_agu_cdb_q_io_deq_valid),
     .io_deq_bits_pc              (_agu_cdb_q_io_deq_bits_pc),
@@ -976,6 +1028,8 @@ module Exec(
     .io_deq_bits_ghr             (_agu_cdb_q_io_deq_bits_ghr),
     .io_deq_bits_br_actual_taken (_agu_cdb_q_io_deq_bits_br_actual_taken),
     .io_deq_bits_br_type         (_agu_cdb_q_io_deq_bits_br_type),
+    .io_deq_bits_bimodal_pred    (_agu_cdb_q_io_deq_bits_bimodal_pred),
+    .io_deq_bits_gshare_pred     (_agu_cdb_q_io_deq_bits_gshare_pred),
     .io_flush                    (io_flush),
     .io_br_resolve_in_valid      (_alu0_io_br_resolve_valid),
     .io_br_resolve_in_mispredict (_alu0_io_br_resolve_mispredict),

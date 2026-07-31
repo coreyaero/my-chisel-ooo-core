@@ -36,6 +36,8 @@ class RobEntry extends Bundle {
     val br_target       = UInt(32.W)
     val br_type         = UInt(2.W)
     val ghr             = UInt(10.W)
+    val bimodal_pred    = Bool()
+    val gshare_pred     = Bool()
 }
 
 class ROB extends Module {
@@ -273,6 +275,8 @@ class ROB extends Module {
             entries(i).br_target       := io.cdb0.bits.br_target
             entries(i).br_type         := io.cdb0.bits.br_type
             entries(i).ghr             := io.cdb0.bits.ghr
+            entries(i).bimodal_pred    := io.cdb0.bits.bimodal_pred
+            entries(i).gshare_pred     := io.cdb0.bits.gshare_pred
         }
         when(match1) {
             entries(i).done         := true.B
@@ -298,6 +302,8 @@ class ROB extends Module {
             entries(i).br_target       := io.cdb1.bits.br_target
             entries(i).br_type         := io.cdb1.bits.br_type
             entries(i).ghr             := io.cdb1.bits.ghr
+            entries(i).bimodal_pred    := io.cdb1.bits.bimodal_pred
+            entries(i).gshare_pred     := io.cdb1.bits.gshare_pred
         }
     }
     when(io.lsq_violation_valid) {
@@ -409,6 +415,8 @@ class ROB extends Module {
     io.commit_bpu_update.bits.target     := Mux(bpu_src_is_e1, e1.br_target, e0.br_target)
     io.commit_bpu_update.bits.bpu_type   := Mux(bpu_src_is_e1, e1.br_type, e0.br_type)
     io.commit_bpu_update.bits.ghr        := Mux(bpu_src_is_e1, e1.ghr, e0.ghr)
+    io.commit_bpu_update.bits.bimodal_pred := Mux(bpu_src_is_e1, e1.bimodal_pred, e0.bimodal_pred)
+    io.commit_bpu_update.bits.gshare_pred  := Mux(bpu_src_is_e1, e1.gshare_pred, e0.gshare_pred)
     io.commit_bpu_update.bits.mispredict := false.B 
     io.commit_bpu_update.bits.ras_tos    := 0.U
 

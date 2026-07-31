@@ -24,6 +24,8 @@ module CdbArbiter(
   input  [9:0]  io_reqs_0_bits_ghr,
   input         io_reqs_0_bits_br_actual_taken,
   input  [1:0]  io_reqs_0_bits_br_type,
+  input         io_reqs_0_bits_bimodal_pred,
+                io_reqs_0_bits_gshare_pred,
   output        io_reqs_1_ready,
   input         io_reqs_1_valid,
   input  [31:0] io_reqs_1_bits_pc,
@@ -57,6 +59,8 @@ module CdbArbiter(
   input  [9:0]  io_reqs_2_bits_ghr,
   input         io_reqs_2_bits_br_actual_taken,
   input  [1:0]  io_reqs_2_bits_br_type,
+  input         io_reqs_2_bits_bimodal_pred,
+                io_reqs_2_bits_gshare_pred,
   output        io_reqs_3_ready,
   input         io_reqs_3_valid,
   input  [31:0] io_reqs_3_bits_pc,
@@ -81,6 +85,8 @@ module CdbArbiter(
   input  [9:0]  io_reqs_3_bits_ghr,
   input         io_reqs_3_bits_br_actual_taken,
   input  [1:0]  io_reqs_3_bits_br_type,
+  input         io_reqs_3_bits_bimodal_pred,
+                io_reqs_3_bits_gshare_pred,
   output        io_reqs_4_ready,
   input         io_reqs_4_valid,
   input  [31:0] io_reqs_4_bits_pc,
@@ -105,6 +111,8 @@ module CdbArbiter(
   input  [9:0]  io_reqs_4_bits_ghr,
   input         io_reqs_4_bits_br_actual_taken,
   input  [1:0]  io_reqs_4_bits_br_type,
+  input         io_reqs_4_bits_bimodal_pred,
+                io_reqs_4_bits_gshare_pred,
   output        io_cdb0_valid,
   output [31:0] io_cdb0_bits_pc,
                 io_cdb0_bits_src2_value,
@@ -128,7 +136,9 @@ module CdbArbiter(
   output [9:0]  io_cdb0_bits_ghr,
   output        io_cdb0_bits_br_actual_taken,
   output [1:0]  io_cdb0_bits_br_type,
-  output        io_cdb1_valid,
+  output        io_cdb0_bits_bimodal_pred,
+                io_cdb0_bits_gshare_pred,
+                io_cdb1_valid,
   output [31:0] io_cdb1_bits_pc,
                 io_cdb1_bits_src2_value,
   output        io_cdb1_bits_memWe,
@@ -150,7 +160,9 @@ module CdbArbiter(
   output        io_cdb1_bits_is_branch,
   output [9:0]  io_cdb1_bits_ghr,
   output        io_cdb1_bits_br_actual_taken,
-  output [1:0]  io_cdb1_bits_br_type
+  output [1:0]  io_cdb1_bits_br_type,
+  output        io_cdb1_bits_bimodal_pred,
+                io_cdb1_bits_gshare_pred
 );
 
   wire [4:0] req_valids =
@@ -267,6 +279,12 @@ module CdbArbiter(
     | (grant0[2] ? io_reqs_2_bits_br_type : 2'h0)
     | (grant0[3] ? io_reqs_3_bits_br_type : 2'h0)
     | (grant0[4] ? io_reqs_4_bits_br_type : 2'h0);
+  assign io_cdb0_bits_bimodal_pred =
+    grant0[0] & io_reqs_0_bits_bimodal_pred | grant0[2] & io_reqs_2_bits_bimodal_pred
+    | grant0[3] & io_reqs_3_bits_bimodal_pred | grant0[4] & io_reqs_4_bits_bimodal_pred;
+  assign io_cdb0_bits_gshare_pred =
+    grant0[0] & io_reqs_0_bits_gshare_pred | grant0[2] & io_reqs_2_bits_gshare_pred
+    | grant0[3] & io_reqs_3_bits_gshare_pred | grant0[4] & io_reqs_4_bits_gshare_pred;
   assign io_cdb1_valid = |_GEN;
   assign io_cdb1_bits_pc =
     (grant1[0] ? io_reqs_0_bits_pc : 32'h0) | (grant1[1] ? io_reqs_1_bits_pc : 32'h0)
@@ -359,5 +377,11 @@ module CdbArbiter(
     | (grant1[2] ? io_reqs_2_bits_br_type : 2'h0)
     | (grant1[3] ? io_reqs_3_bits_br_type : 2'h0)
     | (grant1[4] ? io_reqs_4_bits_br_type : 2'h0);
+  assign io_cdb1_bits_bimodal_pred =
+    grant1[0] & io_reqs_0_bits_bimodal_pred | grant1[2] & io_reqs_2_bits_bimodal_pred
+    | grant1[3] & io_reqs_3_bits_bimodal_pred | grant1[4] & io_reqs_4_bits_bimodal_pred;
+  assign io_cdb1_bits_gshare_pred =
+    grant1[0] & io_reqs_0_bits_gshare_pred | grant1[2] & io_reqs_2_bits_gshare_pred
+    | grant1[3] & io_reqs_3_bits_gshare_pred | grant1[4] & io_reqs_4_bits_gshare_pred;
 endmodule
 

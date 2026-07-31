@@ -13,7 +13,9 @@ module StageID(
   input  [3:0]  io_in_inst0_ras_tos,
   input         io_in_inst0_br_actual_taken,
   input  [1:0]  io_in_inst0_br_type,
-  input         io_in_valid1,
+  input         io_in_inst0_bimodal_pred,
+                io_in_inst0_gshare_pred,
+                io_in_valid1,
   input  [31:0] io_in_inst1_pc,
                 io_in_inst1_inst,
                 io_in_inst1_aux_data,
@@ -26,6 +28,8 @@ module StageID(
   input  [3:0]  io_in_inst1_ras_tos,
   input         io_in_inst1_br_actual_taken,
   input  [1:0]  io_in_inst1_br_type,
+  input         io_in_inst1_bimodal_pred,
+                io_in_inst1_gshare_pred,
   output [1:0]  io_in_pop,
   input         io_out0_ready,
   output        io_out0_valid,
@@ -70,6 +74,8 @@ module StageID(
   output [3:0]  io_out0_bits_ras_tos,
   output        io_out0_bits_br_actual_taken,
   output [1:0]  io_out0_bits_br_type,
+  output        io_out0_bits_bimodal_pred,
+                io_out0_bits_gshare_pred,
   input         io_out1_ready,
   output        io_out1_valid,
   output [31:0] io_out1_bits_pc,
@@ -113,6 +119,8 @@ module StageID(
   output [3:0]  io_out1_bits_ras_tos,
   output        io_out1_bits_br_actual_taken,
   output [1:0]  io_out1_bits_br_type,
+  output        io_out1_bits_bimodal_pred,
+                io_out1_bits_gshare_pred,
   input         io_flush
 );
 
@@ -239,6 +247,8 @@ module StageID(
   assign io_out0_bits_ras_tos = io_in_inst0_ras_tos;
   assign io_out0_bits_br_actual_taken = io_in_inst0_br_actual_taken;
   assign io_out0_bits_br_type = io_in_inst0_br_type;
+  assign io_out0_bits_bimodal_pred = io_in_inst0_bimodal_pred;
+  assign io_out0_bits_gshare_pred = io_in_inst0_gshare_pred;
   assign io_out1_valid = real_valid1;
   assign io_out1_bits_pc = io_in_inst1_pc;
   assign io_out1_bits_inst = d1_inst;
@@ -267,5 +277,7 @@ module StageID(
   assign io_out1_bits_ras_tos = io_in_inst1_ras_tos;
   assign io_out1_bits_br_actual_taken = io_in_inst1_br_actual_taken;
   assign io_out1_bits_br_type = io_in_inst1_br_type;
+  assign io_out1_bits_bimodal_pred = io_in_inst1_bimodal_pred;
+  assign io_out1_bits_gshare_pred = io_in_inst1_gshare_pred;
 endmodule
 

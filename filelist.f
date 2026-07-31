@@ -1,7 +1,8 @@
-ram_32x136.sv
+ram_32x140.sv
 Queue32_FetchMeta.sv
 btb_payload_512x55.sv
-bht_1024x2.sv
+mem_1024x2.sv
+meta_table_1024x2.sv
 StageIF.sv
 FetchBuffer.sv
 Decoder.sv

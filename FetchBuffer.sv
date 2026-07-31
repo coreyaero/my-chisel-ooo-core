@@ -14,6 +14,8 @@ module FetchBuffer(
   input  [1:0]  io_in0_bits_bpu_type,
   input  [9:0]  io_in0_bits_ghr,
   input  [3:0]  io_in0_bits_ras_tos,
+  input         io_in0_bits_bimodal_pred,
+                io_in0_bits_gshare_pred,
   output        io_in1_ready,
   input         io_in1_valid,
   input  [31:0] io_in1_bits_pc,
@@ -25,6 +27,8 @@ module FetchBuffer(
   input  [1:0]  io_in1_bits_bpu_type,
   input  [9:0]  io_in1_bits_ghr,
   input  [3:0]  io_in1_bits_ras_tos,
+  input         io_in1_bits_bimodal_pred,
+                io_in1_bits_gshare_pred,
   output        io_out_valid0,
   output [31:0] io_out_inst0_pc,
                 io_out_inst0_inst,
@@ -38,7 +42,9 @@ module FetchBuffer(
   output [3:0]  io_out_inst0_ras_tos,
   output        io_out_inst0_br_actual_taken,
   output [1:0]  io_out_inst0_br_type,
-  output        io_out_valid1,
+  output        io_out_inst0_bimodal_pred,
+                io_out_inst0_gshare_pred,
+                io_out_valid1,
   output [31:0] io_out_inst1_pc,
                 io_out_inst1_inst,
                 io_out_inst1_aux_data,
@@ -51,6 +57,8 @@ module FetchBuffer(
   output [3:0]  io_out_inst1_ras_tos,
   output        io_out_inst1_br_actual_taken,
   output [1:0]  io_out_inst1_br_type,
+  output        io_out_inst1_bimodal_pred,
+                io_out_inst1_gshare_pred,
   input  [1:0]  io_out_pop
 );
 
@@ -64,6 +72,8 @@ module FetchBuffer(
   reg  [9:0]       buffer_0_ghr;
   reg  [3:0]       buffer_0_ras_tos;
   reg              buffer_0_br_actual_taken;
+  reg              buffer_0_bimodal_pred;
+  reg              buffer_0_gshare_pred;
   reg  [31:0]      buffer_1_pc;
   reg  [31:0]      buffer_1_inst;
   reg              buffer_1_hasException;
@@ -74,6 +84,8 @@ module FetchBuffer(
   reg  [9:0]       buffer_1_ghr;
   reg  [3:0]       buffer_1_ras_tos;
   reg              buffer_1_br_actual_taken;
+  reg              buffer_1_bimodal_pred;
+  reg              buffer_1_gshare_pred;
   reg  [31:0]      buffer_2_pc;
   reg  [31:0]      buffer_2_inst;
   reg              buffer_2_hasException;
@@ -84,6 +96,8 @@ module FetchBuffer(
   reg  [9:0]       buffer_2_ghr;
   reg  [3:0]       buffer_2_ras_tos;
   reg              buffer_2_br_actual_taken;
+  reg              buffer_2_bimodal_pred;
+  reg              buffer_2_gshare_pred;
   reg  [31:0]      buffer_3_pc;
   reg  [31:0]      buffer_3_inst;
   reg              buffer_3_hasException;
@@ -94,6 +108,8 @@ module FetchBuffer(
   reg  [9:0]       buffer_3_ghr;
   reg  [3:0]       buffer_3_ras_tos;
   reg              buffer_3_br_actual_taken;
+  reg              buffer_3_bimodal_pred;
+  reg              buffer_3_gshare_pred;
   reg  [31:0]      buffer_4_pc;
   reg  [31:0]      buffer_4_inst;
   reg              buffer_4_hasException;
@@ -104,6 +120,8 @@ module FetchBuffer(
   reg  [9:0]       buffer_4_ghr;
   reg  [3:0]       buffer_4_ras_tos;
   reg              buffer_4_br_actual_taken;
+  reg              buffer_4_bimodal_pred;
+  reg              buffer_4_gshare_pred;
   reg  [31:0]      buffer_5_pc;
   reg  [31:0]      buffer_5_inst;
   reg              buffer_5_hasException;
@@ -114,6 +132,8 @@ module FetchBuffer(
   reg  [9:0]       buffer_5_ghr;
   reg  [3:0]       buffer_5_ras_tos;
   reg              buffer_5_br_actual_taken;
+  reg              buffer_5_bimodal_pred;
+  reg              buffer_5_gshare_pred;
   reg  [31:0]      buffer_6_pc;
   reg  [31:0]      buffer_6_inst;
   reg              buffer_6_hasException;
@@ -124,6 +144,8 @@ module FetchBuffer(
   reg  [9:0]       buffer_6_ghr;
   reg  [3:0]       buffer_6_ras_tos;
   reg              buffer_6_br_actual_taken;
+  reg              buffer_6_bimodal_pred;
+  reg              buffer_6_gshare_pred;
   reg  [31:0]      buffer_7_pc;
   reg  [31:0]      buffer_7_inst;
   reg              buffer_7_hasException;
@@ -134,6 +156,8 @@ module FetchBuffer(
   reg  [9:0]       buffer_7_ghr;
   reg  [3:0]       buffer_7_ras_tos;
   reg              buffer_7_br_actual_taken;
+  reg              buffer_7_bimodal_pred;
+  reg              buffer_7_gshare_pred;
   reg  [2:0]       head;
   reg  [2:0]       tail;
   reg  [3:0]       count;
@@ -228,6 +252,24 @@ module FetchBuffer(
      {buffer_2_br_actual_taken},
      {buffer_1_br_actual_taken},
      {buffer_0_br_actual_taken}};
+  wire [7:0]       _GEN_9 =
+    {{buffer_7_bimodal_pred},
+     {buffer_6_bimodal_pred},
+     {buffer_5_bimodal_pred},
+     {buffer_4_bimodal_pred},
+     {buffer_3_bimodal_pred},
+     {buffer_2_bimodal_pred},
+     {buffer_1_bimodal_pred},
+     {buffer_0_bimodal_pred}};
+  wire [7:0]       _GEN_10 =
+    {{buffer_7_gshare_pred},
+     {buffer_6_gshare_pred},
+     {buffer_5_gshare_pred},
+     {buffer_4_gshare_pred},
+     {buffer_3_gshare_pred},
+     {buffer_2_gshare_pred},
+     {buffer_1_gshare_pred},
+     {buffer_0_gshare_pred}};
   wire [2:0]       _io_out_inst1_sum_T = head + 3'h1;
   always @(posedge clock) begin
     automatic logic [7:0] t0_oh;
@@ -279,6 +321,8 @@ module FetchBuffer(
         buffer_0_bpu_type <= io_in0_bits_bpu_type;
         buffer_0_ghr <= io_in0_bits_ghr;
         buffer_0_ras_tos <= io_in0_bits_ras_tos;
+        buffer_0_bimodal_pred <= io_in0_bits_bimodal_pred;
+        buffer_0_gshare_pred <= io_in0_bits_gshare_pred;
       end
       else if (we1) begin
         buffer_0_pc <= io_in1_bits_pc;
@@ -290,6 +334,8 @@ module FetchBuffer(
         buffer_0_bpu_type <= io_in1_bits_bpu_type;
         buffer_0_ghr <= io_in1_bits_ghr;
         buffer_0_ras_tos <= io_in1_bits_ras_tos;
+        buffer_0_bimodal_pred <= io_in1_bits_bimodal_pred;
+        buffer_0_gshare_pred <= io_in1_bits_gshare_pred;
       end
       if (we0_1) begin
         buffer_1_pc <= io_in0_bits_pc;
@@ -301,6 +347,8 @@ module FetchBuffer(
         buffer_1_bpu_type <= io_in0_bits_bpu_type;
         buffer_1_ghr <= io_in0_bits_ghr;
         buffer_1_ras_tos <= io_in0_bits_ras_tos;
+        buffer_1_bimodal_pred <= io_in0_bits_bimodal_pred;
+        buffer_1_gshare_pred <= io_in0_bits_gshare_pred;
       end
       else if (we1_1) begin
         buffer_1_pc <= io_in1_bits_pc;
@@ -312,6 +360,8 @@ module FetchBuffer(
         buffer_1_bpu_type <= io_in1_bits_bpu_type;
         buffer_1_ghr <= io_in1_bits_ghr;
         buffer_1_ras_tos <= io_in1_bits_ras_tos;
+        buffer_1_bimodal_pred <= io_in1_bits_bimodal_pred;
+        buffer_1_gshare_pred <= io_in1_bits_gshare_pred;
       end
       if (we0_2) begin
         buffer_2_pc <= io_in0_bits_pc;
@@ -323,6 +373,8 @@ module FetchBuffer(
         buffer_2_bpu_type <= io_in0_bits_bpu_type;
         buffer_2_ghr <= io_in0_bits_ghr;
         buffer_2_ras_tos <= io_in0_bits_ras_tos;
+        buffer_2_bimodal_pred <= io_in0_bits_bimodal_pred;
+        buffer_2_gshare_pred <= io_in0_bits_gshare_pred;
       end
       else if (we1_2) begin
         buffer_2_pc <= io_in1_bits_pc;
@@ -334,6 +386,8 @@ module FetchBuffer(
         buffer_2_bpu_type <= io_in1_bits_bpu_type;
         buffer_2_ghr <= io_in1_bits_ghr;
         buffer_2_ras_tos <= io_in1_bits_ras_tos;
+        buffer_2_bimodal_pred <= io_in1_bits_bimodal_pred;
+        buffer_2_gshare_pred <= io_in1_bits_gshare_pred;
       end
       if (we0_3) begin
         buffer_3_pc <= io_in0_bits_pc;
@@ -345,6 +399,8 @@ module FetchBuffer(
         buffer_3_bpu_type <= io_in0_bits_bpu_type;
         buffer_3_ghr <= io_in0_bits_ghr;
         buffer_3_ras_tos <= io_in0_bits_ras_tos;
+        buffer_3_bimodal_pred <= io_in0_bits_bimodal_pred;
+        buffer_3_gshare_pred <= io_in0_bits_gshare_pred;
       end
       else if (we1_3) begin
         buffer_3_pc <= io_in1_bits_pc;
@@ -356,6 +412,8 @@ module FetchBuffer(
         buffer_3_bpu_type <= io_in1_bits_bpu_type;
         buffer_3_ghr <= io_in1_bits_ghr;
         buffer_3_ras_tos <= io_in1_bits_ras_tos;
+        buffer_3_bimodal_pred <= io_in1_bits_bimodal_pred;
+        buffer_3_gshare_pred <= io_in1_bits_gshare_pred;
       end
       if (we0_4) begin
         buffer_4_pc <= io_in0_bits_pc;
@@ -367,6 +425,8 @@ module FetchBuffer(
         buffer_4_bpu_type <= io_in0_bits_bpu_type;
         buffer_4_ghr <= io_in0_bits_ghr;
         buffer_4_ras_tos <= io_in0_bits_ras_tos;
+        buffer_4_bimodal_pred <= io_in0_bits_bimodal_pred;
+        buffer_4_gshare_pred <= io_in0_bits_gshare_pred;
       end
       else if (we1_4) begin
         buffer_4_pc <= io_in1_bits_pc;
@@ -378,6 +438,8 @@ module FetchBuffer(
         buffer_4_bpu_type <= io_in1_bits_bpu_type;
         buffer_4_ghr <= io_in1_bits_ghr;
         buffer_4_ras_tos <= io_in1_bits_ras_tos;
+        buffer_4_bimodal_pred <= io_in1_bits_bimodal_pred;
+        buffer_4_gshare_pred <= io_in1_bits_gshare_pred;
       end
       if (we0_5) begin
         buffer_5_pc <= io_in0_bits_pc;
@@ -389,6 +451,8 @@ module FetchBuffer(
         buffer_5_bpu_type <= io_in0_bits_bpu_type;
         buffer_5_ghr <= io_in0_bits_ghr;
         buffer_5_ras_tos <= io_in0_bits_ras_tos;
+        buffer_5_bimodal_pred <= io_in0_bits_bimodal_pred;
+        buffer_5_gshare_pred <= io_in0_bits_gshare_pred;
       end
       else if (we1_5) begin
         buffer_5_pc <= io_in1_bits_pc;
@@ -400,6 +464,8 @@ module FetchBuffer(
         buffer_5_bpu_type <= io_in1_bits_bpu_type;
         buffer_5_ghr <= io_in1_bits_ghr;
         buffer_5_ras_tos <= io_in1_bits_ras_tos;
+        buffer_5_bimodal_pred <= io_in1_bits_bimodal_pred;
+        buffer_5_gshare_pred <= io_in1_bits_gshare_pred;
       end
       if (we0_6) begin
         buffer_6_pc <= io_in0_bits_pc;
@@ -411,6 +477,8 @@ module FetchBuffer(
         buffer_6_bpu_type <= io_in0_bits_bpu_type;
         buffer_6_ghr <= io_in0_bits_ghr;
         buffer_6_ras_tos <= io_in0_bits_ras_tos;
+        buffer_6_bimodal_pred <= io_in0_bits_bimodal_pred;
+        buffer_6_gshare_pred <= io_in0_bits_gshare_pred;
       end
       else if (we1_6) begin
         buffer_6_pc <= io_in1_bits_pc;
@@ -422,6 +490,8 @@ module FetchBuffer(
         buffer_6_bpu_type <= io_in1_bits_bpu_type;
         buffer_6_ghr <= io_in1_bits_ghr;
         buffer_6_ras_tos <= io_in1_bits_ras_tos;
+        buffer_6_bimodal_pred <= io_in1_bits_bimodal_pred;
+        buffer_6_gshare_pred <= io_in1_bits_gshare_pred;
       end
       if (we0_7) begin
         buffer_7_pc <= io_in0_bits_pc;
@@ -433,6 +503,8 @@ module FetchBuffer(
         buffer_7_bpu_type <= io_in0_bits_bpu_type;
         buffer_7_ghr <= io_in0_bits_ghr;
         buffer_7_ras_tos <= io_in0_bits_ras_tos;
+        buffer_7_bimodal_pred <= io_in0_bits_bimodal_pred;
+        buffer_7_gshare_pred <= io_in0_bits_gshare_pred;
       end
       else if (we1_7) begin
         buffer_7_pc <= io_in1_bits_pc;
@@ -444,6 +516,8 @@ module FetchBuffer(
         buffer_7_bpu_type <= io_in1_bits_bpu_type;
         buffer_7_ghr <= io_in1_bits_ghr;
         buffer_7_ras_tos <= io_in1_bits_ras_tos;
+        buffer_7_bimodal_pred <= io_in1_bits_bimodal_pred;
+        buffer_7_gshare_pred <= io_in1_bits_gshare_pred;
       end
     end
     buffer_0_br_actual_taken <= (io_flush | ~(we0 | we1)) & buffer_0_br_actual_taken;
@@ -499,6 +573,8 @@ module FetchBuffer(
   assign io_out_inst0_ras_tos = _GEN_7[head];
   assign io_out_inst0_br_actual_taken = _GEN_8[head];
   assign io_out_inst0_br_type = 2'h0;
+  assign io_out_inst0_bimodal_pred = _GEN_9[head];
+  assign io_out_inst0_gshare_pred = _GEN_10[head];
   assign io_out_valid1 = |(count[3:1]);
   assign io_out_inst1_pc = _GEN[_io_out_inst1_sum_T];
   assign io_out_inst1_inst = _GEN_0[_io_out_inst1_sum_T];
@@ -512,5 +588,7 @@ module FetchBuffer(
   assign io_out_inst1_ras_tos = _GEN_7[_io_out_inst1_sum_T];
   assign io_out_inst1_br_actual_taken = _GEN_8[_io_out_inst1_sum_T];
   assign io_out_inst1_br_type = 2'h0;
+  assign io_out_inst1_bimodal_pred = _GEN_9[_io_out_inst1_sum_T];
+  assign io_out_inst1_gshare_pred = _GEN_10[_io_out_inst1_sum_T];
 endmodule
 

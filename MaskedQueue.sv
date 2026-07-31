@@ -27,7 +27,9 @@ module MaskedQueue(
   input  [9:0]  io_enq_bits_ghr,
   input         io_enq_bits_br_actual_taken,
   input  [1:0]  io_enq_bits_br_type,
-  input         io_deq_ready,
+  input         io_enq_bits_bimodal_pred,
+                io_enq_bits_gshare_pred,
+                io_deq_ready,
   output        io_deq_valid,
   output [31:0] io_deq_bits_pc,
                 io_deq_bits_src2_value,
@@ -51,6 +53,8 @@ module MaskedQueue(
   output [9:0]  io_deq_bits_ghr,
   output        io_deq_bits_br_actual_taken,
   output [1:0]  io_deq_bits_br_type,
+  output        io_deq_bits_bimodal_pred,
+                io_deq_bits_gshare_pred,
   input         io_flush,
                 io_br_resolve_in_valid,
                 io_br_resolve_in_mispredict,
@@ -81,6 +85,8 @@ module MaskedQueue(
   reg  [9:0]  data_0_ghr;
   reg         data_0_br_actual_taken;
   reg  [1:0]  data_0_br_type;
+  reg         data_0_bimodal_pred;
+  reg         data_0_gshare_pred;
   reg         valid_1;
   reg  [31:0] data_1_pc;
   reg  [31:0] data_1_src2_value;
@@ -105,6 +111,8 @@ module MaskedQueue(
   reg  [9:0]  data_1_ghr;
   reg         data_1_br_actual_taken;
   reg  [1:0]  data_1_br_type;
+  reg         data_1_bimodal_pred;
+  reg         data_1_gshare_pred;
   wire        br_fail = io_br_resolve_in_valid & io_br_resolve_in_mispredict;
   wire [6:0]  br_tag_bit = 7'h1 << io_br_resolve_in_tag;
   wire        keep_0 = valid_0 & ~(br_fail & (|(br_tag_bit[3:0] & data_0_branch_mask)));
@@ -137,6 +145,8 @@ module MaskedQueue(
       data_0_ghr <= 10'h0;
       data_0_br_actual_taken <= 1'h0;
       data_0_br_type <= 2'h0;
+      data_0_bimodal_pred <= 1'h0;
+      data_0_gshare_pred <= 1'h0;
       valid_1 <= 1'h0;
       data_1_pc <= 32'h0;
       data_1_src2_value <= 32'h0;
@@ -161,6 +171,8 @@ module MaskedQueue(
       data_1_ghr <= 10'h0;
       data_1_br_actual_taken <= 1'h0;
       data_1_br_type <= 2'h0;
+      data_1_bimodal_pred <= 1'h0;
+      data_1_gshare_pred <= 1'h0;
     end
     else begin
       automatic logic [3:0] _GEN;
@@ -224,6 +236,8 @@ module MaskedQueue(
           data_0_ghr <= data_1_ghr;
           data_0_br_actual_taken <= data_1_br_actual_taken;
           data_0_br_type <= data_1_br_type;
+          data_0_bimodal_pred <= data_1_bimodal_pred;
+          data_0_gshare_pred <= data_1_gshare_pred;
         end
         else if (_GEN_3) begin
           data_0_pc <= io_enq_bits_pc;
@@ -248,6 +262,8 @@ module MaskedQueue(
           data_0_ghr <= io_enq_bits_ghr;
           data_0_br_actual_taken <= io_enq_bits_br_actual_taken;
           data_0_br_type <= io_enq_bits_br_type;
+          data_0_bimodal_pred <= io_enq_bits_bimodal_pred;
+          data_0_gshare_pred <= io_enq_bits_gshare_pred;
         end
         else if (_GEN_7 | ~_GEN_6) begin
         end
@@ -274,6 +290,8 @@ module MaskedQueue(
           data_0_ghr <= data_1_ghr;
           data_0_br_actual_taken <= data_1_br_actual_taken;
           data_0_br_type <= data_1_br_type;
+          data_0_bimodal_pred <= data_1_bimodal_pred;
+          data_0_gshare_pred <= data_1_gshare_pred;
         end
       end
       if (~_GEN_8) begin
@@ -327,6 +345,8 @@ module MaskedQueue(
         data_1_ghr <= io_enq_bits_ghr;
         data_1_br_actual_taken <= io_enq_bits_br_actual_taken;
         data_1_br_type <= io_enq_bits_br_type;
+        data_1_bimodal_pred <= io_enq_bits_bimodal_pred;
+        data_1_gshare_pred <= io_enq_bits_gshare_pred;
       end
     end
   end // always @(posedge, posedge)
@@ -360,6 +380,8 @@ module MaskedQueue(
         data_0_ghr = 10'h0;
         data_0_br_actual_taken = 1'h0;
         data_0_br_type = 2'h0;
+        data_0_bimodal_pred = 1'h0;
+        data_0_gshare_pred = 1'h0;
         valid_1 = 1'h0;
         data_1_pc = 32'h0;
         data_1_src2_value = 32'h0;
@@ -384,6 +406,8 @@ module MaskedQueue(
         data_1_ghr = 10'h0;
         data_1_br_actual_taken = 1'h0;
         data_1_br_type = 2'h0;
+        data_1_bimodal_pred = 1'h0;
+        data_1_gshare_pred = 1'h0;
       end
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -414,5 +438,7 @@ module MaskedQueue(
   assign io_deq_bits_ghr = data_0_ghr;
   assign io_deq_bits_br_actual_taken = data_0_br_actual_taken;
   assign io_deq_bits_br_type = data_0_br_type;
+  assign io_deq_bits_bimodal_pred = data_0_bimodal_pred;
+  assign io_deq_bits_gshare_pred = data_0_gshare_pred;
 endmodule
 

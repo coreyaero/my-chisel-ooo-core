@@ -46,6 +46,8 @@ module DispatchBuffer(
   input  [3:0]  io_in0_bits_ras_tos,
   input         io_in0_bits_br_actual_taken,
   input  [1:0]  io_in0_bits_br_type,
+  input         io_in0_bits_bimodal_pred,
+                io_in0_bits_gshare_pred,
   output        io_in1_ready,
   input         io_in1_valid,
   input  [31:0] io_in1_bits_pc,
@@ -89,7 +91,9 @@ module DispatchBuffer(
   input  [3:0]  io_in1_bits_ras_tos,
   input         io_in1_bits_br_actual_taken,
   input  [1:0]  io_in1_bits_br_type,
-  input         io_out0_ready,
+  input         io_in1_bits_bimodal_pred,
+                io_in1_bits_gshare_pred,
+                io_out0_ready,
   output        io_out0_valid,
   output [31:0] io_out0_bits_pc,
                 io_out0_bits_inst,
@@ -132,6 +136,8 @@ module DispatchBuffer(
   output [3:0]  io_out0_bits_ras_tos,
   output        io_out0_bits_br_actual_taken,
   output [1:0]  io_out0_bits_br_type,
+  output        io_out0_bits_bimodal_pred,
+                io_out0_bits_gshare_pred,
   input         io_out1_ready,
   output        io_out1_valid,
   output [31:0] io_out1_bits_pc,
@@ -174,7 +180,9 @@ module DispatchBuffer(
   output [9:0]  io_out1_bits_ghr,
   output [3:0]  io_out1_bits_ras_tos,
   output        io_out1_bits_br_actual_taken,
-  output [1:0]  io_out1_bits_br_type
+  output [1:0]  io_out1_bits_br_type,
+  output        io_out1_bits_bimodal_pred,
+                io_out1_bits_gshare_pred
 );
 
   reg         valid0;
@@ -219,6 +227,8 @@ module DispatchBuffer(
   reg  [3:0]  bits0_ras_tos;
   reg         bits0_br_actual_taken;
   reg  [1:0]  bits0_br_type;
+  reg         bits0_bimodal_pred;
+  reg         bits0_gshare_pred;
   reg         valid1;
   reg  [31:0] bits1_pc;
   reg  [31:0] bits1_inst;
@@ -261,6 +271,8 @@ module DispatchBuffer(
   reg  [3:0]  bits1_ras_tos;
   reg         bits1_br_actual_taken;
   reg  [1:0]  bits1_br_type;
+  reg         bits1_bimodal_pred;
+  reg         bits1_gshare_pred;
   wire        pop0 = valid0 & io_out0_ready;
   wire [1:0]  pop_cnt = pop0 & valid1 & io_out1_ready ? 2'h2 : {1'h0, pop0};
   wire        remain0_v = pop_cnt != 2'h2 & (pop_cnt == 2'h1 ? valid1 : valid0);
@@ -325,6 +337,8 @@ module DispatchBuffer(
       bits0_ras_tos <= io_in0_bits_ras_tos;
       bits0_br_actual_taken <= io_in0_bits_br_actual_taken;
       bits0_br_type <= io_in0_bits_br_type;
+      bits0_bimodal_pred <= io_in0_bits_bimodal_pred;
+      bits0_gshare_pred <= io_in0_bits_gshare_pred;
       bits1_pc <= io_in1_bits_pc;
       bits1_inst <= io_in1_bits_inst;
       bits1_aluOp <= io_in1_bits_aluOp;
@@ -366,6 +380,8 @@ module DispatchBuffer(
       bits1_ras_tos <= io_in1_bits_ras_tos;
       bits1_br_actual_taken <= io_in1_bits_br_actual_taken;
       bits1_br_type <= io_in1_bits_br_type;
+      bits1_bimodal_pred <= io_in1_bits_bimodal_pred;
+      bits1_gshare_pred <= io_in1_bits_gshare_pred;
     end
     else begin
       if (|pop_cnt) begin
@@ -410,6 +426,8 @@ module DispatchBuffer(
         bits0_ras_tos <= bits1_ras_tos;
         bits0_br_actual_taken <= bits1_br_actual_taken;
         bits0_br_type <= bits1_br_type;
+        bits0_bimodal_pred <= bits1_bimodal_pred;
+        bits0_gshare_pred <= bits1_gshare_pred;
       end
       if (_GEN) begin
         bits1_pc <= io_in0_bits_pc;
@@ -453,6 +471,8 @@ module DispatchBuffer(
         bits1_ras_tos <= io_in0_bits_ras_tos;
         bits1_br_actual_taken <= io_in0_bits_br_actual_taken;
         bits1_br_type <= io_in0_bits_br_type;
+        bits1_bimodal_pred <= io_in0_bits_bimodal_pred;
+        bits1_gshare_pred <= io_in0_bits_gshare_pred;
       end
     end
   end // always @(posedge)
@@ -514,6 +534,8 @@ module DispatchBuffer(
   assign io_out0_bits_ras_tos = bits0_ras_tos;
   assign io_out0_bits_br_actual_taken = bits0_br_actual_taken;
   assign io_out0_bits_br_type = bits0_br_type;
+  assign io_out0_bits_bimodal_pred = bits0_bimodal_pred;
+  assign io_out0_bits_gshare_pred = bits0_gshare_pred;
   assign io_out1_valid = valid1;
   assign io_out1_bits_pc = bits1_pc;
   assign io_out1_bits_inst = bits1_inst;
@@ -556,5 +578,7 @@ module DispatchBuffer(
   assign io_out1_bits_ras_tos = bits1_ras_tos;
   assign io_out1_bits_br_actual_taken = bits1_br_actual_taken;
   assign io_out1_bits_br_type = bits1_br_type;
+  assign io_out1_bits_bimodal_pred = bits1_bimodal_pred;
+  assign io_out1_bits_gshare_pred = bits1_gshare_pred;
 endmodule
 
