@@ -322,6 +322,16 @@ class core_top extends RawModule {
         iss_q_mdu.io.enq  <> iq.io.issue_mdu
         iss_q_agu.io.enq  <> iq.io.issue_agu
 
+        // ★★★ 终极核武器：ALU 推测性提前唤醒连线 ★★★
+        // 从流水线读段 (IssueBuffer) 提前一拍提取目标寄存器
+        val alu0_deq = iss_q_alu0.io.deq
+        iq.io.alu0_wakeup.valid := alu0_deq.valid && alu0_deq.bits.regWriteEn
+        iq.io.alu0_wakeup.bits  := alu0_deq.bits.pdest
+
+        val alu1_deq = iss_q_alu1.io.deq
+        iq.io.alu1_wakeup.valid := alu1_deq.valid && alu1_deq.bits.regWriteEn
+        iq.io.alu1_wakeup.bits  := alu1_deq.bits.pdest
+
         // 1. 操作数地址现在从流水段寄存器中拉出，打向 PRF (跨界布线彻底终结！)
         // (这8行 prf.io.raddr 保留不变)
         prf.io.raddr1 := iss_q_alu0.io.deq.bits.psrc1

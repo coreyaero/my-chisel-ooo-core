@@ -28,13 +28,10 @@ class PRF extends Module{
     when (io.we1 && io.waddr1 =/= 0.U) { regs(io.waddr1) := io.wdata1 }
     when (io.we2 && io.waddr2 =/= 0.U) { regs(io.waddr2) := io.wdata2 }
     
-    // ★ 内部前递逻辑封装：如果刚才 CDB 写回了，当拍直接读出最新值！
+    // ★ 性能核弹 1：直接干掉 PRF 内部的冗余 Bypass，让寄存器堆回归纯粹！
+    // 外部的 attachBypass 保镖已经拦截了所有最新数据，这里不需要任何 MUX 拖累时序！
     def readData(raddr: UInt): UInt = {
-        Mux(raddr === 0.U, 0.U, 
-            Mux(io.we2 && (io.waddr2 === raddr), io.wdata2, 
-            Mux(io.we1 && (io.waddr1 === raddr), io.wdata1, 
-            regs(raddr)))
-        )
+        Mux(raddr === 0.U, 0.U, regs(raddr))
     }
 
     io.rdata1 := readData(io.raddr1)

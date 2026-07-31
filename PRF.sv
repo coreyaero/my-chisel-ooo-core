@@ -560,53 +560,13 @@ module PRF(
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_rdata1 =
-    io_raddr1 == 6'h0
-      ? 32'h0
-      : io_we2 & io_waddr2 == io_raddr1
-          ? io_wdata2
-          : io_we1 & io_waddr1 == io_raddr1 ? io_wdata1 : _GEN[io_raddr1];
-  assign io_rdata2 =
-    io_raddr2 == 6'h0
-      ? 32'h0
-      : io_we2 & io_waddr2 == io_raddr2
-          ? io_wdata2
-          : io_we1 & io_waddr1 == io_raddr2 ? io_wdata1 : _GEN[io_raddr2];
-  assign io_rdata3 =
-    io_raddr3 == 6'h0
-      ? 32'h0
-      : io_we2 & io_waddr2 == io_raddr3
-          ? io_wdata2
-          : io_we1 & io_waddr1 == io_raddr3 ? io_wdata1 : _GEN[io_raddr3];
-  assign io_rdata4 =
-    io_raddr4 == 6'h0
-      ? 32'h0
-      : io_we2 & io_waddr2 == io_raddr4
-          ? io_wdata2
-          : io_we1 & io_waddr1 == io_raddr4 ? io_wdata1 : _GEN[io_raddr4];
-  assign io_rdata5 =
-    io_raddr5 == 6'h0
-      ? 32'h0
-      : io_we2 & io_waddr2 == io_raddr5
-          ? io_wdata2
-          : io_we1 & io_waddr1 == io_raddr5 ? io_wdata1 : _GEN[io_raddr5];
-  assign io_rdata6 =
-    io_raddr6 == 6'h0
-      ? 32'h0
-      : io_we2 & io_waddr2 == io_raddr6
-          ? io_wdata2
-          : io_we1 & io_waddr1 == io_raddr6 ? io_wdata1 : _GEN[io_raddr6];
-  assign io_rdata7 =
-    io_raddr7 == 6'h0
-      ? 32'h0
-      : io_we2 & io_waddr2 == io_raddr7
-          ? io_wdata2
-          : io_we1 & io_waddr1 == io_raddr7 ? io_wdata1 : _GEN[io_raddr7];
-  assign io_rdata8 =
-    io_raddr8 == 6'h0
-      ? 32'h0
-      : io_we2 & io_waddr2 == io_raddr8
-          ? io_wdata2
-          : io_we1 & io_waddr1 == io_raddr8 ? io_wdata1 : _GEN[io_raddr8];
+  assign io_rdata1 = io_raddr1 == 6'h0 ? 32'h0 : _GEN[io_raddr1];
+  assign io_rdata2 = io_raddr2 == 6'h0 ? 32'h0 : _GEN[io_raddr2];
+  assign io_rdata3 = io_raddr3 == 6'h0 ? 32'h0 : _GEN[io_raddr3];
+  assign io_rdata4 = io_raddr4 == 6'h0 ? 32'h0 : _GEN[io_raddr4];
+  assign io_rdata5 = io_raddr5 == 6'h0 ? 32'h0 : _GEN[io_raddr5];
+  assign io_rdata6 = io_raddr6 == 6'h0 ? 32'h0 : _GEN[io_raddr6];
+  assign io_rdata7 = io_raddr7 == 6'h0 ? 32'h0 : _GEN[io_raddr7];
+  assign io_rdata8 = io_raddr8 == 6'h0 ? 32'h0 : _GEN[io_raddr8];
 endmodule
 

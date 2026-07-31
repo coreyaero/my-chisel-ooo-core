@@ -2107,7 +2107,13 @@ module core_top(
     .io_prf_ready_state_60              (_iq_io_prf_ready_state_60),
     .io_prf_ready_state_61              (_iq_io_prf_ready_state_61),
     .io_prf_ready_state_62              (_iq_io_prf_ready_state_62),
-    .io_prf_ready_state_63              (_iq_io_prf_ready_state_63)
+    .io_prf_ready_state_63              (_iq_io_prf_ready_state_63),
+    .io_alu0_wakeup_valid
+      (_iss_q_alu0_io_deq_valid & _iss_q_alu0_io_deq_bits_regWriteEn),
+    .io_alu0_wakeup_bits                (_iss_q_alu0_io_deq_bits_pdest),
+    .io_alu1_wakeup_valid
+      (_iss_q_alu1_io_deq_valid & _iss_q_alu1_io_deq_bits_regWriteEn),
+    .io_alu1_wakeup_bits                (_iss_q_alu1_io_deq_bits_pdest)
   );
   ROB rob (
     .clock                                  (aclk),
