@@ -377,31 +377,25 @@ class LSQ extends Module {
     val issue_e   = Mux1H(grant_oh, entries)
     val issue_idx = OHToUInt(grant_oh)
 
-    // --- 2.3 斩断发射长路径：直接打入发射寄存器 ---
-    val out_valid_reg = RegInit(false.B)
-    val out_e_reg     = RegInit(0.U.asTypeOf(new LsqEntry()))
-    val out_ready = !out_valid_reg || io.dcache.addr_ok
+    // --- 2.3 极速发射路径：直通外部队列 (去除内部冗余打拍) ---
+    // ★ 性能核弹：直接用当拍的仲裁结果 (do_issue 和 issue_e) 驱动输出接口！
+    io.dcache.req      := do_issue
+    io.dcache_req_id   := issue_e.ticket
+    io.dcache.wr       := issue_e.is_store
+    io.dcache.size     := issue_e.size
+    io.dcache.addr     := issue_e.paddr
+    io.dcache.wdata    := issue_e.wdata
+    io.dcache.wstrb    := issue_e.wstrb
+    io.dcache_uncached := issue_e.uncached
 
-    when (out_ready) {
-        out_valid_reg := do_issue
-        when (do_issue) {
-            out_e_reg := issue_e
-            entries(issue_idx).req_sent := true.B 
-        }
+    io.cacop_en        := do_issue && issue_e.is_cacop
+    io.cacop_op        := issue_e.cacop_op(4,3)
+    io.cacop_is_icache := issue_e.is_cacop && (issue_e.cacop_op(2,0) === 0.U)
+
+    // ★ 严谨的握手：当且仅当 LSQ 发起了请求，且顶层的 lsq_dcache_q 有空位接收时，才把表项标记为“已发送”
+    when(do_issue && io.dcache.addr_ok) {
+        entries(issue_idx).req_sent := true.B 
     }
-
-    io.dcache.req      := out_valid_reg
-    io.dcache_req_id   := out_e_reg.ticket
-    io.dcache.wr       := out_e_reg.is_store
-    io.dcache.size     := out_e_reg.size
-    io.dcache.addr     := out_e_reg.paddr
-    io.dcache.wdata    := out_e_reg.wdata
-    io.dcache.wstrb    := out_e_reg.wstrb
-    io.dcache_uncached := out_e_reg.uncached
-
-    io.cacop_en        := out_valid_reg && out_e_reg.is_cacop
-    io.cacop_op        := out_e_reg.cacop_op(4,3)
-    io.cacop_is_icache := out_e_reg.is_cacop && (out_e_reg.cacop_op(2,0) === 0.U)
     
     // ---------------- 异步接收外卖 (Ticket 匹配机制) ----------------
     // 打拍缓冲，斩断 DCache 到 LSQ 的长布线延迟
