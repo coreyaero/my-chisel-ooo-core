@@ -279,8 +279,9 @@ module DispatchBuffer(
   wire        remain1_v = ~(|pop_cnt) & valid1;
   wire [1:0]  space = remain0_v ? {1'h0, ~remain1_v} : 2'h2;
   wire        io_in1_ready_0 = space == 2'h2;
-  wire        _GEN = space == 2'h1;
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
+    automatic logic _GEN;
+    _GEN = space == 2'h1;
     if (reset) begin
       valid0 <= 1'h0;
       valid1 <= 1'h0;
@@ -291,8 +292,6 @@ module DispatchBuffer(
       valid1 <=
         ~io_flush & (io_in1_ready_0 ? io_in1_valid & enq0 : _GEN ? enq0 : remain1_v);
     end
-  end // always @(posedge, posedge)
-  always @(posedge clock) begin
     if (io_flush) begin
     end
     else if (io_in1_ready_0) begin
@@ -476,20 +475,6 @@ module DispatchBuffer(
       end
     end
   end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        valid0 = 1'h0;
-        valid1 = 1'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
   assign io_in0_ready = |space;
   assign io_in1_ready = io_in1_ready_0;
   assign io_out0_valid = valid0;

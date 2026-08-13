@@ -116,7 +116,17 @@ module MduUnit(
   wire        math_done =
     ~valid_mdu_req | mdu_finished | mdu_busy & (is_div ? _div_io_done : mul_done);
   wire        in_ready = ~active | math_done & io_out_ready;
-  always @(posedge clock or posedge reset) begin
+  wire [31:0] final_q =
+    is_signed & (data_reg_src1_value[31] ^ data_reg_src2_value[31])
+      ? ~_div_io_q + 32'h1
+      : _div_io_q;
+  wire [31:0] final_r =
+    is_signed & data_reg_src1_value[31] ? ~_div_io_r + 32'h1 : _div_io_r;
+  reg  [31:0] q_latch;
+  reg  [31:0] r_latch;
+  wire [31:0] safe_q = mdu_finished ? q_latch : final_q;
+  wire [31:0] safe_r = mdu_finished ? r_latch : final_r;
+  always @(posedge clock) begin
     if (reset) begin
       valid_reg <= 1'h0;
       data_reg_pc <= 32'h0;
@@ -153,9 +163,8 @@ module MduUnit(
     else begin
       automatic logic _GEN_0 = io_flush | ~in_ready;
       automatic logic _GEN_1 = br_fail & (|_GEN);
-      automatic logic _GEN_2;
+      automatic logic _GEN_2 = mdu_busy & (_div_io_done | mul_done);
       automatic logic _GEN_3 = io_flush | in_ready | _GEN_1;
-      _GEN_2 = mdu_busy & (_div_io_done | mul_done);
       valid_reg <=
         ~io_flush
         & (in_ready
@@ -207,50 +216,11 @@ module MduUnit(
       mdu_finished <= ~_GEN_3 & (~start_pulse & _GEN_2 | mdu_finished);
       mul_done <= start_pulse & (_mdu_res_T_3 | _mdu_res_T_5 | _mdu_res_T_7);
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        valid_reg = 1'h0;
-        data_reg_pc = 32'h0;
-        data_reg_mduOp = 7'h0;
-        data_reg_src1_value = 32'h0;
-        data_reg_src2_value = 32'h0;
-        data_reg_resFromMulDiv = 1'h0;
-        data_reg_memWe = 1'h0;
-        data_reg_resFromMem = 1'h0;
-        data_reg_regWriteEn = 1'h0;
-        data_reg_aux_data = 32'h0;
-        data_reg_hasException = 1'h0;
-        data_reg_ecode = 6'h0;
-        data_reg_isCsr = 1'h0;
-        data_reg_csrWe = 1'h0;
-        data_reg_csrNum = 14'h0;
-        data_reg_inst_ertn = 1'h0;
-        data_reg_tlbOp = 5'h0;
-        data_reg_is_refetch = 1'h0;
-        data_reg_is_cacop = 1'h0;
-        data_reg_rob_idx = 5'h0;
-        data_reg_pdest = 6'h0;
-        data_reg_is_branch = 1'h0;
-        data_reg_branch_mask = 4'h0;
-        data_reg_ghr = 10'h0;
-        data_reg_br_actual_taken = 1'h0;
-        data_reg_br_type = 2'h0;
-        data_reg_bimodal_pred = 1'h0;
-        data_reg_gshare_pred = 1'h0;
-        mdu_busy = 1'h0;
-        mdu_finished = 1'h0;
-        mul_done = 1'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+    if (_div_io_done) begin
+      q_latch <= final_q;
+      r_latch <= final_r;
+    end
+  end // always @(posedge)
   Multiplier mul (
     .clock       (clock),
     .io_src1     (data_reg_src1_value),
@@ -261,7 +231,7 @@ module MduUnit(
   Divider div (
     .clock      (clock),
     .io_enable  (start_pulse & is_div),
-    .io_aresetn (~(io_flush | br_fail & (|_GEN))),
+    .io_aresetn (~(reset | io_flush | br_fail & (|_GEN))),
     .io_a
       (is_signed & data_reg_src1_value[31]
          ? ~data_reg_src1_value + 32'h1
@@ -283,15 +253,13 @@ module MduUnit(
   assign io_out_bits_regWriteEn = data_reg_regWriteEn;
   assign io_out_bits_ex_result =
     _mdu_res_T_15
-      ? _div_io_r
+      ? safe_r
       : _mdu_res_T_13
-          ? _div_io_q
+          ? safe_q
           : _mdu_res_T_11
-              ? (is_signed & data_reg_src1_value[31] ? ~_div_io_r + 32'h1 : _div_io_r)
+              ? safe_r
               : _mdu_res_T_9
-                  ? (is_signed & (data_reg_src1_value[31] ^ data_reg_src2_value[31])
-                       ? ~_div_io_q + 32'h1
-                       : _div_io_q)
+                  ? safe_q
                   : _mdu_res_T_7 | _mdu_res_T_5
                       ? _mul_io_result64[63:32]
                       : _mdu_res_T_3 ? _mul_io_result64[31:0] : 32'h0;

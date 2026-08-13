@@ -406,8 +406,10 @@ module core_top(
   wire [9:0]   _exec_engine_io_tlb_port_asid;
   wire         _exec_engine_io_invtlb_valid;
   wire [4:0]   _exec_engine_io_invtlb_op;
-  wire         _exec_engine_io_lsq_alloc_req_ready;
-  wire [3:0]   _exec_engine_io_lsq_alloc_idx;
+  wire         _exec_engine_io_lsq_alloc_req0_ready;
+  wire [3:0]   _exec_engine_io_lsq_alloc_idx0;
+  wire         _exec_engine_io_lsq_alloc_req1_ready;
+  wire [3:0]   _exec_engine_io_lsq_alloc_idx1;
   wire [3:0]   _exec_engine_io_lsq_state_current_tail;
   wire         _exec_engine_io_lsq_violation_valid;
   wire [4:0]   _exec_engine_io_lsq_violation_rob;
@@ -1008,7 +1010,6 @@ module core_top(
   wire [18:0]  _if_module_io_tlb_port_vppn;
   wire         _if_module_io_tlb_port_va_bit12;
   wire [9:0]   _if_module_io_tlb_port_asid;
-  wire         _reset_high_T = ~aresetn;
   wire         flush_frontend = _rob_io_wb_flush | _exec_engine_io_branch_req;
   wire         is_mispredict =
     _exec_engine_io_br_resolve_valid & _exec_engine_io_br_resolve_mispredict;
@@ -1024,20 +1025,19 @@ module core_top(
     | _disp_buf_io_out1_bits_is_cacop;
   wire         can_disp0 =
     _rob_io_alloc_ready & _iq_io_disp_ready & _rename_io_dec0_ready
-    & (~need_lsq0 | _exec_engine_io_lsq_alloc_req_ready);
+    & (~need_lsq0 | _exec_engine_io_lsq_alloc_req0_ready);
   wire         can_disp1 =
     can_disp0 & _rob_io_alloc1_ready & _iq_io_disp1_ready & _rename_io_dec1_ready
-    & (~need_lsq1 | _exec_engine_io_lsq_alloc_req_ready) & ~(need_lsq0 & need_lsq1);
+    & (~need_lsq1 | _exec_engine_io_lsq_alloc_req1_ready);
   wire         iq_io_disp_valid = d0_valid & can_disp0;
   wire         iq_io_disp1_valid = d1_valid & can_disp1;
   wire [6:0]   _current_br_clear_T_2 = 7'h1 << _exec_engine_io_br_resolve_tag;
   wire [3:0]   _GEN =
     {4{_exec_engine_io_br_resolve_valid & ~_exec_engine_io_br_resolve_mispredict}}
     & _current_br_clear_T_2[3:0];
-  wire         real_need_lsq0 = d0_valid & need_lsq0 & can_disp0;
   wire [3:0]   rob_io_alloc_br_mask = ~_GEN & _rename_io_dec0_br_mask;
   wire [3:0]   rob_io_alloc1_br_mask = ~_GEN & _rename_io_dec1_br_mask;
-  wire         issue_flush = _reset_high_T | _rob_io_wb_flush;
+  wire         issue_flush = ~aresetn | _rob_io_wb_flush;
   wire         cdb0_v = _exec_engine_io_cdb0_valid & _exec_engine_io_cdb0_bits_regWriteEn;
   wire         cdb1_v = _exec_engine_io_cdb1_valid & _exec_engine_io_cdb1_bits_regWriteEn;
   wire         src1_in_cdb0 =
@@ -1178,8 +1178,8 @@ module core_top(
   wire         can_issue_if = ~agu_icache_req_reg & ~_agu_icache_q_io_deq_valid;
   wire         actual_if_req = _if_module_io_cache_io_req & can_issue_if;
   wire         actual_agu_req = _agu_icache_q_io_deq_valid & ~actual_if_req;
-  always @(posedge aclk or posedge _reset_high_T) begin
-    if (_reset_high_T) begin
+  always @(posedge aclk) begin
+    if (~aresetn) begin
       delayed_mispredict <= 1'h0;
       agu_icache_req_reg <= 1'h0;
     end
@@ -1187,24 +1187,10 @@ module core_top(
       delayed_mispredict <= is_mispredict & ~flush_frontend;
       agu_icache_req_reg <= _agu_icache_q_io_deq_valid;
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (_reset_high_T) begin
-        delayed_mispredict = 1'h0;
-        agu_icache_req_reg = 1'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   StageIF if_module (
     .clock                                  (aclk),
-    .reset                                  (_reset_high_T),
+    .reset                                  (~aresetn),
     .io_out0_ready                          (_fetch_buf_io_in0_ready),
     .io_out0_valid                          (_if_module_io_out0_valid),
     .io_out0_bits_pc                        (_if_module_io_out0_bits_pc),
@@ -1285,7 +1271,7 @@ module core_top(
   );
   FetchBuffer fetch_buf (
     .clock                        (aclk),
-    .reset                        (_reset_high_T),
+    .reset                        (~aresetn),
     .io_flush                     (flush_frontend),
     .io_in0_ready                 (_fetch_buf_io_in0_ready),
     .io_in0_valid                 (_if_module_io_out0_valid),
@@ -1471,7 +1457,7 @@ module core_top(
   );
   DispatchBuffer disp_buf (
     .clock                        (aclk),
-    .reset                        (_reset_high_T),
+    .reset                        (~aresetn),
     .io_flush                     (flush_frontend),
     .io_in0_ready                 (_disp_buf_io_in0_ready),
     .io_in0_valid                 (_id_module_io_out0_valid),
@@ -1656,7 +1642,7 @@ module core_top(
   );
   RenameEngine rename (
     .clock                    (aclk),
-    .reset                    (_reset_high_T),
+    .reset                    (~aresetn),
     .io_flush                 (_rob_io_wb_flush),
     .io_br_resolve_valid      (_exec_engine_io_br_resolve_valid),
     .io_br_resolve_mispredict (_exec_engine_io_br_resolve_mispredict),
@@ -1703,7 +1689,7 @@ module core_top(
   );
   PRF prf (
     .clock     (aclk),
-    .reset     (_reset_high_T),
+    .reset     (~aresetn),
     .io_raddr1 (_iss_q_alu0_io_deq_bits_psrc1),
     .io_rdata1 (_prf_io_rdata1),
     .io_raddr2 (_iss_q_alu0_io_deq_bits_psrc2),
@@ -1729,7 +1715,7 @@ module core_top(
   );
   IssueQueue iq (
     .clock                              (aclk),
-    .reset                              (_reset_high_T),
+    .reset                              (~aresetn),
     .io_flush                           (_rob_io_wb_flush),
     .io_disp_valid                      (iq_io_disp_valid),
     .io_disp_ready                      (_iq_io_disp_ready),
@@ -1771,7 +1757,7 @@ module core_top(
     .io_disp_data_is_branch             (_disp_buf_io_out0_bits_is_branch),
     .io_disp_data_branch_tag            (_rename_io_dec0_br_tag),
     .io_disp_data_branch_mask           (rob_io_alloc_br_mask),
-    .io_disp_data_lsq_idx               (_exec_engine_io_lsq_alloc_idx),
+    .io_disp_data_lsq_idx               (_exec_engine_io_lsq_alloc_idx0),
     .io_disp_data_pred_taken            (_disp_buf_io_out0_bits_pred_taken),
     .io_disp_data_pred_target           (_disp_buf_io_out0_bits_pred_target),
     .io_disp_data_bpu_type              (_disp_buf_io_out0_bits_bpu_type),
@@ -1823,7 +1809,7 @@ module core_top(
     .io_disp1_data_is_branch            (_disp_buf_io_out1_bits_is_branch),
     .io_disp1_data_branch_tag           (_rename_io_dec1_br_tag),
     .io_disp1_data_branch_mask          (rob_io_alloc1_br_mask),
-    .io_disp1_data_lsq_idx              (_exec_engine_io_lsq_alloc_idx),
+    .io_disp1_data_lsq_idx              (_exec_engine_io_lsq_alloc_idx1),
     .io_disp1_data_pred_taken           (_disp_buf_io_out1_bits_pred_taken),
     .io_disp1_data_pred_target          (_disp_buf_io_out1_bits_pred_target),
     .io_disp1_data_bpu_type             (_disp_buf_io_out1_bits_bpu_type),
@@ -2117,7 +2103,7 @@ module core_top(
   );
   ROB rob (
     .clock                                  (aclk),
-    .reset                                  (_reset_high_T),
+    .reset                                  (~aresetn),
     .io_flush                               (_rob_io_wb_flush),
     .io_head_idx                            (_rob_io_head_idx),
     .io_alloc_valid                         (iq_io_disp_valid),
@@ -2270,7 +2256,7 @@ module core_top(
   );
   Exec exec_engine (
     .clock                           (aclk),
-    .reset                           (_reset_high_T),
+    .reset                           (~aresetn),
     .io_in_alu0_ready                (_exec_engine_io_in_alu0_ready),
     .io_in_alu0_valid                (_iss_q_alu0_io_deq_valid & door_ready),
     .io_in_alu0_bits_pc              (_iss_q_alu0_io_deq_bits_pc),
@@ -2521,31 +2507,32 @@ module core_top(
     .io_tlb_port_v                   (_tlb_module_io_s1_v),
     .io_invtlb_valid                 (_exec_engine_io_invtlb_valid),
     .io_invtlb_op                    (_exec_engine_io_invtlb_op),
-    .io_lsq_alloc_req_ready          (_exec_engine_io_lsq_alloc_req_ready),
-    .io_lsq_alloc_req_valid          (real_need_lsq0 | d1_valid & need_lsq1 & can_disp1),
-    .io_lsq_alloc_req_bits_req_type
-      (real_need_lsq0
-         ? (_disp_buf_io_out0_bits_resFromMem
-              ? 2'h0
-              : _disp_buf_io_out0_bits_memWe ? 2'h1 : 2'h2)
-         : _disp_buf_io_out1_bits_resFromMem
-             ? 2'h0
-             : _disp_buf_io_out1_bits_memWe ? 2'h1 : 2'h2),
-    .io_lsq_alloc_req_bits_rob
-      (real_need_lsq0 ? _rob_io_alloc_idx : _rob_io_alloc1_idx),
-    .io_lsq_alloc_req_bits_pc
-      (real_need_lsq0 ? _disp_buf_io_out0_bits_pc : _disp_buf_io_out1_bits_pc),
-    .io_lsq_alloc_req_bits_pdest
-      (real_need_lsq0 ? _rename_io_dec0_pdest : _rename_io_dec1_pdest),
-    .io_lsq_alloc_req_bits_mask
-      (~_GEN & (real_need_lsq0 ? _rename_io_dec0_br_mask : _rename_io_dec1_br_mask)),
-    .io_lsq_alloc_req_bits_cacop
-      (real_need_lsq0
-         ? _disp_buf_io_out0_bits_cacop_op
-         : _disp_buf_io_out1_bits_cacop_op),
-    .io_lsq_alloc_req_bits_lsOp
-      (real_need_lsq0 ? _disp_buf_io_out0_bits_lsOp : _disp_buf_io_out1_bits_lsOp),
-    .io_lsq_alloc_idx                (_exec_engine_io_lsq_alloc_idx),
+    .io_lsq_alloc_req0_ready         (_exec_engine_io_lsq_alloc_req0_ready),
+    .io_lsq_alloc_req0_valid         (d0_valid & need_lsq0 & can_disp0),
+    .io_lsq_alloc_req0_bits_req_type
+      (_disp_buf_io_out0_bits_resFromMem
+         ? 2'h0
+         : _disp_buf_io_out0_bits_memWe ? 2'h1 : 2'h2),
+    .io_lsq_alloc_req0_bits_rob      (_rob_io_alloc_idx),
+    .io_lsq_alloc_req0_bits_pc       (_disp_buf_io_out0_bits_pc),
+    .io_lsq_alloc_req0_bits_pdest    (_rename_io_dec0_pdest),
+    .io_lsq_alloc_req0_bits_mask     (rob_io_alloc_br_mask),
+    .io_lsq_alloc_req0_bits_cacop    (_disp_buf_io_out0_bits_cacop_op),
+    .io_lsq_alloc_req0_bits_lsOp     (_disp_buf_io_out0_bits_lsOp),
+    .io_lsq_alloc_idx0               (_exec_engine_io_lsq_alloc_idx0),
+    .io_lsq_alloc_req1_ready         (_exec_engine_io_lsq_alloc_req1_ready),
+    .io_lsq_alloc_req1_valid         (d1_valid & need_lsq1 & can_disp1),
+    .io_lsq_alloc_req1_bits_req_type
+      (_disp_buf_io_out1_bits_resFromMem
+         ? 2'h0
+         : _disp_buf_io_out1_bits_memWe ? 2'h1 : 2'h2),
+    .io_lsq_alloc_req1_bits_rob      (_rob_io_alloc1_idx),
+    .io_lsq_alloc_req1_bits_pc       (_disp_buf_io_out1_bits_pc),
+    .io_lsq_alloc_req1_bits_pdest    (_rename_io_dec1_pdest),
+    .io_lsq_alloc_req1_bits_mask     (rob_io_alloc1_br_mask),
+    .io_lsq_alloc_req1_bits_cacop    (_disp_buf_io_out1_bits_cacop_op),
+    .io_lsq_alloc_req1_bits_lsOp     (_disp_buf_io_out1_bits_lsOp),
+    .io_lsq_alloc_idx1               (_exec_engine_io_lsq_alloc_idx1),
     .io_lsq_state_current_tail       (_exec_engine_io_lsq_state_current_tail),
     .io_lsq_state_br_restore         (_rename_io_br_restore_tail),
     .io_lsq_violation_valid          (_exec_engine_io_lsq_violation_valid),
@@ -2584,7 +2571,7 @@ module core_top(
   );
   CSR csr (
     .clock                     (aclk),
-    .reset                     (_reset_high_T),
+    .reset                     (~aresetn),
     .io_raddr                  (_exec_engine_io_csr_raddr),
     .io_waddr                  (_rob_io_commit_csr_num),
     .io_readData               (_csr_io_readData),
@@ -2655,12 +2642,12 @@ module core_top(
   );
   StableCounter timer (
     .clock        (aclk),
-    .reset        (_reset_high_T),
+    .reset        (~aresetn),
     .io_timer_out (_timer_io_timer_out)
   );
   tlb tlb_module (
     .clock            (aclk),
-    .reset            (_reset_high_T),
+    .reset            (~aresetn),
     .io_s0_vppn       (_if_module_io_tlb_port_vppn),
     .io_s0_va_bit12   (_if_module_io_tlb_port_va_bit12),
     .io_s0_asid       (_if_module_io_tlb_port_asid),
@@ -2722,7 +2709,7 @@ module core_top(
   );
   SramToAxiBridge bridge (
     .clock                   (aclk),
-    .reset                   (_reset_high_T),
+    .reset                   (~aresetn),
     .io_inst_cache_rd_req    (_icache_io_axi_rd_req),
     .io_inst_cache_rd_id     (_icache_io_axi_rd_id),
     .io_inst_cache_rd_type   (_icache_io_axi_rd_type),
@@ -2769,7 +2756,7 @@ module core_top(
   );
   Cache icache (
     .clock            (aclk),
-    .reset            (_reset_high_T),
+    .reset            (~aresetn),
     .io_cpu_valid     (actual_if_req | actual_agu_req),
     .io_cpu_req_id
       (actual_agu_req
@@ -2807,7 +2794,7 @@ module core_top(
   );
   Cache_1 dcache (
     .clock            (aclk),
-    .reset            (_reset_high_T),
+    .reset            (~aresetn),
     .io_cpu_valid     (_lsq_dcache_q_io_deq_valid),
     .io_cpu_op        (_lsq_dcache_q_io_deq_bits_op),
     .io_cpu_req_id    ({1'h1, _lsq_dcache_q_io_deq_bits_req_id}),
@@ -2841,7 +2828,7 @@ module core_top(
   );
   IssueBuffer iss_q_alu0 (
     .clock                       (aclk),
-    .reset                       (_reset_high_T),
+    .reset                       (~aresetn),
     .io_flush                    (issue_flush),
     .io_br_resolve_valid         (_exec_engine_io_br_resolve_valid),
     .io_br_resolve_mispredict    (_exec_engine_io_br_resolve_mispredict),
@@ -2949,7 +2936,7 @@ module core_top(
   );
   IssueBuffer iss_q_alu1 (
     .clock                       (aclk),
-    .reset                       (_reset_high_T),
+    .reset                       (~aresetn),
     .io_flush                    (issue_flush),
     .io_br_resolve_valid         (_exec_engine_io_br_resolve_valid),
     .io_br_resolve_mispredict    (_exec_engine_io_br_resolve_mispredict),
@@ -3057,7 +3044,7 @@ module core_top(
   );
   IssueBuffer iss_q_mdu (
     .clock                       (aclk),
-    .reset                       (_reset_high_T),
+    .reset                       (~aresetn),
     .io_flush                    (issue_flush),
     .io_br_resolve_valid         (_exec_engine_io_br_resolve_valid),
     .io_br_resolve_mispredict    (_exec_engine_io_br_resolve_mispredict),
@@ -3165,7 +3152,7 @@ module core_top(
   );
   IssueBuffer iss_q_agu (
     .clock                       (aclk),
-    .reset                       (_reset_high_T),
+    .reset                       (~aresetn),
     .io_flush                    (issue_flush),
     .io_br_resolve_valid         (_exec_engine_io_br_resolve_valid),
     .io_br_resolve_mispredict    (_exec_engine_io_br_resolve_mispredict),
@@ -3273,7 +3260,7 @@ module core_top(
   );
   Queue1_AguIcacheReq agu_icache_q (
     .clock                (aclk),
-    .reset                (_reset_high_T),
+    .reset                (~aresetn),
     .io_enq_ready         (_agu_icache_q_io_enq_ready),
     .io_enq_valid
       (_exec_engine_io_data_sram_req & _exec_engine_io_cacop_is_icache),
@@ -3288,7 +3275,7 @@ module core_top(
   );
   Queue2_LsqDcacheReq lsq_dcache_q (
     .clock                (aclk),
-    .reset                (_reset_high_T),
+    .reset                (~aresetn),
     .io_enq_ready         (_lsq_dcache_q_io_enq_ready),
     .io_enq_valid
       (_exec_engine_io_data_sram_req & ~_exec_engine_io_cacop_is_icache),
@@ -3313,7 +3300,7 @@ module core_top(
   );
   Queue2_AxiArChannel ar_q (
     .clock             (aclk),
-    .reset             (_reset_high_T),
+    .reset             (~aresetn),
     .io_enq_ready      (_ar_q_io_enq_ready),
     .io_enq_valid      (_bridge_io_axi_arvalid),
     .io_enq_bits_id    (_bridge_io_axi_arid),
@@ -3332,7 +3319,7 @@ module core_top(
   );
   Queue2_AxiRChannel r_q (
     .clock            (aclk),
-    .reset            (_reset_high_T),
+    .reset            (~aresetn),
     .io_enq_ready     (rready),
     .io_enq_valid     (rvalid),
     .io_enq_bits_id   (rid),
@@ -3346,7 +3333,7 @@ module core_top(
   );
   Queue2_AxiAwChannel aw_q (
     .clock             (aclk),
-    .reset             (_reset_high_T),
+    .reset             (~aresetn),
     .io_enq_ready      (_aw_q_io_enq_ready),
     .io_enq_valid      (_bridge_io_axi_awvalid),
     .io_enq_bits_addr  (_bridge_io_axi_awaddr),
@@ -3364,7 +3351,7 @@ module core_top(
   );
   Queue2_AxiWChannel w_q (
     .clock            (aclk),
-    .reset            (_reset_high_T),
+    .reset            (~aresetn),
     .io_enq_ready     (_w_q_io_enq_ready),
     .io_enq_valid     (_bridge_io_axi_wvalid),
     .io_enq_bits_data (_bridge_io_axi_wdata),
@@ -3379,7 +3366,7 @@ module core_top(
   );
   Queue2_AxiBChannel b_q (
     .clock        (aclk),
-    .reset        (_reset_high_T),
+    .reset        (~aresetn),
     .io_enq_ready (bready),
     .io_enq_valid (bvalid),
     .io_deq_valid (_b_q_io_deq_valid)

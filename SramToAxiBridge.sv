@@ -79,7 +79,7 @@ module SramToAxiBridge(
      {w_data_reg[63:32]},
      {w_data_reg[31:0]}};
   wire             io_axi_wlast_0 = ~is_burst_write | (&w_beat_cnt);
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset) begin
       w_state <= 2'h0;
       uc_w_pending <= 1'h0;
@@ -94,11 +94,10 @@ module SramToAxiBridge(
       w_strb_reg <= 4'h0;
     end
     else begin
-      automatic logic ar_fire;
+      automatic logic ar_fire = ~ar_state & (dcache_read_safe | io_inst_cache_rd_req);
       automatic logic w_fire;
       automatic logic _GEN_0;
       automatic logic _GEN_1;
-      ar_fire = ~ar_state & (dcache_read_safe | io_inst_cache_rd_req);
       w_fire = io_axi_wready & io_axi_wvalid_0;
       _GEN_0 = io_data_cache_wr_req & ~_w_safe_to_fire_T;
       _GEN_1 = _io_data_cache_wr_rdy_T & _GEN_0;
@@ -145,30 +144,7 @@ module SramToAxiBridge(
       else if (_GEN_1)
         w_beat_cnt <= 3'h0;
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        w_state = 2'h0;
-        uc_w_pending = 1'h0;
-        ar_state = 1'h0;
-        ar_grant_id = 4'h0;
-        ar_addr_reg = 32'h0;
-        ar_size_reg = 3'h0;
-        aw_addr_reg = 32'h0;
-        aw_size_reg = 3'h0;
-        w_beat_cnt = 3'h0;
-        w_data_reg = 256'h0;
-        w_strb_reg = 4'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   assign io_inst_cache_rd_rdy = ~ar_state & io_inst_cache_rd_req & ~dcache_read_safe;
   assign io_inst_cache_ret_valid = io_axi_rvalid & ~(io_axi_rid[2]);
   assign io_inst_cache_ret_id = io_data_cache_ret_id_0;
@@ -181,10 +157,10 @@ module SramToAxiBridge(
   assign io_data_cache_ret_data = io_axi_rdata;
   assign io_data_cache_wr_rdy = _io_data_cache_wr_rdy_T & ~_w_safe_to_fire_T;
   assign io_axi_arid = ar_grant_id;
-  assign io_axi_araddr = ar_addr_reg;
+  assign io_axi_araddr = {ar_addr_reg[31:2], 2'h0};
   assign io_axi_arlen = {5'h0, {3{ar_size_reg == 3'h4}}};
   assign io_axi_arvalid = ar_state;
-  assign io_axi_awaddr = aw_addr_reg;
+  assign io_axi_awaddr = {aw_addr_reg[31:2], 2'h0};
   assign io_axi_awlen = {5'h0, {3{is_burst_write}}};
   assign io_axi_awvalid = io_axi_awvalid_0;
   assign io_axi_wdata = _GEN[w_beat_cnt];

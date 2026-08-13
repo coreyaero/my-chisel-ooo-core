@@ -14,31 +14,18 @@ module Queue1_AguIcacheReq(
   output [1:0]  io_deq_bits_cacop_op
 );
 
-  reg  [41:0] ram;
-  reg         maybe_full;
-  wire        do_enq = ~maybe_full & io_enq_valid;
-  always @(posedge clock or posedge reset) begin
+  reg [41:0] ram;
+  reg        maybe_full;
+  always @(posedge clock) begin
+    automatic logic do_enq;
+    do_enq = ~maybe_full & io_enq_valid;
     if (reset)
       maybe_full <= 1'h0;
     else if (do_enq != (io_deq_ready & maybe_full))
       maybe_full <= do_enq;
-  end // always @(posedge, posedge)
-  always @(posedge clock) begin
     if (do_enq)
       ram <= {io_enq_bits_addr, io_enq_bits_req_id, io_enq_bits_cacop_op};
   end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset)
-        maybe_full = 1'h0;
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
   assign io_enq_ready = ~maybe_full;
   assign io_deq_valid = maybe_full;
   assign io_deq_bits_addr = ram[41:10];

@@ -155,7 +155,7 @@ module PRF(
      {regs_2},
      {regs_1},
      {regs_0}};
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset) begin
       regs_0 <= 32'h0;
       regs_1 <= 32'h0;
@@ -483,83 +483,7 @@ module PRF(
       else if (_GEN_0 & (&io_waddr1))
         regs_63 <= io_wdata1;
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        regs_0 = 32'h0;
-        regs_1 = 32'h0;
-        regs_2 = 32'h0;
-        regs_3 = 32'h0;
-        regs_4 = 32'h0;
-        regs_5 = 32'h0;
-        regs_6 = 32'h0;
-        regs_7 = 32'h0;
-        regs_8 = 32'h0;
-        regs_9 = 32'h0;
-        regs_10 = 32'h0;
-        regs_11 = 32'h0;
-        regs_12 = 32'h0;
-        regs_13 = 32'h0;
-        regs_14 = 32'h0;
-        regs_15 = 32'h0;
-        regs_16 = 32'h0;
-        regs_17 = 32'h0;
-        regs_18 = 32'h0;
-        regs_19 = 32'h0;
-        regs_20 = 32'h0;
-        regs_21 = 32'h0;
-        regs_22 = 32'h0;
-        regs_23 = 32'h0;
-        regs_24 = 32'h0;
-        regs_25 = 32'h0;
-        regs_26 = 32'h0;
-        regs_27 = 32'h0;
-        regs_28 = 32'h0;
-        regs_29 = 32'h0;
-        regs_30 = 32'h0;
-        regs_31 = 32'h0;
-        regs_32 = 32'h0;
-        regs_33 = 32'h0;
-        regs_34 = 32'h0;
-        regs_35 = 32'h0;
-        regs_36 = 32'h0;
-        regs_37 = 32'h0;
-        regs_38 = 32'h0;
-        regs_39 = 32'h0;
-        regs_40 = 32'h0;
-        regs_41 = 32'h0;
-        regs_42 = 32'h0;
-        regs_43 = 32'h0;
-        regs_44 = 32'h0;
-        regs_45 = 32'h0;
-        regs_46 = 32'h0;
-        regs_47 = 32'h0;
-        regs_48 = 32'h0;
-        regs_49 = 32'h0;
-        regs_50 = 32'h0;
-        regs_51 = 32'h0;
-        regs_52 = 32'h0;
-        regs_53 = 32'h0;
-        regs_54 = 32'h0;
-        regs_55 = 32'h0;
-        regs_56 = 32'h0;
-        regs_57 = 32'h0;
-        regs_58 = 32'h0;
-        regs_59 = 32'h0;
-        regs_60 = 32'h0;
-        regs_61 = 32'h0;
-        regs_62 = 32'h0;
-        regs_63 = 32'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   assign io_rdata1 = io_raddr1 == 6'h0 ? 32'h0 : _GEN[io_raddr1];
   assign io_rdata2 = io_raddr2 == 6'h0 ? 32'h0 : _GEN[io_raddr2];
   assign io_rdata3 = io_raddr3 == 6'h0 ? 32'h0 : _GEN[io_raddr3];

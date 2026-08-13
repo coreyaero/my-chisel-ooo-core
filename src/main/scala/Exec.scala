@@ -569,7 +569,7 @@ class MduUnit extends Module {
     
     val div = Module(new Divider())
     div.io.enable   := start_pulse && is_div
-    div.io.aresetn  := !(io.flush || is_killed(data_reg.branch_mask))
+    div.io.aresetn  := !(reset.asBool || io.flush || is_killed(data_reg.branch_mask))
     div.io.a        := Mux(is_signed && src1_val(31), (~src1_val + 1.U), src1_val)
     div.io.b        := Mux(is_signed && src2_val(31), (~src2_val + 1.U), src2_val)
     val div_done   = div.io.done 
@@ -584,14 +584,23 @@ class MduUnit extends Module {
     val final_q = Mux(is_signed && q_sign, (~div.io.q + 1.U), div.io.q)
     val final_r = Mux(is_signed && r_sign, (~div.io.r + 1.U), div.io.r)
 
+    // ★ 终极修复：增加锁存器！在 div_done 的那一拍，死死抓住算好的结果！
+    val q_latch = RegEnable(final_q, div_done)
+    val r_latch = RegEnable(final_r, div_done)
+    
+    // 如果当拍写回，用 final_q；如果挂起等待了 (mdu_finished)，用抓好的 q_latch！
+    val safe_q = Mux(mdu_finished, q_latch, final_q)
+    val safe_r = Mux(mdu_finished, r_latch, final_r)
+
+    // 将原来的 mdu_res 替换为：
     val mdu_res = MuxLookup(data_reg.mduOp, 0.U(32.W))(Seq(
         MduOp.MUL_W   -> mul.io.result64(31, 0),
         MduOp.MULH_W  -> mul.io.result64(63, 32),
         MduOp.MULH_WU -> mul.io.result64(63, 32),
-        MduOp.DIV_W   -> final_q,
-        MduOp.MOD_W   -> final_r,
-        MduOp.DIV_WU  -> div.io.q,
-        MduOp.MOD_WU  -> div.io.r
+        MduOp.DIV_W   -> safe_q,  // 替换成安全的 safe_q
+        MduOp.MOD_W   -> safe_r,  // 替换成安全的 safe_r
+        MduOp.DIV_WU  -> safe_q,  // 替换成安全的 safe_q
+        MduOp.MOD_WU  -> safe_r   // 替换成安全的 safe_r
     ))
 
     val out_data = WireDefault(data_reg)

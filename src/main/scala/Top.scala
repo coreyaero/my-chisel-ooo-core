@@ -6,6 +6,9 @@ import chisel3.util._
 class core_top extends RawModule {
     val aclk    = IO(Input(Clock()))
     val aresetn = IO(Input(Bool()))
+    val ext_reset = (!aresetn).asAsyncReset
+    
+    val safe_reset_high = !aresetn
 
     val intrpt = IO(Input(UInt(8.W)))
 
@@ -72,7 +75,7 @@ class core_top extends RawModule {
     
     val reset_high = (!aresetn).asAsyncReset
 
-    withClockAndReset(aclk, reset_high) {
+    withClockAndReset(aclk, safe_reset_high) {
 
         //==========================================
         // Frontend
@@ -171,7 +174,6 @@ class core_top extends RawModule {
         val need_lsq0 = d0.resFromMem || d0.memWe || d0.is_cacop
         // ...
         val need_lsq1 = d1.resFromMem || d1.memWe || d1.is_cacop
-        val lsq_conflict = need_lsq0 && need_lsq1
 
         // Rename 连线 0
         rename.io.dec0_valid    := d0_valid
@@ -195,8 +197,8 @@ class core_top extends RawModule {
         rename.io.br_resolve := exec_engine.io.br_resolve
 
        // ★ 分配时必须同时看 LSQ 和所有模块是否有空位
-        val can_disp0 = rob.io.alloc_ready && iq.io.disp_ready && rename.io.dec0_ready && (!need_lsq0 || exec_engine.io.lsq_alloc.req.ready)
-        val can_disp1 = can_disp0 && rob.io.alloc1_ready && iq.io.disp1_ready && rename.io.dec1_ready && (!need_lsq1 || exec_engine.io.lsq_alloc.req.ready) && !lsq_conflict
+        val can_disp0 = rob.io.alloc_ready && iq.io.disp_ready && rename.io.dec0_ready && (!need_lsq0 || exec_engine.io.lsq_alloc.req0.ready)
+        val can_disp1 = can_disp0 && rob.io.alloc1_ready && iq.io.disp1_ready && rename.io.dec1_ready && (!need_lsq1 || exec_engine.io.lsq_alloc.req1.ready)
 
         // ★ 反向握手：告诉 DispatchBuffer 可以弹出几个
         //这么改没屁用，没屁用！我禁止你这么改！
@@ -214,21 +216,29 @@ class core_top extends RawModule {
                                    ~(1.U(4.W) << exec_engine.io.br_resolve.tag), 
                                    "b1111".U(4.W))
 
-        // ★ 向 LSQ 申请坑位 (动态多路复用)
+        // ★ 向 LSQ 申请坑位 (彻底解除互斥，各自写各自的通道)
         val real_need_lsq0 = d0_valid && need_lsq0 && can_disp0
         val real_need_lsq1 = d1_valid && need_lsq1 && can_disp1
         
-        exec_engine.io.lsq_alloc.req.valid := real_need_lsq0 || real_need_lsq1
-        
-        exec_engine.io.lsq_alloc.req.bits.req_type := Mux(real_need_lsq0, Mux(d0.resFromMem, 0.U, Mux(d0.memWe, 1.U, 2.U)), Mux(d1.resFromMem, 0.U, Mux(d1.memWe, 1.U, 2.U)))
-        exec_engine.io.lsq_alloc.req.bits.rob      := Mux(real_need_lsq0, rob.io.alloc_idx, rob.io.alloc1_idx)
-        exec_engine.io.lsq_alloc.req.bits.pc       := Mux(real_need_lsq0, d0.pc, d1.pc)
-        exec_engine.io.lsq_alloc.req.bits.pdest    := Mux(real_need_lsq0, rename.io.dec0_pdest, rename.io.dec1_pdest)
-        
-        // ★ 修复：给送进 LSQ 的 mask 洗净！
-        exec_engine.io.lsq_alloc.req.bits.mask     := Mux(real_need_lsq0, rename.io.dec0_br_mask, rename.io.dec1_br_mask) & current_br_clear
-        exec_engine.io.lsq_alloc.req.bits.cacop    := Mux(real_need_lsq0, d0.cacop_op, d1.cacop_op)
-        exec_engine.io.lsq_alloc.req.bits.lsOp     := Mux(real_need_lsq0, d0.lsOp, d1.lsOp)
+        // 通道 0 赋值
+        exec_engine.io.lsq_alloc.req0.valid := real_need_lsq0
+        exec_engine.io.lsq_alloc.req0.bits.req_type := Mux(d0.resFromMem, 0.U, Mux(d0.memWe, 1.U, 2.U))
+        exec_engine.io.lsq_alloc.req0.bits.rob      := rob.io.alloc_idx
+        exec_engine.io.lsq_alloc.req0.bits.pc       := d0.pc
+        exec_engine.io.lsq_alloc.req0.bits.pdest    := rename.io.dec0_pdest
+        exec_engine.io.lsq_alloc.req0.bits.mask     := rename.io.dec0_br_mask & current_br_clear
+        exec_engine.io.lsq_alloc.req0.bits.cacop    := d0.cacop_op
+        exec_engine.io.lsq_alloc.req0.bits.lsOp     := d0.lsOp
+
+        // 通道 1 赋值
+        exec_engine.io.lsq_alloc.req1.valid := real_need_lsq1
+        exec_engine.io.lsq_alloc.req1.bits.req_type := Mux(d1.resFromMem, 0.U, Mux(d1.memWe, 1.U, 2.U))
+        exec_engine.io.lsq_alloc.req1.bits.rob      := rob.io.alloc1_idx
+        exec_engine.io.lsq_alloc.req1.bits.pc       := d1.pc
+        exec_engine.io.lsq_alloc.req1.bits.pdest    := rename.io.dec1_pdest
+        exec_engine.io.lsq_alloc.req1.bits.mask     := rename.io.dec1_br_mask & current_br_clear
+        exec_engine.io.lsq_alloc.req1.bits.cacop    := d1.cacop_op
+        exec_engine.io.lsq_alloc.req1.bits.lsOp     := d1.lsOp
 
         // ★ 组装 Rename 后的数据
         val renamed_d0 = WireDefault(d0)
@@ -240,7 +250,7 @@ class core_top extends RawModule {
         // ★ 修复：给送进 IQ 的 mask 洗净！
         renamed_d0.branch_mask := rename.io.dec0_br_mask & current_br_clear 
         renamed_d0.branch_tag := rename.io.dec0_br_tag
-        renamed_d0.lsq_idx := exec_engine.io.lsq_alloc.idx
+        renamed_d0.lsq_idx := exec_engine.io.lsq_alloc.idx0
         
 
         val renamed_d1 = WireDefault(d1)
@@ -252,7 +262,7 @@ class core_top extends RawModule {
         // ★ 修复：给送进 IQ 的 mask 洗净！
         renamed_d1.branch_mask := rename.io.dec1_br_mask & current_br_clear 
         renamed_d1.branch_tag := rename.io.dec1_br_tag
-        renamed_d1.lsq_idx := exec_engine.io.lsq_alloc.idx
+        renamed_d1.lsq_idx := exec_engine.io.lsq_alloc.idx1
 
         // ================= IQ 连线 =================
         iq.io.flush      := flush_global
@@ -851,8 +861,10 @@ class LsqAllocReq extends Bundle {
 }
 
 class LsqAllocIO extends Bundle {
-    val req = Flipped(Decoupled(new LsqAllocReq()))
-    val idx = Output(UInt(4.W)) 
+    val req0 = Flipped(Decoupled(new LsqAllocReq()))
+    val idx0 = Output(UInt(4.W)) 
+    val req1 = Flipped(Decoupled(new LsqAllocReq()))
+    val idx1 = Output(UInt(4.W))
 }
 
 class LsqStatePort extends Bundle {

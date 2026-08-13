@@ -216,7 +216,7 @@ module AguUnit(
           : 6'h0;
   wire        has_exc = ex2_data_data_hasException | ex2_active & (|agu_ecode);
   wire [6:0]  stMaskB = 7'h1 << ex2_data_va[1:0];
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset) begin
       ex1_valid <= 1'h0;
       ex1_data_pc <= 32'h0;
@@ -334,8 +334,7 @@ module AguUnit(
       else begin
         automatic logic [3:0] _GEN_0 =
           {4{io_br_resolve_in_valid & ~io_br_resolve_in_mispredict}} & br_tag_bit[3:0];
-        automatic logic [3:0] next_ex2_data_branch_mask;
-        next_ex2_data_branch_mask = ~_GEN_0 & ex1_data_branch_mask;
+        automatic logic [3:0] next_ex2_data_branch_mask = ~_GEN_0 & ex1_data_branch_mask;
         ex1_data_branch_mask <=
           ex1_ready ? ~_GEN_0 & io_in_bits_branch_mask : next_ex2_data_branch_mask;
         ex2_data_data_branch_mask <=
@@ -411,95 +410,7 @@ module AguUnit(
         ex2_data_crmd_datm <= io_mmu_config_crmd_datm;
       end
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        ex1_valid = 1'h0;
-        ex1_data_pc = 32'h0;
-        ex1_data_imm = 32'h0;
-        ex1_data_src2IsImm = 1'h0;
-        ex1_data_src1_value = 32'h0;
-        ex1_data_src2_value = 32'h0;
-        ex1_data_memWe = 1'h0;
-        ex1_data_lsOp = 8'h0;
-        ex1_data_resFromMem = 1'h0;
-        ex1_data_regWriteEn = 1'h0;
-        ex1_data_hasException = 1'h0;
-        ex1_data_ecode = 6'h0;
-        ex1_data_isCsr = 1'h0;
-        ex1_data_csrWe = 1'h0;
-        ex1_data_csrNum = 14'h0;
-        ex1_data_inst_ertn = 1'h0;
-        ex1_data_tlbOp = 5'h0;
-        ex1_data_invtlb_op = 5'h0;
-        ex1_data_is_refetch = 1'h0;
-        ex1_data_is_cacop = 1'h0;
-        ex1_data_cacop_op = 5'h0;
-        ex1_data_rob_idx = 5'h0;
-        ex1_data_pdest = 6'h0;
-        ex1_data_is_branch = 1'h0;
-        ex1_data_branch_mask = 4'h0;
-        ex1_data_lsq_idx = 4'h0;
-        ex1_data_ghr = 10'h0;
-        ex1_data_br_actual_taken = 1'h0;
-        ex1_data_br_type = 2'h0;
-        ex1_data_bimodal_pred = 1'h0;
-        ex1_data_gshare_pred = 1'h0;
-        ex2_valid = 1'h0;
-        ex2_data_data_pc = 32'h0;
-        ex2_data_data_src2_value = 32'h0;
-        ex2_data_data_memWe = 1'h0;
-        ex2_data_data_lsOp = 8'h0;
-        ex2_data_data_resFromMem = 1'h0;
-        ex2_data_data_regWriteEn = 1'h0;
-        ex2_data_data_hasException = 1'h0;
-        ex2_data_data_ecode = 6'h0;
-        ex2_data_data_isCsr = 1'h0;
-        ex2_data_data_csrWe = 1'h0;
-        ex2_data_data_csrNum = 14'h0;
-        ex2_data_data_inst_ertn = 1'h0;
-        ex2_data_data_tlbOp = 5'h0;
-        ex2_data_data_is_refetch = 1'h0;
-        ex2_data_data_is_cacop = 1'h0;
-        ex2_data_data_cacop_op = 5'h0;
-        ex2_data_data_rob_idx = 5'h0;
-        ex2_data_data_pdest = 6'h0;
-        ex2_data_data_is_branch = 1'h0;
-        ex2_data_data_branch_mask = 4'h0;
-        ex2_data_data_lsq_idx = 4'h0;
-        ex2_data_data_ghr = 10'h0;
-        ex2_data_data_br_actual_taken = 1'h0;
-        ex2_data_data_br_type = 2'h0;
-        ex2_data_data_bimodal_pred = 1'h0;
-        ex2_data_data_gshare_pred = 1'h0;
-        ex2_data_va = 32'h0;
-        ex2_data_src2 = 32'h0;
-        ex2_data_is_tlbsrch = 1'h0;
-        ex2_data_dmw_hit = 1'h0;
-        ex2_data_dmw_pa = 32'h0;
-        ex2_data_dmw_mat = 2'h0;
-        ex2_data_tlb_found = 1'h0;
-        ex2_data_tlb_index = 4'h0;
-        ex2_data_tlb_ppn = 20'h0;
-        ex2_data_tlb_ps = 6'h0;
-        ex2_data_tlb_plv = 2'h0;
-        ex2_data_tlb_mat = 2'h0;
-        ex2_data_tlb_d = 1'h0;
-        ex2_data_tlb_v = 1'h0;
-        ex2_data_is_direct_mode = 1'h0;
-        ex2_data_is_paged_mode = 1'h0;
-        ex2_data_crmd_plv = 2'h0;
-        ex2_data_crmd_datm = 2'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   assign io_in_ready = ex1_ready;
   assign io_out_valid = ex2_active;
   assign io_out_bits_pc = ex2_data_data_pc;

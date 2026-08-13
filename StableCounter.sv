@@ -6,24 +6,12 @@ module StableCounter(
 );
 
   reg [63:0] counter;
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset)
       counter <= 64'h0;
     else
       counter <= counter + 64'h1;
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset)
-        counter = 64'h0;
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   assign io_timer_out = counter;
 endmodule
 

@@ -103,17 +103,27 @@ class LSQ extends Module {
 
 
 
-
-    // ★ 冗余清理：彻底删除 outstanding_idx 和 outstanding_valid 及其相关的阻塞隔离带
+// ==========================================
+    // ★ 改造：动态容量计算与双通道 Ready 信号
+    // ==========================================
+    // 计算 LSQ 中当前的有效条目数 (0~16)
+    // ==========================================
+    // ★ 修复：绝对安全的 LSQ 容量计算
+    // ==========================================
+    // 彻底抛弃加减法自动溢出，使用 5 位显式扩展，杜绝死锁黑洞！
+    // 只要 tail 绕到 head 后面了，就把 tail 的最高位补 1，变成 16~31 之间的数再去减！
+    val ext_tail  = Mux(tail >= head, Cat(0.U(1.W), tail), Cat(1.U(1.W), tail))
+    val ext_head  = Cat(0.U(1.W), head)
+    val lsq_count = Mux(is_full, 16.U, ext_tail - ext_head)
+    
+    io.alloc.req0.ready := lsq_count <= 15.U // 通道 0 只需要 1 个空位
+    io.alloc.req1.ready := lsq_count <= 14.U // 通道 1 需要至少 2 个空位
+    
     io.state.current_tail := tail
-    io.alloc.req.ready    := !is_full 
-    io.alloc.idx          := tail
-
-    val alloc_bits = io.alloc.req.bits
     val br_restore_tail = io.state.br_restore
 
     // ==========================================
-    // 1. 分支爆破与尾指针回退 (Mispredict Rollback)
+    // 1. 分支爆破与面具净化 (Mispredict Rollback)
     // ==========================================
     val is_mispredict = io.br_resolve.valid && io.br_resolve.mispredict
     val tag_bit = 1.U(4.W) << io.br_resolve.tag
@@ -129,35 +139,80 @@ class LSQ extends Module {
         }
     }
 
-    val real_alloc = io.alloc.req.valid && !is_mispredict
-    when(real_alloc && io.alloc.req.ready) {
-        entries(tail).valid      := true.B
-        entries(tail).is_load    := alloc_bits.req_type === 0.U
-        entries(tail).is_store   := alloc_bits.req_type === 1.U
-        entries(tail).is_cacop   := alloc_bits.req_type === 2.U
-        entries(tail).rob_idx    := alloc_bits.rob
-        entries(tail).pc         := alloc_bits.pc
-        entries(tail).pdest      := alloc_bits.pdest
-        entries(tail).branch_mask:= alloc_bits.mask
-        entries(tail).cacop_op   := alloc_bits.cacop
-        entries(tail).lsOp       := alloc_bits.lsOp
-        entries(tail).addr_valid := false.B
-        entries(tail).req_sent   := false.B
-        entries(tail).executed   := false.B
-        entries(tail).has_exc    := false.B
-        entries(tail).committed  := false.B
-        entries(tail).ticket     := ticket_counter
-        entries(tail).wb_sent    := false.B
-        ticket_counter := ticket_counter + 1.U
-        
-        val next_tail = tail + 1.U
-        tail := next_tail
-        when(next_tail === head) { is_full := true.B }
-    } .elsewhen(is_mispredict) {
+    // ==========================================
+    // 2. 双通道并行写入 (无锁分配)
+    // ==========================================
+    val real_alloc0 = io.alloc.req0.valid && !is_mispredict
+    val real_alloc1 = io.alloc.req1.valid && !is_mispredict
+
+    // ★ 修复编译报错：必须先定义，后使用！
+    // 提前把穿了防弹衣的2位宽变量定义好，供下面的索引计算使用
+    val safe_alloc0 = Cat(0.U(1.W), real_alloc0)
+    val safe_alloc1 = Cat(0.U(1.W), real_alloc1)
+    val alloc_total = safe_alloc0 + safe_alloc1
+
+    // ★ 截断锁：强行压回 4 位，绝对不准出现 16！
+    val alloc0_idx = tail
+    val alloc1_idx = (tail + safe_alloc0)(3, 0)
+    
+    io.alloc.idx0 := alloc0_idx
+    io.alloc.idx1 := alloc1_idx
+
+    val bits0 = io.alloc.req0.bits
+    val bits1 = io.alloc.req1.bits
+
+    when(real_alloc0) {
+        entries(alloc0_idx).valid      := true.B
+        entries(alloc0_idx).is_load    := bits0.req_type === 0.U
+        entries(alloc0_idx).is_store   := bits0.req_type === 1.U
+        entries(alloc0_idx).is_cacop   := bits0.req_type === 2.U
+        entries(alloc0_idx).rob_idx    := bits0.rob
+        entries(alloc0_idx).pc         := bits0.pc
+        entries(alloc0_idx).pdest      := bits0.pdest
+        entries(alloc0_idx).branch_mask:= bits0.mask
+        entries(alloc0_idx).cacop_op   := bits0.cacop
+        entries(alloc0_idx).lsOp       := bits0.lsOp
+        entries(alloc0_idx).addr_valid := false.B
+        entries(alloc0_idx).req_sent   := false.B
+        entries(alloc0_idx).executed   := false.B
+        entries(alloc0_idx).has_exc    := false.B
+        entries(alloc0_idx).committed  := false.B
+        entries(alloc0_idx).wb_sent    := false.B
+        entries(alloc0_idx).ticket     := ticket_counter
+    }
+
+    when(real_alloc1) {
+        entries(alloc1_idx).valid      := true.B
+        entries(alloc1_idx).is_load    := bits1.req_type === 0.U
+        entries(alloc1_idx).is_store   := bits1.req_type === 1.U
+        entries(alloc1_idx).is_cacop   := bits1.req_type === 2.U
+        entries(alloc1_idx).rob_idx    := bits1.rob
+        entries(alloc1_idx).pc         := bits1.pc
+        entries(alloc1_idx).pdest      := bits1.pdest
+        entries(alloc1_idx).branch_mask:= bits1.mask
+        entries(alloc1_idx).cacop_op   := bits1.cacop
+        entries(alloc1_idx).lsOp       := bits1.lsOp
+        entries(alloc1_idx).addr_valid := false.B
+        entries(alloc1_idx).req_sent   := false.B
+        entries(alloc1_idx).executed   := false.B
+        entries(alloc1_idx).has_exc    := false.B
+        entries(alloc1_idx).committed  := false.B
+        entries(alloc1_idx).wb_sent    := false.B
+        // 注意：这里的 ticket_counter 也要用安全的 safe_alloc0
+        entries(alloc1_idx).ticket     := ticket_counter + safe_alloc0
+    }
+    
+    // 直接使用上面已经算好的 alloc_total 更新指针
+    ticket_counter := ticket_counter + alloc_total
+    val next_tail  = (tail + alloc_total)(3, 0)
+
+    when(is_mispredict) {
         tail := br_restore_tail 
-        // ★ 核心修复：只有当 tail 真的发生了回退（杀死了未提交指令）时，才能解除 full 状态！
-        // 如果 tail 没变，说明它原本是满的，回档后依然是满的！
         when(tail =/= br_restore_tail) { is_full := false.B }
+    } .otherwise {
+        tail := next_tail
+        // 截断后，(16 === 0) 变成了 (0 === 0)，is_full 完美触发保护机制！
+        when(alloc_total > 0.U && next_tail === head) { is_full := true.B }
     }
 
     // ==========================================

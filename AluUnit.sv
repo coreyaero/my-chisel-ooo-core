@@ -163,7 +163,7 @@ module AluUnit(
     & data_reg_bpu_type != btype;
   wire        do_br_resolve =
     valid_reg & data_reg_is_branch & ~data_reg_hasException & ~br_broadcasted;
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset) begin
       valid_reg <= 1'h0;
       data_reg_pc <= 32'h0;
@@ -255,57 +255,7 @@ module AluUnit(
       end
       br_broadcasted <= ~(io_flush | in_ready) & (do_br_resolve | br_broadcasted);
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        valid_reg = 1'h0;
-        data_reg_pc = 32'h0;
-        data_reg_inst = 32'h0;
-        data_reg_aluOp = 13'h0;
-        data_reg_brType = 9'h0;
-        data_reg_imm = 32'h0;
-        data_reg_src1IsPC = 1'h0;
-        data_reg_src2IsImm = 1'h0;
-        data_reg_src2IsFour = 1'h0;
-        data_reg_src1_addr = 5'h0;
-        data_reg_src1_value = 32'h0;
-        data_reg_src2_value = 32'h0;
-        data_reg_memWe = 1'h0;
-        data_reg_resFromMem = 1'h0;
-        data_reg_regWriteEn = 1'h0;
-        data_reg_hasException = 1'h0;
-        data_reg_ecode = 6'h0;
-        data_reg_isCsr = 1'h0;
-        data_reg_csrWe = 1'h0;
-        data_reg_csrNum = 14'h0;
-        data_reg_inst_ertn = 1'h0;
-        data_reg_rdtimel = 1'h0;
-        data_reg_rdtimeh = 1'h0;
-        data_reg_tlbOp = 5'h0;
-        data_reg_is_refetch = 1'h0;
-        data_reg_is_cacop = 1'h0;
-        data_reg_rob_idx = 5'h0;
-        data_reg_pdest = 6'h0;
-        data_reg_is_branch = 1'h0;
-        data_reg_branch_tag = 2'h0;
-        data_reg_pred_taken = 1'h0;
-        data_reg_pred_target = 32'h0;
-        data_reg_bpu_type = 2'h0;
-        data_reg_ghr = 10'h0;
-        data_reg_ras_tos = 4'h0;
-        data_reg_bimodal_pred = 1'h0;
-        data_reg_gshare_pred = 1'h0;
-        br_broadcasted = 1'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   ALU alu (
     .io_aluOp (data_reg_aluOp),
     .io_src1  (data_reg_src1IsPC ? data_reg_pc : data_reg_src1_value),

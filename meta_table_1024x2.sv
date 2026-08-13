@@ -20,7 +20,11 @@ module meta_table_1024x2(
   input  [9:0] W1_addr,
   input        W1_en,
                W1_clk,
-  input  [1:0] W1_data
+  input  [1:0] W1_data,
+  input  [9:0] W2_addr,
+  input        W2_en,
+               W2_clk,
+  input  [1:0] W2_data
 );
 
   reg [1:0] Memory[0:1023];
@@ -29,6 +33,8 @@ module meta_table_1024x2(
       Memory[W0_addr] <= W0_data;
     if (W1_en)
       Memory[W1_addr] <= W1_data;
+    if (W2_en)
+      Memory[W2_addr] <= W2_data;
   end // always @(posedge)
   assign R0_data = R0_en ? Memory[R0_addr] : 2'bx;
   assign R1_data = R1_en ? Memory[R1_addr] : 2'bx;

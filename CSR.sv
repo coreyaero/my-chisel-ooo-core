@@ -130,7 +130,7 @@ module CSR(
     {ecfg_lie_timer, 1'h0, ecfg_lie_hw, ecfg_lie_sw}
     & {estat_is_timer, 9'h0, estat_is_sw};
   wire [31:0] _io_readData_T_10 = {tcfg_initval, tcfg_periodic, tcfg_en};
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset) begin
       crmd_datm <= 2'h0;
       crmd_datf <= 2'h0;
@@ -221,7 +221,7 @@ module CSR(
       automatic logic        _GEN_25;
       automatic logic        _GEN_26;
       automatic logic        _GEN_27;
-      automatic logic        _GEN_28;
+      automatic logic        _GEN_28 = io_ertnFlush & (&estat_ecode);
       _GEN = io_waddr == 14'h0;
       _crmd_T_4 =
         {crmd_datm, crmd_datf, crmd_pg, crmd_da, crmd_ie, crmd_plv} & ~(io_writeMask[8:0])
@@ -256,7 +256,6 @@ module CSR(
         & (io_excEcode == 6'h1 | io_excEcode == 6'h2 | io_excEcode == 6'h3
            | io_excEcode == 6'h4 | io_excEcode == 6'h7 | io_excEcode == 6'h8
            | io_excEcode == 6'h9 | (&io_excEcode));
-      _GEN_28 = io_ertnFlush & (&estat_ecode);
       if (_GEN_0) begin
         crmd_datm <= _crmd_T_4[8:7];
         crmd_datf <= _crmd_T_4[6:5];
@@ -280,8 +279,7 @@ module CSR(
         if (~io_writeEn | _GEN | ~_GEN_3) begin
         end
         else begin
-          automatic logic [2:0] _prmd_T_4;
-          _prmd_T_4 =
+          automatic logic [2:0] _prmd_T_4 =
             {prmd_pie, prmd_pplv} & ~(io_writeMask[2:0]) | io_writeData[2:0]
             & io_writeMask[2:0];
           prmd_pie <= _prmd_T_4[2];
@@ -295,8 +293,7 @@ module CSR(
       if (~io_writeEn | _GEN | _GEN_3 | ~_GEN_4) begin
       end
       else begin
-        automatic logic [12:0] _ecfg_T_4;
-        _ecfg_T_4 =
+        automatic logic [12:0] _ecfg_T_4 =
           {ecfg_lie_ipi, ecfg_lie_timer, 1'h0, ecfg_lie_hw, ecfg_lie_sw}
           & ~(io_writeMask[12:0]) | io_writeData[12:0] & io_writeMask[12:0];
         ecfg_lie_ipi <= _ecfg_T_4[12];
@@ -353,8 +350,7 @@ module CSR(
             | _GEN_9 | _GEN_11 | ~_GEN_12) begin
         end
         else begin
-          automatic logic [31:0] _tlbelo0_T_4;
-          _tlbelo0_T_4 =
+          automatic logic [31:0] _tlbelo0_T_4 =
             {tlbelo0_ppn, 1'h0, tlbelo0_g, tlbelo0_mat, tlbelo0_plv, tlbelo0_d, tlbelo0_v}
             & ~io_writeMask | io_writeData & io_writeMask;
           tlbelo0_ppn <= _tlbelo0_T_4[31:8];
@@ -368,8 +364,7 @@ module CSR(
             | _GEN_9 | _GEN_11 | _GEN_12 | ~_GEN_13) begin
         end
         else begin
-          automatic logic [31:0] _tlbelo1_T_4;
-          _tlbelo1_T_4 =
+          automatic logic [31:0] _tlbelo1_T_4 =
             {tlbelo1_ppn, 1'h0, tlbelo1_g, tlbelo1_mat, tlbelo1_plv, tlbelo1_d, tlbelo1_v}
             & ~io_writeMask | io_writeData & io_writeMask;
           tlbelo1_ppn <= _tlbelo1_T_4[31:8];
@@ -395,8 +390,7 @@ module CSR(
           | _GEN_18 | _GEN_19 | _GEN_20 | _GEN_21 | _GEN_22 | ~_GEN_23) begin
       end
       else begin
-        automatic logic [31:0] _dmw0_T_4;
-        _dmw0_T_4 =
+        automatic logic [31:0] _dmw0_T_4 =
           {dmw0_vseg, 1'h0, dmw0_pseg, 19'h0, dmw0_mat, dmw0_plv3, 2'h0, dmw0_plv0}
           & ~io_writeMask | io_writeData & io_writeMask;
         dmw0_vseg <= _dmw0_T_4[31:29];
@@ -411,8 +405,7 @@ module CSR(
           | io_waddr != 14'h181) begin
       end
       else begin
-        automatic logic [31:0] _dmw1_T_4;
-        _dmw1_T_4 =
+        automatic logic [31:0] _dmw1_T_4 =
           {dmw1_vseg, 1'h0, dmw1_pseg, 19'h0, dmw1_mat, dmw1_plv3, 2'h0, dmw1_plv0}
           & ~io_writeMask | io_writeData & io_writeMask;
         dmw1_vseg <= _dmw1_T_4[31:29];
@@ -426,8 +419,7 @@ module CSR(
           | _GEN_18 | _GEN_19 | ~_GEN_20) begin
       end
       else begin
-        automatic logic [31:0] _tcfg_T_4;
-        _tcfg_T_4 =
+        automatic logic [31:0] _tcfg_T_4 =
           {tcfg_initval, tcfg_periodic, tcfg_en} & ~io_writeMask | io_writeData
           & io_writeMask;
         tcfg_initval <= _tcfg_T_4[31:2];
@@ -488,74 +480,7 @@ module CSR(
         tlbrentry_va <=
           tlbrentry_va & ~(io_writeMask[31:6]) | io_writeData[31:6] & io_writeMask[31:6];
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        crmd_datm = 2'h0;
-        crmd_datf = 2'h0;
-        crmd_pg = 1'h0;
-        crmd_da = 1'h1;
-        crmd_ie = 1'h0;
-        crmd_plv = 2'h0;
-        prmd_pie = 1'h0;
-        prmd_pplv = 2'h0;
-        ecfg_lie_ipi = 1'h0;
-        ecfg_lie_timer = 1'h0;
-        ecfg_lie_hw = 8'h0;
-        ecfg_lie_sw = 2'h0;
-        estat_is_sw = 2'h0;
-        estat_is_timer = 1'h0;
-        estat_ecode = 6'h0;
-        tlbidx_ne = 1'h0;
-        tlbidx_ps = 6'h0;
-        tlbidx_index = 4'h0;
-        tlbehi_vppn = 19'h0;
-        tlbelo0_ppn = 24'h0;
-        tlbelo0_g = 1'h0;
-        tlbelo0_mat = 2'h0;
-        tlbelo0_plv = 2'h0;
-        tlbelo0_d = 1'h0;
-        tlbelo0_v = 1'h0;
-        tlbelo1_ppn = 24'h0;
-        tlbelo1_g = 1'h0;
-        tlbelo1_mat = 2'h0;
-        tlbelo1_plv = 2'h0;
-        tlbelo1_d = 1'h0;
-        tlbelo1_v = 1'h0;
-        asid_asid = 10'h0;
-        dmw0_vseg = 3'h0;
-        dmw0_pseg = 3'h0;
-        dmw0_mat = 2'h0;
-        dmw0_plv3 = 1'h0;
-        dmw0_plv0 = 1'h0;
-        dmw1_vseg = 3'h0;
-        dmw1_pseg = 3'h0;
-        dmw1_mat = 2'h0;
-        dmw1_plv3 = 1'h0;
-        dmw1_plv0 = 1'h0;
-        tcfg_initval = 30'h0;
-        tcfg_periodic = 1'h0;
-        tcfg_en = 1'h0;
-        eraReg = 32'h0;
-        badvReg = 32'h0;
-        eentry_va = 26'h0;
-        save0Reg = 32'h0;
-        save1Reg = 32'h0;
-        save2Reg = 32'h0;
-        save3Reg = 32'h0;
-        tidReg = 32'h0;
-        timer_cnt = 32'hFFFFFFFF;
-        tlbrentry_va = 26'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   assign io_readData =
     io_raddr == 14'h0
       ? {23'h0, crmd_datm, crmd_datf, crmd_pg, crmd_da, crmd_ie, crmd_plv}

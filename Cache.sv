@@ -2365,7 +2365,7 @@ module Cache(
      addr_match & ~safe_to_merge | addr_match
        & (mshr_table_0_is_uncached | req_uncached | mshr_table_0_is_cacop)} == 5'h0;
   wire             int_addr_ok =
-    ~(wb_state & (int_index == 8'h0 | int_cacop_en)) & _cacop_hit_inval_done_T_2
+    ~(int_cacop_en & (main_state | wb_state)) & _cacop_hit_inval_done_T_2
     & (~main_state | main_state & ~int_cacop_en);
   wire             is_accepting = (io_cpu_valid | use_pf) & int_addr_ok;
   reg  [2:0]       plru_array_0;
@@ -2818,7 +2818,7 @@ module Cache(
     & req_cacop_en & _cacop_hit_inval_done_T_2 & _cacop_hit_inval_done_T_4 & ~hit_dirty;
   wire             do_ar = ar_cands_0 | ar_cands_1 | ar_cands_2 | ar_cands_3;
   wire [1:0]       ar_idx = ar_cands_0 ? 2'h0 : ar_cands_1 ? 2'h1 : {1'h1, ~ar_cands_2};
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset) begin
       mshr_table_0_state <= 3'h0;
       mshr_table_0_is_uncached <= 1'h0;
@@ -4246,13 +4246,270 @@ module Cache(
           ? (_GEN_9[match_idx] ? {1'h1, _GEN_10[match_idx]} : 2'h1)
           : 2'h0;
       automatic logic [1:0]        alloc_mshr_idx;
-      automatic logic [255:0][2:0] _GEN_40;
-      automatic logic [2:0]        _GEN_41;
+      automatic logic [255:0][2:0] _GEN_40 =
+        {{plru_array_255},
+         {plru_array_254},
+         {plru_array_253},
+         {plru_array_252},
+         {plru_array_251},
+         {plru_array_250},
+         {plru_array_249},
+         {plru_array_248},
+         {plru_array_247},
+         {plru_array_246},
+         {plru_array_245},
+         {plru_array_244},
+         {plru_array_243},
+         {plru_array_242},
+         {plru_array_241},
+         {plru_array_240},
+         {plru_array_239},
+         {plru_array_238},
+         {plru_array_237},
+         {plru_array_236},
+         {plru_array_235},
+         {plru_array_234},
+         {plru_array_233},
+         {plru_array_232},
+         {plru_array_231},
+         {plru_array_230},
+         {plru_array_229},
+         {plru_array_228},
+         {plru_array_227},
+         {plru_array_226},
+         {plru_array_225},
+         {plru_array_224},
+         {plru_array_223},
+         {plru_array_222},
+         {plru_array_221},
+         {plru_array_220},
+         {plru_array_219},
+         {plru_array_218},
+         {plru_array_217},
+         {plru_array_216},
+         {plru_array_215},
+         {plru_array_214},
+         {plru_array_213},
+         {plru_array_212},
+         {plru_array_211},
+         {plru_array_210},
+         {plru_array_209},
+         {plru_array_208},
+         {plru_array_207},
+         {plru_array_206},
+         {plru_array_205},
+         {plru_array_204},
+         {plru_array_203},
+         {plru_array_202},
+         {plru_array_201},
+         {plru_array_200},
+         {plru_array_199},
+         {plru_array_198},
+         {plru_array_197},
+         {plru_array_196},
+         {plru_array_195},
+         {plru_array_194},
+         {plru_array_193},
+         {plru_array_192},
+         {plru_array_191},
+         {plru_array_190},
+         {plru_array_189},
+         {plru_array_188},
+         {plru_array_187},
+         {plru_array_186},
+         {plru_array_185},
+         {plru_array_184},
+         {plru_array_183},
+         {plru_array_182},
+         {plru_array_181},
+         {plru_array_180},
+         {plru_array_179},
+         {plru_array_178},
+         {plru_array_177},
+         {plru_array_176},
+         {plru_array_175},
+         {plru_array_174},
+         {plru_array_173},
+         {plru_array_172},
+         {plru_array_171},
+         {plru_array_170},
+         {plru_array_169},
+         {plru_array_168},
+         {plru_array_167},
+         {plru_array_166},
+         {plru_array_165},
+         {plru_array_164},
+         {plru_array_163},
+         {plru_array_162},
+         {plru_array_161},
+         {plru_array_160},
+         {plru_array_159},
+         {plru_array_158},
+         {plru_array_157},
+         {plru_array_156},
+         {plru_array_155},
+         {plru_array_154},
+         {plru_array_153},
+         {plru_array_152},
+         {plru_array_151},
+         {plru_array_150},
+         {plru_array_149},
+         {plru_array_148},
+         {plru_array_147},
+         {plru_array_146},
+         {plru_array_145},
+         {plru_array_144},
+         {plru_array_143},
+         {plru_array_142},
+         {plru_array_141},
+         {plru_array_140},
+         {plru_array_139},
+         {plru_array_138},
+         {plru_array_137},
+         {plru_array_136},
+         {plru_array_135},
+         {plru_array_134},
+         {plru_array_133},
+         {plru_array_132},
+         {plru_array_131},
+         {plru_array_130},
+         {plru_array_129},
+         {plru_array_128},
+         {plru_array_127},
+         {plru_array_126},
+         {plru_array_125},
+         {plru_array_124},
+         {plru_array_123},
+         {plru_array_122},
+         {plru_array_121},
+         {plru_array_120},
+         {plru_array_119},
+         {plru_array_118},
+         {plru_array_117},
+         {plru_array_116},
+         {plru_array_115},
+         {plru_array_114},
+         {plru_array_113},
+         {plru_array_112},
+         {plru_array_111},
+         {plru_array_110},
+         {plru_array_109},
+         {plru_array_108},
+         {plru_array_107},
+         {plru_array_106},
+         {plru_array_105},
+         {plru_array_104},
+         {plru_array_103},
+         {plru_array_102},
+         {plru_array_101},
+         {plru_array_100},
+         {plru_array_99},
+         {plru_array_98},
+         {plru_array_97},
+         {plru_array_96},
+         {plru_array_95},
+         {plru_array_94},
+         {plru_array_93},
+         {plru_array_92},
+         {plru_array_91},
+         {plru_array_90},
+         {plru_array_89},
+         {plru_array_88},
+         {plru_array_87},
+         {plru_array_86},
+         {plru_array_85},
+         {plru_array_84},
+         {plru_array_83},
+         {plru_array_82},
+         {plru_array_81},
+         {plru_array_80},
+         {plru_array_79},
+         {plru_array_78},
+         {plru_array_77},
+         {plru_array_76},
+         {plru_array_75},
+         {plru_array_74},
+         {plru_array_73},
+         {plru_array_72},
+         {plru_array_71},
+         {plru_array_70},
+         {plru_array_69},
+         {plru_array_68},
+         {plru_array_67},
+         {plru_array_66},
+         {plru_array_65},
+         {plru_array_64},
+         {plru_array_63},
+         {plru_array_62},
+         {plru_array_61},
+         {plru_array_60},
+         {plru_array_59},
+         {plru_array_58},
+         {plru_array_57},
+         {plru_array_56},
+         {plru_array_55},
+         {plru_array_54},
+         {plru_array_53},
+         {plru_array_52},
+         {plru_array_51},
+         {plru_array_50},
+         {plru_array_49},
+         {plru_array_48},
+         {plru_array_47},
+         {plru_array_46},
+         {plru_array_45},
+         {plru_array_44},
+         {plru_array_43},
+         {plru_array_42},
+         {plru_array_41},
+         {plru_array_40},
+         {plru_array_39},
+         {plru_array_38},
+         {plru_array_37},
+         {plru_array_36},
+         {plru_array_35},
+         {plru_array_34},
+         {plru_array_33},
+         {plru_array_32},
+         {plru_array_31},
+         {plru_array_30},
+         {plru_array_29},
+         {plru_array_28},
+         {plru_array_27},
+         {plru_array_26},
+         {plru_array_25},
+         {plru_array_24},
+         {plru_array_23},
+         {plru_array_22},
+         {plru_array_21},
+         {plru_array_20},
+         {plru_array_19},
+         {plru_array_18},
+         {plru_array_17},
+         {plru_array_16},
+         {plru_array_15},
+         {plru_array_14},
+         {plru_array_13},
+         {plru_array_12},
+         {plru_array_11},
+         {plru_array_10},
+         {plru_array_9},
+         {plru_array_8},
+         {plru_array_7},
+         {plru_array_6},
+         {plru_array_5},
+         {plru_array_4},
+         {plru_array_3},
+         {plru_array_2},
+         {plru_array_1},
+         {plru_array_0}};
+      automatic logic [2:0]        _GEN_41 = _GEN_40[req_index];
       automatic logic [2:0]        _invalid_way_idx_T_1 =
         ~{_array_io_r_valid_2, _array_io_r_valid_1, _array_io_r_valid_0};
       automatic logic [1:0]        target_fill_way;
-      automatic logic              _target_way_T;
-      automatic logic              cacop_need_wb;
+      automatic logic              _target_way_T = req_cacop_op == 3'h2;
+      automatic logic              cacop_need_wb =
+        req_cacop_op == 3'h1 & index_needs_wb | _target_way_T & hit_dirty;
       automatic logic [1:0]        target_way;
       automatic logic              _GEN_42;
       automatic logic              _GEN_43;
@@ -4305,24 +4562,24 @@ module Cache(
       automatic logic              _GEN_58 = alloc_sub_idx == 2'h0;
       automatic logic              _GEN_59;
       automatic logic              _GEN_60 = alloc_sub_idx == 2'h1;
-      automatic logic              _GEN_61;
+      automatic logic              _GEN_61 = ~req_is_pf & _GEN_57 & _GEN_60;
       automatic logic              _GEN_62 = alloc_sub_idx == 2'h2;
-      automatic logic              _GEN_63;
-      automatic logic              _GEN_64;
+      automatic logic              _GEN_63 = ~req_is_pf & _GEN_57 & _GEN_62;
+      automatic logic              _GEN_64 = ~req_is_pf & _GEN_57 & (&alloc_sub_idx);
       automatic logic              _GEN_65 = match_idx == 2'h1;
       automatic logic              _GEN_66;
-      automatic logic              _GEN_67;
-      automatic logic              _GEN_68;
-      automatic logic              _GEN_69;
+      automatic logic              _GEN_67 = ~req_is_pf & _GEN_65 & _GEN_60;
+      automatic logic              _GEN_68 = ~req_is_pf & _GEN_65 & _GEN_62;
+      automatic logic              _GEN_69 = ~req_is_pf & _GEN_65 & (&alloc_sub_idx);
       automatic logic              _GEN_70 = match_idx == 2'h2;
       automatic logic              _GEN_71;
-      automatic logic              _GEN_72;
-      automatic logic              _GEN_73;
-      automatic logic              _GEN_74;
+      automatic logic              _GEN_72 = ~req_is_pf & _GEN_70 & _GEN_60;
+      automatic logic              _GEN_73 = ~req_is_pf & _GEN_70 & _GEN_62;
+      automatic logic              _GEN_74 = ~req_is_pf & _GEN_70 & (&alloc_sub_idx);
       automatic logic              _GEN_75;
-      automatic logic              _GEN_76;
-      automatic logic              _GEN_77;
-      automatic logic              _GEN_78;
+      automatic logic              _GEN_76 = ~req_is_pf & (&match_idx) & _GEN_60;
+      automatic logic              _GEN_77 = ~req_is_pf & (&match_idx) & _GEN_62;
+      automatic logic              _GEN_78 = ~req_is_pf & (&match_idx) & (&alloc_sub_idx);
       automatic logic              _GEN_79;
       automatic logic              _GEN_80;
       automatic logic              _GEN_81;
@@ -4350,10 +4607,26 @@ module Cache(
       automatic logic              _GEN_103;
       automatic logic              _GEN_104;
       automatic logic              _GEN_105;
-      automatic logic [3:0]        _GEN_106;
-      automatic logic [3:0]        _GEN_107;
-      automatic logic [3:0]        _GEN_108;
-      automatic logic [3:0]        _GEN_109;
+      automatic logic [3:0]        _GEN_106 =
+        {{mshr_table_3_sub_entries_0_op},
+         {mshr_table_2_sub_entries_0_op},
+         {mshr_table_1_sub_entries_0_op},
+         {mshr_table_0_sub_entries_0_op}};
+      automatic logic [3:0]        _GEN_107 =
+        {{mshr_table_3_sub_entries_3_op},
+         {mshr_table_2_sub_entries_3_op},
+         {mshr_table_1_sub_entries_3_op},
+         {mshr_table_0_sub_entries_3_op}};
+      automatic logic [3:0]        _GEN_108 =
+        {{mshr_table_3_sub_entries_2_op},
+         {mshr_table_2_sub_entries_2_op},
+         {mshr_table_1_sub_entries_2_op},
+         {mshr_table_0_sub_entries_2_op}};
+      automatic logic [3:0]        _GEN_109 =
+        {{mshr_table_3_sub_entries_1_op},
+         {mshr_table_2_sub_entries_1_op},
+         {mshr_table_1_sub_entries_1_op},
+         {mshr_table_0_sub_entries_1_op}};
       automatic logic              has_store_sub;
       automatic logic              _GEN_110 = _GEN_15[refill_idx] == 2'h0;
       automatic logic              _GEN_111 = _GEN_14[refill_idx] == 8'h0;
@@ -4620,9 +4893,15 @@ module Cache(
       automatic logic              _GEN_372;
       automatic logic              _GEN_373;
       automatic logic              _GEN_374;
-      automatic logic              do_plru_update;
-      automatic logic [7:0]        access_idx;
-      automatic logic [3:0][2:0]   _GEN_375;
+      automatic logic              do_plru_update =
+        main_state & cache_hit & ~req_uncached & ~req_cacop_en | do_refill;
+      automatic logic [7:0]        access_idx =
+        do_refill ? _GEN_14[refill_idx] : req_index;
+      automatic logic [3:0][2:0]   _GEN_375 =
+        {{{1'h0, _GEN_40[access_idx][1], 1'h0}},
+         {{1'h1, _GEN_40[access_idx][1], 1'h0}},
+         {{_GEN_40[access_idx][2], 2'h1}},
+         {{_GEN_40[access_idx][2], 2'h3}}};
       automatic logic [2:0]        new_plru;
       automatic logic              _GEN_376;
       automatic logic              _GEN_377;
@@ -4634,19 +4913,27 @@ module Cache(
       automatic logic              _GEN_383;
       automatic logic              do_evict;
       automatic logic [1:0]        evict_idx;
-      automatic logic [3:0]        _GEN_384;
+      automatic logic [3:0]        _GEN_384 =
+        {{mshr_table_3_is_cacop},
+         {mshr_table_2_is_cacop},
+         {mshr_table_1_is_cacop},
+         {mshr_table_0_is_cacop}};
       automatic logic [2:0]        _mshr_table_state_T_4;
       automatic logic              _GEN_385;
-      automatic logic [3:0][3:0]   _GEN_386;
-      automatic logic [3:0]        _GEN_387;
+      automatic logic [3:0][3:0]   _GEN_386 =
+        {{mshr_table_3_recv_cnt},
+         {mshr_table_2_recv_cnt},
+         {mshr_table_1_recv_cnt},
+         {mshr_table_0_recv_cnt}};
+      automatic logic [3:0]        _GEN_387 = _GEN_386[io_axi_ret_id[1:0]];
       automatic logic              _GEN_388 = io_axi_ret_id[1:0] == 2'h0;
-      automatic logic              _GEN_389;
-      automatic logic              _GEN_390;
-      automatic logic              _GEN_391;
-      automatic logic              _GEN_392;
-      automatic logic              _GEN_393;
-      automatic logic              _GEN_394;
-      automatic logic              _GEN_395;
+      automatic logic              _GEN_389 = _GEN_387[2:0] == 3'h0;
+      automatic logic              _GEN_390 = _GEN_387[2:0] == 3'h1;
+      automatic logic              _GEN_391 = _GEN_387[2:0] == 3'h2;
+      automatic logic              _GEN_392 = _GEN_387[2:0] == 3'h3;
+      automatic logic              _GEN_393 = _GEN_387[2:0] == 3'h4;
+      automatic logic              _GEN_394 = _GEN_387[2:0] == 3'h5;
+      automatic logic              _GEN_395 = _GEN_387[2:0] == 3'h6;
       automatic logic              _GEN_396 = io_axi_ret_id[1:0] == 2'h1;
       automatic logic              _GEN_397 = io_axi_ret_id[1:0] == 2'h2;
       automatic logic [3:0]        _mshr_table_recv_cnt_T;
@@ -4654,264 +4941,6 @@ module Cache(
         (|mshr_table_0_state)
           ? ((|mshr_table_1_state) ? {1'h1, |mshr_table_2_state} : 2'h1)
           : 2'h0;
-      _GEN_40 =
-        {{plru_array_255},
-         {plru_array_254},
-         {plru_array_253},
-         {plru_array_252},
-         {plru_array_251},
-         {plru_array_250},
-         {plru_array_249},
-         {plru_array_248},
-         {plru_array_247},
-         {plru_array_246},
-         {plru_array_245},
-         {plru_array_244},
-         {plru_array_243},
-         {plru_array_242},
-         {plru_array_241},
-         {plru_array_240},
-         {plru_array_239},
-         {plru_array_238},
-         {plru_array_237},
-         {plru_array_236},
-         {plru_array_235},
-         {plru_array_234},
-         {plru_array_233},
-         {plru_array_232},
-         {plru_array_231},
-         {plru_array_230},
-         {plru_array_229},
-         {plru_array_228},
-         {plru_array_227},
-         {plru_array_226},
-         {plru_array_225},
-         {plru_array_224},
-         {plru_array_223},
-         {plru_array_222},
-         {plru_array_221},
-         {plru_array_220},
-         {plru_array_219},
-         {plru_array_218},
-         {plru_array_217},
-         {plru_array_216},
-         {plru_array_215},
-         {plru_array_214},
-         {plru_array_213},
-         {plru_array_212},
-         {plru_array_211},
-         {plru_array_210},
-         {plru_array_209},
-         {plru_array_208},
-         {plru_array_207},
-         {plru_array_206},
-         {plru_array_205},
-         {plru_array_204},
-         {plru_array_203},
-         {plru_array_202},
-         {plru_array_201},
-         {plru_array_200},
-         {plru_array_199},
-         {plru_array_198},
-         {plru_array_197},
-         {plru_array_196},
-         {plru_array_195},
-         {plru_array_194},
-         {plru_array_193},
-         {plru_array_192},
-         {plru_array_191},
-         {plru_array_190},
-         {plru_array_189},
-         {plru_array_188},
-         {plru_array_187},
-         {plru_array_186},
-         {plru_array_185},
-         {plru_array_184},
-         {plru_array_183},
-         {plru_array_182},
-         {plru_array_181},
-         {plru_array_180},
-         {plru_array_179},
-         {plru_array_178},
-         {plru_array_177},
-         {plru_array_176},
-         {plru_array_175},
-         {plru_array_174},
-         {plru_array_173},
-         {plru_array_172},
-         {plru_array_171},
-         {plru_array_170},
-         {plru_array_169},
-         {plru_array_168},
-         {plru_array_167},
-         {plru_array_166},
-         {plru_array_165},
-         {plru_array_164},
-         {plru_array_163},
-         {plru_array_162},
-         {plru_array_161},
-         {plru_array_160},
-         {plru_array_159},
-         {plru_array_158},
-         {plru_array_157},
-         {plru_array_156},
-         {plru_array_155},
-         {plru_array_154},
-         {plru_array_153},
-         {plru_array_152},
-         {plru_array_151},
-         {plru_array_150},
-         {plru_array_149},
-         {plru_array_148},
-         {plru_array_147},
-         {plru_array_146},
-         {plru_array_145},
-         {plru_array_144},
-         {plru_array_143},
-         {plru_array_142},
-         {plru_array_141},
-         {plru_array_140},
-         {plru_array_139},
-         {plru_array_138},
-         {plru_array_137},
-         {plru_array_136},
-         {plru_array_135},
-         {plru_array_134},
-         {plru_array_133},
-         {plru_array_132},
-         {plru_array_131},
-         {plru_array_130},
-         {plru_array_129},
-         {plru_array_128},
-         {plru_array_127},
-         {plru_array_126},
-         {plru_array_125},
-         {plru_array_124},
-         {plru_array_123},
-         {plru_array_122},
-         {plru_array_121},
-         {plru_array_120},
-         {plru_array_119},
-         {plru_array_118},
-         {plru_array_117},
-         {plru_array_116},
-         {plru_array_115},
-         {plru_array_114},
-         {plru_array_113},
-         {plru_array_112},
-         {plru_array_111},
-         {plru_array_110},
-         {plru_array_109},
-         {plru_array_108},
-         {plru_array_107},
-         {plru_array_106},
-         {plru_array_105},
-         {plru_array_104},
-         {plru_array_103},
-         {plru_array_102},
-         {plru_array_101},
-         {plru_array_100},
-         {plru_array_99},
-         {plru_array_98},
-         {plru_array_97},
-         {plru_array_96},
-         {plru_array_95},
-         {plru_array_94},
-         {plru_array_93},
-         {plru_array_92},
-         {plru_array_91},
-         {plru_array_90},
-         {plru_array_89},
-         {plru_array_88},
-         {plru_array_87},
-         {plru_array_86},
-         {plru_array_85},
-         {plru_array_84},
-         {plru_array_83},
-         {plru_array_82},
-         {plru_array_81},
-         {plru_array_80},
-         {plru_array_79},
-         {plru_array_78},
-         {plru_array_77},
-         {plru_array_76},
-         {plru_array_75},
-         {plru_array_74},
-         {plru_array_73},
-         {plru_array_72},
-         {plru_array_71},
-         {plru_array_70},
-         {plru_array_69},
-         {plru_array_68},
-         {plru_array_67},
-         {plru_array_66},
-         {plru_array_65},
-         {plru_array_64},
-         {plru_array_63},
-         {plru_array_62},
-         {plru_array_61},
-         {plru_array_60},
-         {plru_array_59},
-         {plru_array_58},
-         {plru_array_57},
-         {plru_array_56},
-         {plru_array_55},
-         {plru_array_54},
-         {plru_array_53},
-         {plru_array_52},
-         {plru_array_51},
-         {plru_array_50},
-         {plru_array_49},
-         {plru_array_48},
-         {plru_array_47},
-         {plru_array_46},
-         {plru_array_45},
-         {plru_array_44},
-         {plru_array_43},
-         {plru_array_42},
-         {plru_array_41},
-         {plru_array_40},
-         {plru_array_39},
-         {plru_array_38},
-         {plru_array_37},
-         {plru_array_36},
-         {plru_array_35},
-         {plru_array_34},
-         {plru_array_33},
-         {plru_array_32},
-         {plru_array_31},
-         {plru_array_30},
-         {plru_array_29},
-         {plru_array_28},
-         {plru_array_27},
-         {plru_array_26},
-         {plru_array_25},
-         {plru_array_24},
-         {plru_array_23},
-         {plru_array_22},
-         {plru_array_21},
-         {plru_array_20},
-         {plru_array_19},
-         {plru_array_18},
-         {plru_array_17},
-         {plru_array_16},
-         {plru_array_15},
-         {plru_array_14},
-         {plru_array_13},
-         {plru_array_12},
-         {plru_array_11},
-         {plru_array_10},
-         {plru_array_9},
-         {plru_array_8},
-         {plru_array_7},
-         {plru_array_6},
-         {plru_array_5},
-         {plru_array_4},
-         {plru_array_3},
-         {plru_array_2},
-         {plru_array_1},
-         {plru_array_0}};
-      _GEN_41 = _GEN_40[req_index];
       target_fill_way =
         {_array_io_r_valid_3,
          _array_io_r_valid_2,
@@ -4921,8 +4950,6 @@ module Cache(
                ? 2'h0
                : _invalid_way_idx_T_1[1] ? 2'h1 : {1'h1, ~(_invalid_way_idx_T_1[2])})
           : _GEN_41[0] ? {1'h1, _GEN_41[2]} : {1'h0, _GEN_41[1]};
-      _target_way_T = req_cacop_op == 3'h2;
-      cacop_need_wb = req_cacop_op == 3'h1 & index_needs_wb | _target_way_T & hit_dirty;
       target_way = _target_way_T ? hit_way : req_offset[1:0];
       _GEN_42 = alloc_mshr_idx == 2'h0;
       _GEN_43 = _cacop_hit_inval_done_T_2 & cacop_need_wb & _GEN_42;
@@ -4932,21 +4959,9 @@ module Cache(
       _GEN_47 = _cacop_hit_inval_done_T_2 & cacop_need_wb & _GEN_46;
       _GEN_48 = _cacop_hit_inval_done_T_2 & cacop_need_wb & (&alloc_mshr_idx);
       _GEN_59 = ~req_is_pf & _GEN_57 & _GEN_58;
-      _GEN_61 = ~req_is_pf & _GEN_57 & _GEN_60;
-      _GEN_63 = ~req_is_pf & _GEN_57 & _GEN_62;
-      _GEN_64 = ~req_is_pf & _GEN_57 & (&alloc_sub_idx);
       _GEN_66 = ~req_is_pf & _GEN_65 & _GEN_58;
-      _GEN_67 = ~req_is_pf & _GEN_65 & _GEN_60;
-      _GEN_68 = ~req_is_pf & _GEN_65 & _GEN_62;
-      _GEN_69 = ~req_is_pf & _GEN_65 & (&alloc_sub_idx);
       _GEN_71 = ~req_is_pf & _GEN_70 & _GEN_58;
-      _GEN_72 = ~req_is_pf & _GEN_70 & _GEN_60;
-      _GEN_73 = ~req_is_pf & _GEN_70 & _GEN_62;
-      _GEN_74 = ~req_is_pf & _GEN_70 & (&alloc_sub_idx);
       _GEN_75 = ~req_is_pf & (&match_idx) & _GEN_58;
-      _GEN_76 = ~req_is_pf & (&match_idx) & _GEN_60;
-      _GEN_77 = ~req_is_pf & (&match_idx) & _GEN_62;
-      _GEN_78 = ~req_is_pf & (&match_idx) & (&alloc_sub_idx);
       _GEN_79 = req_cacop_en | cache_hit;
       _GEN_80 =
         ~main_state | _GEN_79 | ~(_cacop_hit_inval_done_T_2 & (|_has_match_T) & _GEN_61);
@@ -4989,26 +5004,6 @@ module Cache(
       _GEN_103 = ~req_is_pf & (&alloc_mshr_idx);
       _GEN_104 = _cacop_hit_inval_done_T_2 & ((|_has_match_T) ? _GEN_75 : _GEN_103);
       _GEN_105 = cache_hit | ~_cacop_hit_inval_done_T_2;
-      _GEN_106 =
-        {{mshr_table_3_sub_entries_0_op},
-         {mshr_table_2_sub_entries_0_op},
-         {mshr_table_1_sub_entries_0_op},
-         {mshr_table_0_sub_entries_0_op}};
-      _GEN_107 =
-        {{mshr_table_3_sub_entries_3_op},
-         {mshr_table_2_sub_entries_3_op},
-         {mshr_table_1_sub_entries_3_op},
-         {mshr_table_0_sub_entries_3_op}};
-      _GEN_108 =
-        {{mshr_table_3_sub_entries_2_op},
-         {mshr_table_2_sub_entries_2_op},
-         {mshr_table_1_sub_entries_2_op},
-         {mshr_table_0_sub_entries_2_op}};
-      _GEN_109 =
-        {{mshr_table_3_sub_entries_1_op},
-         {mshr_table_2_sub_entries_1_op},
-         {mshr_table_1_sub_entries_1_op},
-         {mshr_table_0_sub_entries_1_op}};
       has_store_sub =
         _GEN_8[refill_idx] & _GEN_106[refill_idx] | _GEN_9[refill_idx]
         & _GEN_109[refill_idx] | _GEN_10[refill_idx] & _GEN_108[refill_idx]
@@ -5020,13 +5015,6 @@ module Cache(
       _GEN_372 = refill_idx == 2'h2;
       _GEN_373 = do_refill & ~_GEN_12[refill_idx] & _GEN_372;
       _GEN_374 = do_refill & ~_GEN_12[refill_idx] & (&refill_idx);
-      do_plru_update = main_state & cache_hit & ~req_uncached & ~req_cacop_en | do_refill;
-      access_idx = do_refill ? _GEN_14[refill_idx] : req_index;
-      _GEN_375 =
-        {{{1'h0, _GEN_40[access_idx][1], 1'h0}},
-         {{1'h1, _GEN_40[access_idx][1], 1'h0}},
-         {{_GEN_40[access_idx][2], 2'h1}},
-         {{_GEN_40[access_idx][2], 2'h3}}};
       new_plru = _GEN_375[do_refill ? _GEN_15[refill_idx] : hit_way];
       _GEN_376 = (|_has_valid_sub_T) & ~any_front_response;
       _GEN_377 = wakeup_mshr_idx == 2'h0;
@@ -5038,27 +5026,9 @@ module Cache(
            {1'h0, _GEN_10[wakeup_mshr_idx]} + {1'h0, _GEN_11[wakeup_mshr_idx]}} == 3'h1;
       do_evict = evict_cands_0 | evict_cands_1 | evict_cands_2 | evict_cands_3;
       evict_idx = evict_cands_0 ? 2'h0 : evict_cands_1 ? 2'h1 : {1'h1, ~evict_cands_2};
-      _GEN_384 =
-        {{mshr_table_3_is_cacop},
-         {mshr_table_2_is_cacop},
-         {mshr_table_1_is_cacop},
-         {mshr_table_0_is_cacop}};
       _mshr_table_state_T_4 =
         _GEN_12[evict_idx] & _GEN_106[evict_idx] | _GEN_384[evict_idx] ? 3'h5 : 3'h2;
       _GEN_385 = do_ar & io_axi_rd_rdy;
-      _GEN_386 =
-        {{mshr_table_3_recv_cnt},
-         {mshr_table_2_recv_cnt},
-         {mshr_table_1_recv_cnt},
-         {mshr_table_0_recv_cnt}};
-      _GEN_387 = _GEN_386[io_axi_ret_id[1:0]];
-      _GEN_389 = _GEN_387[2:0] == 3'h0;
-      _GEN_390 = _GEN_387[2:0] == 3'h1;
-      _GEN_391 = _GEN_387[2:0] == 3'h2;
-      _GEN_392 = _GEN_387[2:0] == 3'h3;
-      _GEN_393 = _GEN_387[2:0] == 3'h4;
-      _GEN_394 = _GEN_387[2:0] == 3'h5;
-      _GEN_395 = _GEN_387[2:0] == 3'h6;
       _mshr_table_recv_cnt_T = _GEN_387 + 4'h1;
       if (io_axi_ret_valid & io_axi_ret_last & _GEN_388)
         mshr_table_0_state <= 3'h4;
@@ -8653,1436 +8623,7 @@ module Cache(
       if (do_plru_update & (&access_idx))
         plru_array_255 <= new_plru;
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        mshr_table_0_state = 3'h0;
-        mshr_table_0_is_uncached = 1'h0;
-        mshr_table_0_is_cacop = 1'h0;
-        mshr_table_0_tag = 19'h0;
-        mshr_table_0_index = 8'h0;
-        mshr_table_0_way = 2'h0;
-        mshr_table_0_sub_entries_0_valid = 1'h0;
-        mshr_table_0_sub_entries_0_req_id = 9'h0;
-        mshr_table_0_sub_entries_0_op = 1'h0;
-        mshr_table_0_sub_entries_0_offset = 5'h0;
-        mshr_table_0_sub_entries_1_valid = 1'h0;
-        mshr_table_0_sub_entries_1_req_id = 9'h0;
-        mshr_table_0_sub_entries_1_op = 1'h0;
-        mshr_table_0_sub_entries_1_offset = 5'h0;
-        mshr_table_0_sub_entries_2_valid = 1'h0;
-        mshr_table_0_sub_entries_2_req_id = 9'h0;
-        mshr_table_0_sub_entries_2_op = 1'h0;
-        mshr_table_0_sub_entries_2_offset = 5'h0;
-        mshr_table_0_sub_entries_3_valid = 1'h0;
-        mshr_table_0_sub_entries_3_req_id = 9'h0;
-        mshr_table_0_sub_entries_3_op = 1'h0;
-        mshr_table_0_sub_entries_3_offset = 5'h0;
-        mshr_table_0_recv_cnt = 4'h0;
-        mshr_table_0_line_buffer_0 = 32'h0;
-        mshr_table_0_line_buffer_1 = 32'h0;
-        mshr_table_0_line_buffer_2 = 32'h0;
-        mshr_table_0_line_buffer_3 = 32'h0;
-        mshr_table_0_line_buffer_4 = 32'h0;
-        mshr_table_0_line_buffer_5 = 32'h0;
-        mshr_table_0_line_buffer_6 = 32'h0;
-        mshr_table_0_line_buffer_7 = 32'h0;
-        mshr_table_1_state = 3'h0;
-        mshr_table_1_is_uncached = 1'h0;
-        mshr_table_1_is_cacop = 1'h0;
-        mshr_table_1_tag = 19'h0;
-        mshr_table_1_index = 8'h0;
-        mshr_table_1_way = 2'h0;
-        mshr_table_1_sub_entries_0_valid = 1'h0;
-        mshr_table_1_sub_entries_0_req_id = 9'h0;
-        mshr_table_1_sub_entries_0_op = 1'h0;
-        mshr_table_1_sub_entries_0_offset = 5'h0;
-        mshr_table_1_sub_entries_1_valid = 1'h0;
-        mshr_table_1_sub_entries_1_req_id = 9'h0;
-        mshr_table_1_sub_entries_1_op = 1'h0;
-        mshr_table_1_sub_entries_1_offset = 5'h0;
-        mshr_table_1_sub_entries_2_valid = 1'h0;
-        mshr_table_1_sub_entries_2_req_id = 9'h0;
-        mshr_table_1_sub_entries_2_op = 1'h0;
-        mshr_table_1_sub_entries_2_offset = 5'h0;
-        mshr_table_1_sub_entries_3_valid = 1'h0;
-        mshr_table_1_sub_entries_3_req_id = 9'h0;
-        mshr_table_1_sub_entries_3_op = 1'h0;
-        mshr_table_1_sub_entries_3_offset = 5'h0;
-        mshr_table_1_recv_cnt = 4'h0;
-        mshr_table_1_line_buffer_0 = 32'h0;
-        mshr_table_1_line_buffer_1 = 32'h0;
-        mshr_table_1_line_buffer_2 = 32'h0;
-        mshr_table_1_line_buffer_3 = 32'h0;
-        mshr_table_1_line_buffer_4 = 32'h0;
-        mshr_table_1_line_buffer_5 = 32'h0;
-        mshr_table_1_line_buffer_6 = 32'h0;
-        mshr_table_1_line_buffer_7 = 32'h0;
-        mshr_table_2_state = 3'h0;
-        mshr_table_2_is_uncached = 1'h0;
-        mshr_table_2_is_cacop = 1'h0;
-        mshr_table_2_tag = 19'h0;
-        mshr_table_2_index = 8'h0;
-        mshr_table_2_way = 2'h0;
-        mshr_table_2_sub_entries_0_valid = 1'h0;
-        mshr_table_2_sub_entries_0_req_id = 9'h0;
-        mshr_table_2_sub_entries_0_op = 1'h0;
-        mshr_table_2_sub_entries_0_offset = 5'h0;
-        mshr_table_2_sub_entries_1_valid = 1'h0;
-        mshr_table_2_sub_entries_1_req_id = 9'h0;
-        mshr_table_2_sub_entries_1_op = 1'h0;
-        mshr_table_2_sub_entries_1_offset = 5'h0;
-        mshr_table_2_sub_entries_2_valid = 1'h0;
-        mshr_table_2_sub_entries_2_req_id = 9'h0;
-        mshr_table_2_sub_entries_2_op = 1'h0;
-        mshr_table_2_sub_entries_2_offset = 5'h0;
-        mshr_table_2_sub_entries_3_valid = 1'h0;
-        mshr_table_2_sub_entries_3_req_id = 9'h0;
-        mshr_table_2_sub_entries_3_op = 1'h0;
-        mshr_table_2_sub_entries_3_offset = 5'h0;
-        mshr_table_2_recv_cnt = 4'h0;
-        mshr_table_2_line_buffer_0 = 32'h0;
-        mshr_table_2_line_buffer_1 = 32'h0;
-        mshr_table_2_line_buffer_2 = 32'h0;
-        mshr_table_2_line_buffer_3 = 32'h0;
-        mshr_table_2_line_buffer_4 = 32'h0;
-        mshr_table_2_line_buffer_5 = 32'h0;
-        mshr_table_2_line_buffer_6 = 32'h0;
-        mshr_table_2_line_buffer_7 = 32'h0;
-        mshr_table_3_state = 3'h0;
-        mshr_table_3_is_uncached = 1'h0;
-        mshr_table_3_is_cacop = 1'h0;
-        mshr_table_3_tag = 19'h0;
-        mshr_table_3_index = 8'h0;
-        mshr_table_3_way = 2'h0;
-        mshr_table_3_sub_entries_0_valid = 1'h0;
-        mshr_table_3_sub_entries_0_req_id = 9'h0;
-        mshr_table_3_sub_entries_0_op = 1'h0;
-        mshr_table_3_sub_entries_0_offset = 5'h0;
-        mshr_table_3_sub_entries_1_valid = 1'h0;
-        mshr_table_3_sub_entries_1_req_id = 9'h0;
-        mshr_table_3_sub_entries_1_op = 1'h0;
-        mshr_table_3_sub_entries_1_offset = 5'h0;
-        mshr_table_3_sub_entries_2_valid = 1'h0;
-        mshr_table_3_sub_entries_2_req_id = 9'h0;
-        mshr_table_3_sub_entries_2_op = 1'h0;
-        mshr_table_3_sub_entries_2_offset = 5'h0;
-        mshr_table_3_sub_entries_3_valid = 1'h0;
-        mshr_table_3_sub_entries_3_req_id = 9'h0;
-        mshr_table_3_sub_entries_3_op = 1'h0;
-        mshr_table_3_sub_entries_3_offset = 5'h0;
-        mshr_table_3_recv_cnt = 4'h0;
-        mshr_table_3_line_buffer_0 = 32'h0;
-        mshr_table_3_line_buffer_1 = 32'h0;
-        mshr_table_3_line_buffer_2 = 32'h0;
-        mshr_table_3_line_buffer_3 = 32'h0;
-        mshr_table_3_line_buffer_4 = 32'h0;
-        mshr_table_3_line_buffer_5 = 32'h0;
-        mshr_table_3_line_buffer_6 = 32'h0;
-        mshr_table_3_line_buffer_7 = 32'h0;
-        main_state = 1'h0;
-        wb_state = 1'h0;
-        pf_valid = 1'h0;
-        pf_tag = 19'h0;
-        pf_index = 8'h0;
-        dirty_array_0_0 = 1'h0;
-        dirty_array_0_1 = 1'h0;
-        dirty_array_0_2 = 1'h0;
-        dirty_array_0_3 = 1'h0;
-        dirty_array_0_4 = 1'h0;
-        dirty_array_0_5 = 1'h0;
-        dirty_array_0_6 = 1'h0;
-        dirty_array_0_7 = 1'h0;
-        dirty_array_0_8 = 1'h0;
-        dirty_array_0_9 = 1'h0;
-        dirty_array_0_10 = 1'h0;
-        dirty_array_0_11 = 1'h0;
-        dirty_array_0_12 = 1'h0;
-        dirty_array_0_13 = 1'h0;
-        dirty_array_0_14 = 1'h0;
-        dirty_array_0_15 = 1'h0;
-        dirty_array_0_16 = 1'h0;
-        dirty_array_0_17 = 1'h0;
-        dirty_array_0_18 = 1'h0;
-        dirty_array_0_19 = 1'h0;
-        dirty_array_0_20 = 1'h0;
-        dirty_array_0_21 = 1'h0;
-        dirty_array_0_22 = 1'h0;
-        dirty_array_0_23 = 1'h0;
-        dirty_array_0_24 = 1'h0;
-        dirty_array_0_25 = 1'h0;
-        dirty_array_0_26 = 1'h0;
-        dirty_array_0_27 = 1'h0;
-        dirty_array_0_28 = 1'h0;
-        dirty_array_0_29 = 1'h0;
-        dirty_array_0_30 = 1'h0;
-        dirty_array_0_31 = 1'h0;
-        dirty_array_0_32 = 1'h0;
-        dirty_array_0_33 = 1'h0;
-        dirty_array_0_34 = 1'h0;
-        dirty_array_0_35 = 1'h0;
-        dirty_array_0_36 = 1'h0;
-        dirty_array_0_37 = 1'h0;
-        dirty_array_0_38 = 1'h0;
-        dirty_array_0_39 = 1'h0;
-        dirty_array_0_40 = 1'h0;
-        dirty_array_0_41 = 1'h0;
-        dirty_array_0_42 = 1'h0;
-        dirty_array_0_43 = 1'h0;
-        dirty_array_0_44 = 1'h0;
-        dirty_array_0_45 = 1'h0;
-        dirty_array_0_46 = 1'h0;
-        dirty_array_0_47 = 1'h0;
-        dirty_array_0_48 = 1'h0;
-        dirty_array_0_49 = 1'h0;
-        dirty_array_0_50 = 1'h0;
-        dirty_array_0_51 = 1'h0;
-        dirty_array_0_52 = 1'h0;
-        dirty_array_0_53 = 1'h0;
-        dirty_array_0_54 = 1'h0;
-        dirty_array_0_55 = 1'h0;
-        dirty_array_0_56 = 1'h0;
-        dirty_array_0_57 = 1'h0;
-        dirty_array_0_58 = 1'h0;
-        dirty_array_0_59 = 1'h0;
-        dirty_array_0_60 = 1'h0;
-        dirty_array_0_61 = 1'h0;
-        dirty_array_0_62 = 1'h0;
-        dirty_array_0_63 = 1'h0;
-        dirty_array_0_64 = 1'h0;
-        dirty_array_0_65 = 1'h0;
-        dirty_array_0_66 = 1'h0;
-        dirty_array_0_67 = 1'h0;
-        dirty_array_0_68 = 1'h0;
-        dirty_array_0_69 = 1'h0;
-        dirty_array_0_70 = 1'h0;
-        dirty_array_0_71 = 1'h0;
-        dirty_array_0_72 = 1'h0;
-        dirty_array_0_73 = 1'h0;
-        dirty_array_0_74 = 1'h0;
-        dirty_array_0_75 = 1'h0;
-        dirty_array_0_76 = 1'h0;
-        dirty_array_0_77 = 1'h0;
-        dirty_array_0_78 = 1'h0;
-        dirty_array_0_79 = 1'h0;
-        dirty_array_0_80 = 1'h0;
-        dirty_array_0_81 = 1'h0;
-        dirty_array_0_82 = 1'h0;
-        dirty_array_0_83 = 1'h0;
-        dirty_array_0_84 = 1'h0;
-        dirty_array_0_85 = 1'h0;
-        dirty_array_0_86 = 1'h0;
-        dirty_array_0_87 = 1'h0;
-        dirty_array_0_88 = 1'h0;
-        dirty_array_0_89 = 1'h0;
-        dirty_array_0_90 = 1'h0;
-        dirty_array_0_91 = 1'h0;
-        dirty_array_0_92 = 1'h0;
-        dirty_array_0_93 = 1'h0;
-        dirty_array_0_94 = 1'h0;
-        dirty_array_0_95 = 1'h0;
-        dirty_array_0_96 = 1'h0;
-        dirty_array_0_97 = 1'h0;
-        dirty_array_0_98 = 1'h0;
-        dirty_array_0_99 = 1'h0;
-        dirty_array_0_100 = 1'h0;
-        dirty_array_0_101 = 1'h0;
-        dirty_array_0_102 = 1'h0;
-        dirty_array_0_103 = 1'h0;
-        dirty_array_0_104 = 1'h0;
-        dirty_array_0_105 = 1'h0;
-        dirty_array_0_106 = 1'h0;
-        dirty_array_0_107 = 1'h0;
-        dirty_array_0_108 = 1'h0;
-        dirty_array_0_109 = 1'h0;
-        dirty_array_0_110 = 1'h0;
-        dirty_array_0_111 = 1'h0;
-        dirty_array_0_112 = 1'h0;
-        dirty_array_0_113 = 1'h0;
-        dirty_array_0_114 = 1'h0;
-        dirty_array_0_115 = 1'h0;
-        dirty_array_0_116 = 1'h0;
-        dirty_array_0_117 = 1'h0;
-        dirty_array_0_118 = 1'h0;
-        dirty_array_0_119 = 1'h0;
-        dirty_array_0_120 = 1'h0;
-        dirty_array_0_121 = 1'h0;
-        dirty_array_0_122 = 1'h0;
-        dirty_array_0_123 = 1'h0;
-        dirty_array_0_124 = 1'h0;
-        dirty_array_0_125 = 1'h0;
-        dirty_array_0_126 = 1'h0;
-        dirty_array_0_127 = 1'h0;
-        dirty_array_0_128 = 1'h0;
-        dirty_array_0_129 = 1'h0;
-        dirty_array_0_130 = 1'h0;
-        dirty_array_0_131 = 1'h0;
-        dirty_array_0_132 = 1'h0;
-        dirty_array_0_133 = 1'h0;
-        dirty_array_0_134 = 1'h0;
-        dirty_array_0_135 = 1'h0;
-        dirty_array_0_136 = 1'h0;
-        dirty_array_0_137 = 1'h0;
-        dirty_array_0_138 = 1'h0;
-        dirty_array_0_139 = 1'h0;
-        dirty_array_0_140 = 1'h0;
-        dirty_array_0_141 = 1'h0;
-        dirty_array_0_142 = 1'h0;
-        dirty_array_0_143 = 1'h0;
-        dirty_array_0_144 = 1'h0;
-        dirty_array_0_145 = 1'h0;
-        dirty_array_0_146 = 1'h0;
-        dirty_array_0_147 = 1'h0;
-        dirty_array_0_148 = 1'h0;
-        dirty_array_0_149 = 1'h0;
-        dirty_array_0_150 = 1'h0;
-        dirty_array_0_151 = 1'h0;
-        dirty_array_0_152 = 1'h0;
-        dirty_array_0_153 = 1'h0;
-        dirty_array_0_154 = 1'h0;
-        dirty_array_0_155 = 1'h0;
-        dirty_array_0_156 = 1'h0;
-        dirty_array_0_157 = 1'h0;
-        dirty_array_0_158 = 1'h0;
-        dirty_array_0_159 = 1'h0;
-        dirty_array_0_160 = 1'h0;
-        dirty_array_0_161 = 1'h0;
-        dirty_array_0_162 = 1'h0;
-        dirty_array_0_163 = 1'h0;
-        dirty_array_0_164 = 1'h0;
-        dirty_array_0_165 = 1'h0;
-        dirty_array_0_166 = 1'h0;
-        dirty_array_0_167 = 1'h0;
-        dirty_array_0_168 = 1'h0;
-        dirty_array_0_169 = 1'h0;
-        dirty_array_0_170 = 1'h0;
-        dirty_array_0_171 = 1'h0;
-        dirty_array_0_172 = 1'h0;
-        dirty_array_0_173 = 1'h0;
-        dirty_array_0_174 = 1'h0;
-        dirty_array_0_175 = 1'h0;
-        dirty_array_0_176 = 1'h0;
-        dirty_array_0_177 = 1'h0;
-        dirty_array_0_178 = 1'h0;
-        dirty_array_0_179 = 1'h0;
-        dirty_array_0_180 = 1'h0;
-        dirty_array_0_181 = 1'h0;
-        dirty_array_0_182 = 1'h0;
-        dirty_array_0_183 = 1'h0;
-        dirty_array_0_184 = 1'h0;
-        dirty_array_0_185 = 1'h0;
-        dirty_array_0_186 = 1'h0;
-        dirty_array_0_187 = 1'h0;
-        dirty_array_0_188 = 1'h0;
-        dirty_array_0_189 = 1'h0;
-        dirty_array_0_190 = 1'h0;
-        dirty_array_0_191 = 1'h0;
-        dirty_array_0_192 = 1'h0;
-        dirty_array_0_193 = 1'h0;
-        dirty_array_0_194 = 1'h0;
-        dirty_array_0_195 = 1'h0;
-        dirty_array_0_196 = 1'h0;
-        dirty_array_0_197 = 1'h0;
-        dirty_array_0_198 = 1'h0;
-        dirty_array_0_199 = 1'h0;
-        dirty_array_0_200 = 1'h0;
-        dirty_array_0_201 = 1'h0;
-        dirty_array_0_202 = 1'h0;
-        dirty_array_0_203 = 1'h0;
-        dirty_array_0_204 = 1'h0;
-        dirty_array_0_205 = 1'h0;
-        dirty_array_0_206 = 1'h0;
-        dirty_array_0_207 = 1'h0;
-        dirty_array_0_208 = 1'h0;
-        dirty_array_0_209 = 1'h0;
-        dirty_array_0_210 = 1'h0;
-        dirty_array_0_211 = 1'h0;
-        dirty_array_0_212 = 1'h0;
-        dirty_array_0_213 = 1'h0;
-        dirty_array_0_214 = 1'h0;
-        dirty_array_0_215 = 1'h0;
-        dirty_array_0_216 = 1'h0;
-        dirty_array_0_217 = 1'h0;
-        dirty_array_0_218 = 1'h0;
-        dirty_array_0_219 = 1'h0;
-        dirty_array_0_220 = 1'h0;
-        dirty_array_0_221 = 1'h0;
-        dirty_array_0_222 = 1'h0;
-        dirty_array_0_223 = 1'h0;
-        dirty_array_0_224 = 1'h0;
-        dirty_array_0_225 = 1'h0;
-        dirty_array_0_226 = 1'h0;
-        dirty_array_0_227 = 1'h0;
-        dirty_array_0_228 = 1'h0;
-        dirty_array_0_229 = 1'h0;
-        dirty_array_0_230 = 1'h0;
-        dirty_array_0_231 = 1'h0;
-        dirty_array_0_232 = 1'h0;
-        dirty_array_0_233 = 1'h0;
-        dirty_array_0_234 = 1'h0;
-        dirty_array_0_235 = 1'h0;
-        dirty_array_0_236 = 1'h0;
-        dirty_array_0_237 = 1'h0;
-        dirty_array_0_238 = 1'h0;
-        dirty_array_0_239 = 1'h0;
-        dirty_array_0_240 = 1'h0;
-        dirty_array_0_241 = 1'h0;
-        dirty_array_0_242 = 1'h0;
-        dirty_array_0_243 = 1'h0;
-        dirty_array_0_244 = 1'h0;
-        dirty_array_0_245 = 1'h0;
-        dirty_array_0_246 = 1'h0;
-        dirty_array_0_247 = 1'h0;
-        dirty_array_0_248 = 1'h0;
-        dirty_array_0_249 = 1'h0;
-        dirty_array_0_250 = 1'h0;
-        dirty_array_0_251 = 1'h0;
-        dirty_array_0_252 = 1'h0;
-        dirty_array_0_253 = 1'h0;
-        dirty_array_0_254 = 1'h0;
-        dirty_array_0_255 = 1'h0;
-        dirty_array_1_0 = 1'h0;
-        dirty_array_1_1 = 1'h0;
-        dirty_array_1_2 = 1'h0;
-        dirty_array_1_3 = 1'h0;
-        dirty_array_1_4 = 1'h0;
-        dirty_array_1_5 = 1'h0;
-        dirty_array_1_6 = 1'h0;
-        dirty_array_1_7 = 1'h0;
-        dirty_array_1_8 = 1'h0;
-        dirty_array_1_9 = 1'h0;
-        dirty_array_1_10 = 1'h0;
-        dirty_array_1_11 = 1'h0;
-        dirty_array_1_12 = 1'h0;
-        dirty_array_1_13 = 1'h0;
-        dirty_array_1_14 = 1'h0;
-        dirty_array_1_15 = 1'h0;
-        dirty_array_1_16 = 1'h0;
-        dirty_array_1_17 = 1'h0;
-        dirty_array_1_18 = 1'h0;
-        dirty_array_1_19 = 1'h0;
-        dirty_array_1_20 = 1'h0;
-        dirty_array_1_21 = 1'h0;
-        dirty_array_1_22 = 1'h0;
-        dirty_array_1_23 = 1'h0;
-        dirty_array_1_24 = 1'h0;
-        dirty_array_1_25 = 1'h0;
-        dirty_array_1_26 = 1'h0;
-        dirty_array_1_27 = 1'h0;
-        dirty_array_1_28 = 1'h0;
-        dirty_array_1_29 = 1'h0;
-        dirty_array_1_30 = 1'h0;
-        dirty_array_1_31 = 1'h0;
-        dirty_array_1_32 = 1'h0;
-        dirty_array_1_33 = 1'h0;
-        dirty_array_1_34 = 1'h0;
-        dirty_array_1_35 = 1'h0;
-        dirty_array_1_36 = 1'h0;
-        dirty_array_1_37 = 1'h0;
-        dirty_array_1_38 = 1'h0;
-        dirty_array_1_39 = 1'h0;
-        dirty_array_1_40 = 1'h0;
-        dirty_array_1_41 = 1'h0;
-        dirty_array_1_42 = 1'h0;
-        dirty_array_1_43 = 1'h0;
-        dirty_array_1_44 = 1'h0;
-        dirty_array_1_45 = 1'h0;
-        dirty_array_1_46 = 1'h0;
-        dirty_array_1_47 = 1'h0;
-        dirty_array_1_48 = 1'h0;
-        dirty_array_1_49 = 1'h0;
-        dirty_array_1_50 = 1'h0;
-        dirty_array_1_51 = 1'h0;
-        dirty_array_1_52 = 1'h0;
-        dirty_array_1_53 = 1'h0;
-        dirty_array_1_54 = 1'h0;
-        dirty_array_1_55 = 1'h0;
-        dirty_array_1_56 = 1'h0;
-        dirty_array_1_57 = 1'h0;
-        dirty_array_1_58 = 1'h0;
-        dirty_array_1_59 = 1'h0;
-        dirty_array_1_60 = 1'h0;
-        dirty_array_1_61 = 1'h0;
-        dirty_array_1_62 = 1'h0;
-        dirty_array_1_63 = 1'h0;
-        dirty_array_1_64 = 1'h0;
-        dirty_array_1_65 = 1'h0;
-        dirty_array_1_66 = 1'h0;
-        dirty_array_1_67 = 1'h0;
-        dirty_array_1_68 = 1'h0;
-        dirty_array_1_69 = 1'h0;
-        dirty_array_1_70 = 1'h0;
-        dirty_array_1_71 = 1'h0;
-        dirty_array_1_72 = 1'h0;
-        dirty_array_1_73 = 1'h0;
-        dirty_array_1_74 = 1'h0;
-        dirty_array_1_75 = 1'h0;
-        dirty_array_1_76 = 1'h0;
-        dirty_array_1_77 = 1'h0;
-        dirty_array_1_78 = 1'h0;
-        dirty_array_1_79 = 1'h0;
-        dirty_array_1_80 = 1'h0;
-        dirty_array_1_81 = 1'h0;
-        dirty_array_1_82 = 1'h0;
-        dirty_array_1_83 = 1'h0;
-        dirty_array_1_84 = 1'h0;
-        dirty_array_1_85 = 1'h0;
-        dirty_array_1_86 = 1'h0;
-        dirty_array_1_87 = 1'h0;
-        dirty_array_1_88 = 1'h0;
-        dirty_array_1_89 = 1'h0;
-        dirty_array_1_90 = 1'h0;
-        dirty_array_1_91 = 1'h0;
-        dirty_array_1_92 = 1'h0;
-        dirty_array_1_93 = 1'h0;
-        dirty_array_1_94 = 1'h0;
-        dirty_array_1_95 = 1'h0;
-        dirty_array_1_96 = 1'h0;
-        dirty_array_1_97 = 1'h0;
-        dirty_array_1_98 = 1'h0;
-        dirty_array_1_99 = 1'h0;
-        dirty_array_1_100 = 1'h0;
-        dirty_array_1_101 = 1'h0;
-        dirty_array_1_102 = 1'h0;
-        dirty_array_1_103 = 1'h0;
-        dirty_array_1_104 = 1'h0;
-        dirty_array_1_105 = 1'h0;
-        dirty_array_1_106 = 1'h0;
-        dirty_array_1_107 = 1'h0;
-        dirty_array_1_108 = 1'h0;
-        dirty_array_1_109 = 1'h0;
-        dirty_array_1_110 = 1'h0;
-        dirty_array_1_111 = 1'h0;
-        dirty_array_1_112 = 1'h0;
-        dirty_array_1_113 = 1'h0;
-        dirty_array_1_114 = 1'h0;
-        dirty_array_1_115 = 1'h0;
-        dirty_array_1_116 = 1'h0;
-        dirty_array_1_117 = 1'h0;
-        dirty_array_1_118 = 1'h0;
-        dirty_array_1_119 = 1'h0;
-        dirty_array_1_120 = 1'h0;
-        dirty_array_1_121 = 1'h0;
-        dirty_array_1_122 = 1'h0;
-        dirty_array_1_123 = 1'h0;
-        dirty_array_1_124 = 1'h0;
-        dirty_array_1_125 = 1'h0;
-        dirty_array_1_126 = 1'h0;
-        dirty_array_1_127 = 1'h0;
-        dirty_array_1_128 = 1'h0;
-        dirty_array_1_129 = 1'h0;
-        dirty_array_1_130 = 1'h0;
-        dirty_array_1_131 = 1'h0;
-        dirty_array_1_132 = 1'h0;
-        dirty_array_1_133 = 1'h0;
-        dirty_array_1_134 = 1'h0;
-        dirty_array_1_135 = 1'h0;
-        dirty_array_1_136 = 1'h0;
-        dirty_array_1_137 = 1'h0;
-        dirty_array_1_138 = 1'h0;
-        dirty_array_1_139 = 1'h0;
-        dirty_array_1_140 = 1'h0;
-        dirty_array_1_141 = 1'h0;
-        dirty_array_1_142 = 1'h0;
-        dirty_array_1_143 = 1'h0;
-        dirty_array_1_144 = 1'h0;
-        dirty_array_1_145 = 1'h0;
-        dirty_array_1_146 = 1'h0;
-        dirty_array_1_147 = 1'h0;
-        dirty_array_1_148 = 1'h0;
-        dirty_array_1_149 = 1'h0;
-        dirty_array_1_150 = 1'h0;
-        dirty_array_1_151 = 1'h0;
-        dirty_array_1_152 = 1'h0;
-        dirty_array_1_153 = 1'h0;
-        dirty_array_1_154 = 1'h0;
-        dirty_array_1_155 = 1'h0;
-        dirty_array_1_156 = 1'h0;
-        dirty_array_1_157 = 1'h0;
-        dirty_array_1_158 = 1'h0;
-        dirty_array_1_159 = 1'h0;
-        dirty_array_1_160 = 1'h0;
-        dirty_array_1_161 = 1'h0;
-        dirty_array_1_162 = 1'h0;
-        dirty_array_1_163 = 1'h0;
-        dirty_array_1_164 = 1'h0;
-        dirty_array_1_165 = 1'h0;
-        dirty_array_1_166 = 1'h0;
-        dirty_array_1_167 = 1'h0;
-        dirty_array_1_168 = 1'h0;
-        dirty_array_1_169 = 1'h0;
-        dirty_array_1_170 = 1'h0;
-        dirty_array_1_171 = 1'h0;
-        dirty_array_1_172 = 1'h0;
-        dirty_array_1_173 = 1'h0;
-        dirty_array_1_174 = 1'h0;
-        dirty_array_1_175 = 1'h0;
-        dirty_array_1_176 = 1'h0;
-        dirty_array_1_177 = 1'h0;
-        dirty_array_1_178 = 1'h0;
-        dirty_array_1_179 = 1'h0;
-        dirty_array_1_180 = 1'h0;
-        dirty_array_1_181 = 1'h0;
-        dirty_array_1_182 = 1'h0;
-        dirty_array_1_183 = 1'h0;
-        dirty_array_1_184 = 1'h0;
-        dirty_array_1_185 = 1'h0;
-        dirty_array_1_186 = 1'h0;
-        dirty_array_1_187 = 1'h0;
-        dirty_array_1_188 = 1'h0;
-        dirty_array_1_189 = 1'h0;
-        dirty_array_1_190 = 1'h0;
-        dirty_array_1_191 = 1'h0;
-        dirty_array_1_192 = 1'h0;
-        dirty_array_1_193 = 1'h0;
-        dirty_array_1_194 = 1'h0;
-        dirty_array_1_195 = 1'h0;
-        dirty_array_1_196 = 1'h0;
-        dirty_array_1_197 = 1'h0;
-        dirty_array_1_198 = 1'h0;
-        dirty_array_1_199 = 1'h0;
-        dirty_array_1_200 = 1'h0;
-        dirty_array_1_201 = 1'h0;
-        dirty_array_1_202 = 1'h0;
-        dirty_array_1_203 = 1'h0;
-        dirty_array_1_204 = 1'h0;
-        dirty_array_1_205 = 1'h0;
-        dirty_array_1_206 = 1'h0;
-        dirty_array_1_207 = 1'h0;
-        dirty_array_1_208 = 1'h0;
-        dirty_array_1_209 = 1'h0;
-        dirty_array_1_210 = 1'h0;
-        dirty_array_1_211 = 1'h0;
-        dirty_array_1_212 = 1'h0;
-        dirty_array_1_213 = 1'h0;
-        dirty_array_1_214 = 1'h0;
-        dirty_array_1_215 = 1'h0;
-        dirty_array_1_216 = 1'h0;
-        dirty_array_1_217 = 1'h0;
-        dirty_array_1_218 = 1'h0;
-        dirty_array_1_219 = 1'h0;
-        dirty_array_1_220 = 1'h0;
-        dirty_array_1_221 = 1'h0;
-        dirty_array_1_222 = 1'h0;
-        dirty_array_1_223 = 1'h0;
-        dirty_array_1_224 = 1'h0;
-        dirty_array_1_225 = 1'h0;
-        dirty_array_1_226 = 1'h0;
-        dirty_array_1_227 = 1'h0;
-        dirty_array_1_228 = 1'h0;
-        dirty_array_1_229 = 1'h0;
-        dirty_array_1_230 = 1'h0;
-        dirty_array_1_231 = 1'h0;
-        dirty_array_1_232 = 1'h0;
-        dirty_array_1_233 = 1'h0;
-        dirty_array_1_234 = 1'h0;
-        dirty_array_1_235 = 1'h0;
-        dirty_array_1_236 = 1'h0;
-        dirty_array_1_237 = 1'h0;
-        dirty_array_1_238 = 1'h0;
-        dirty_array_1_239 = 1'h0;
-        dirty_array_1_240 = 1'h0;
-        dirty_array_1_241 = 1'h0;
-        dirty_array_1_242 = 1'h0;
-        dirty_array_1_243 = 1'h0;
-        dirty_array_1_244 = 1'h0;
-        dirty_array_1_245 = 1'h0;
-        dirty_array_1_246 = 1'h0;
-        dirty_array_1_247 = 1'h0;
-        dirty_array_1_248 = 1'h0;
-        dirty_array_1_249 = 1'h0;
-        dirty_array_1_250 = 1'h0;
-        dirty_array_1_251 = 1'h0;
-        dirty_array_1_252 = 1'h0;
-        dirty_array_1_253 = 1'h0;
-        dirty_array_1_254 = 1'h0;
-        dirty_array_1_255 = 1'h0;
-        dirty_array_2_0 = 1'h0;
-        dirty_array_2_1 = 1'h0;
-        dirty_array_2_2 = 1'h0;
-        dirty_array_2_3 = 1'h0;
-        dirty_array_2_4 = 1'h0;
-        dirty_array_2_5 = 1'h0;
-        dirty_array_2_6 = 1'h0;
-        dirty_array_2_7 = 1'h0;
-        dirty_array_2_8 = 1'h0;
-        dirty_array_2_9 = 1'h0;
-        dirty_array_2_10 = 1'h0;
-        dirty_array_2_11 = 1'h0;
-        dirty_array_2_12 = 1'h0;
-        dirty_array_2_13 = 1'h0;
-        dirty_array_2_14 = 1'h0;
-        dirty_array_2_15 = 1'h0;
-        dirty_array_2_16 = 1'h0;
-        dirty_array_2_17 = 1'h0;
-        dirty_array_2_18 = 1'h0;
-        dirty_array_2_19 = 1'h0;
-        dirty_array_2_20 = 1'h0;
-        dirty_array_2_21 = 1'h0;
-        dirty_array_2_22 = 1'h0;
-        dirty_array_2_23 = 1'h0;
-        dirty_array_2_24 = 1'h0;
-        dirty_array_2_25 = 1'h0;
-        dirty_array_2_26 = 1'h0;
-        dirty_array_2_27 = 1'h0;
-        dirty_array_2_28 = 1'h0;
-        dirty_array_2_29 = 1'h0;
-        dirty_array_2_30 = 1'h0;
-        dirty_array_2_31 = 1'h0;
-        dirty_array_2_32 = 1'h0;
-        dirty_array_2_33 = 1'h0;
-        dirty_array_2_34 = 1'h0;
-        dirty_array_2_35 = 1'h0;
-        dirty_array_2_36 = 1'h0;
-        dirty_array_2_37 = 1'h0;
-        dirty_array_2_38 = 1'h0;
-        dirty_array_2_39 = 1'h0;
-        dirty_array_2_40 = 1'h0;
-        dirty_array_2_41 = 1'h0;
-        dirty_array_2_42 = 1'h0;
-        dirty_array_2_43 = 1'h0;
-        dirty_array_2_44 = 1'h0;
-        dirty_array_2_45 = 1'h0;
-        dirty_array_2_46 = 1'h0;
-        dirty_array_2_47 = 1'h0;
-        dirty_array_2_48 = 1'h0;
-        dirty_array_2_49 = 1'h0;
-        dirty_array_2_50 = 1'h0;
-        dirty_array_2_51 = 1'h0;
-        dirty_array_2_52 = 1'h0;
-        dirty_array_2_53 = 1'h0;
-        dirty_array_2_54 = 1'h0;
-        dirty_array_2_55 = 1'h0;
-        dirty_array_2_56 = 1'h0;
-        dirty_array_2_57 = 1'h0;
-        dirty_array_2_58 = 1'h0;
-        dirty_array_2_59 = 1'h0;
-        dirty_array_2_60 = 1'h0;
-        dirty_array_2_61 = 1'h0;
-        dirty_array_2_62 = 1'h0;
-        dirty_array_2_63 = 1'h0;
-        dirty_array_2_64 = 1'h0;
-        dirty_array_2_65 = 1'h0;
-        dirty_array_2_66 = 1'h0;
-        dirty_array_2_67 = 1'h0;
-        dirty_array_2_68 = 1'h0;
-        dirty_array_2_69 = 1'h0;
-        dirty_array_2_70 = 1'h0;
-        dirty_array_2_71 = 1'h0;
-        dirty_array_2_72 = 1'h0;
-        dirty_array_2_73 = 1'h0;
-        dirty_array_2_74 = 1'h0;
-        dirty_array_2_75 = 1'h0;
-        dirty_array_2_76 = 1'h0;
-        dirty_array_2_77 = 1'h0;
-        dirty_array_2_78 = 1'h0;
-        dirty_array_2_79 = 1'h0;
-        dirty_array_2_80 = 1'h0;
-        dirty_array_2_81 = 1'h0;
-        dirty_array_2_82 = 1'h0;
-        dirty_array_2_83 = 1'h0;
-        dirty_array_2_84 = 1'h0;
-        dirty_array_2_85 = 1'h0;
-        dirty_array_2_86 = 1'h0;
-        dirty_array_2_87 = 1'h0;
-        dirty_array_2_88 = 1'h0;
-        dirty_array_2_89 = 1'h0;
-        dirty_array_2_90 = 1'h0;
-        dirty_array_2_91 = 1'h0;
-        dirty_array_2_92 = 1'h0;
-        dirty_array_2_93 = 1'h0;
-        dirty_array_2_94 = 1'h0;
-        dirty_array_2_95 = 1'h0;
-        dirty_array_2_96 = 1'h0;
-        dirty_array_2_97 = 1'h0;
-        dirty_array_2_98 = 1'h0;
-        dirty_array_2_99 = 1'h0;
-        dirty_array_2_100 = 1'h0;
-        dirty_array_2_101 = 1'h0;
-        dirty_array_2_102 = 1'h0;
-        dirty_array_2_103 = 1'h0;
-        dirty_array_2_104 = 1'h0;
-        dirty_array_2_105 = 1'h0;
-        dirty_array_2_106 = 1'h0;
-        dirty_array_2_107 = 1'h0;
-        dirty_array_2_108 = 1'h0;
-        dirty_array_2_109 = 1'h0;
-        dirty_array_2_110 = 1'h0;
-        dirty_array_2_111 = 1'h0;
-        dirty_array_2_112 = 1'h0;
-        dirty_array_2_113 = 1'h0;
-        dirty_array_2_114 = 1'h0;
-        dirty_array_2_115 = 1'h0;
-        dirty_array_2_116 = 1'h0;
-        dirty_array_2_117 = 1'h0;
-        dirty_array_2_118 = 1'h0;
-        dirty_array_2_119 = 1'h0;
-        dirty_array_2_120 = 1'h0;
-        dirty_array_2_121 = 1'h0;
-        dirty_array_2_122 = 1'h0;
-        dirty_array_2_123 = 1'h0;
-        dirty_array_2_124 = 1'h0;
-        dirty_array_2_125 = 1'h0;
-        dirty_array_2_126 = 1'h0;
-        dirty_array_2_127 = 1'h0;
-        dirty_array_2_128 = 1'h0;
-        dirty_array_2_129 = 1'h0;
-        dirty_array_2_130 = 1'h0;
-        dirty_array_2_131 = 1'h0;
-        dirty_array_2_132 = 1'h0;
-        dirty_array_2_133 = 1'h0;
-        dirty_array_2_134 = 1'h0;
-        dirty_array_2_135 = 1'h0;
-        dirty_array_2_136 = 1'h0;
-        dirty_array_2_137 = 1'h0;
-        dirty_array_2_138 = 1'h0;
-        dirty_array_2_139 = 1'h0;
-        dirty_array_2_140 = 1'h0;
-        dirty_array_2_141 = 1'h0;
-        dirty_array_2_142 = 1'h0;
-        dirty_array_2_143 = 1'h0;
-        dirty_array_2_144 = 1'h0;
-        dirty_array_2_145 = 1'h0;
-        dirty_array_2_146 = 1'h0;
-        dirty_array_2_147 = 1'h0;
-        dirty_array_2_148 = 1'h0;
-        dirty_array_2_149 = 1'h0;
-        dirty_array_2_150 = 1'h0;
-        dirty_array_2_151 = 1'h0;
-        dirty_array_2_152 = 1'h0;
-        dirty_array_2_153 = 1'h0;
-        dirty_array_2_154 = 1'h0;
-        dirty_array_2_155 = 1'h0;
-        dirty_array_2_156 = 1'h0;
-        dirty_array_2_157 = 1'h0;
-        dirty_array_2_158 = 1'h0;
-        dirty_array_2_159 = 1'h0;
-        dirty_array_2_160 = 1'h0;
-        dirty_array_2_161 = 1'h0;
-        dirty_array_2_162 = 1'h0;
-        dirty_array_2_163 = 1'h0;
-        dirty_array_2_164 = 1'h0;
-        dirty_array_2_165 = 1'h0;
-        dirty_array_2_166 = 1'h0;
-        dirty_array_2_167 = 1'h0;
-        dirty_array_2_168 = 1'h0;
-        dirty_array_2_169 = 1'h0;
-        dirty_array_2_170 = 1'h0;
-        dirty_array_2_171 = 1'h0;
-        dirty_array_2_172 = 1'h0;
-        dirty_array_2_173 = 1'h0;
-        dirty_array_2_174 = 1'h0;
-        dirty_array_2_175 = 1'h0;
-        dirty_array_2_176 = 1'h0;
-        dirty_array_2_177 = 1'h0;
-        dirty_array_2_178 = 1'h0;
-        dirty_array_2_179 = 1'h0;
-        dirty_array_2_180 = 1'h0;
-        dirty_array_2_181 = 1'h0;
-        dirty_array_2_182 = 1'h0;
-        dirty_array_2_183 = 1'h0;
-        dirty_array_2_184 = 1'h0;
-        dirty_array_2_185 = 1'h0;
-        dirty_array_2_186 = 1'h0;
-        dirty_array_2_187 = 1'h0;
-        dirty_array_2_188 = 1'h0;
-        dirty_array_2_189 = 1'h0;
-        dirty_array_2_190 = 1'h0;
-        dirty_array_2_191 = 1'h0;
-        dirty_array_2_192 = 1'h0;
-        dirty_array_2_193 = 1'h0;
-        dirty_array_2_194 = 1'h0;
-        dirty_array_2_195 = 1'h0;
-        dirty_array_2_196 = 1'h0;
-        dirty_array_2_197 = 1'h0;
-        dirty_array_2_198 = 1'h0;
-        dirty_array_2_199 = 1'h0;
-        dirty_array_2_200 = 1'h0;
-        dirty_array_2_201 = 1'h0;
-        dirty_array_2_202 = 1'h0;
-        dirty_array_2_203 = 1'h0;
-        dirty_array_2_204 = 1'h0;
-        dirty_array_2_205 = 1'h0;
-        dirty_array_2_206 = 1'h0;
-        dirty_array_2_207 = 1'h0;
-        dirty_array_2_208 = 1'h0;
-        dirty_array_2_209 = 1'h0;
-        dirty_array_2_210 = 1'h0;
-        dirty_array_2_211 = 1'h0;
-        dirty_array_2_212 = 1'h0;
-        dirty_array_2_213 = 1'h0;
-        dirty_array_2_214 = 1'h0;
-        dirty_array_2_215 = 1'h0;
-        dirty_array_2_216 = 1'h0;
-        dirty_array_2_217 = 1'h0;
-        dirty_array_2_218 = 1'h0;
-        dirty_array_2_219 = 1'h0;
-        dirty_array_2_220 = 1'h0;
-        dirty_array_2_221 = 1'h0;
-        dirty_array_2_222 = 1'h0;
-        dirty_array_2_223 = 1'h0;
-        dirty_array_2_224 = 1'h0;
-        dirty_array_2_225 = 1'h0;
-        dirty_array_2_226 = 1'h0;
-        dirty_array_2_227 = 1'h0;
-        dirty_array_2_228 = 1'h0;
-        dirty_array_2_229 = 1'h0;
-        dirty_array_2_230 = 1'h0;
-        dirty_array_2_231 = 1'h0;
-        dirty_array_2_232 = 1'h0;
-        dirty_array_2_233 = 1'h0;
-        dirty_array_2_234 = 1'h0;
-        dirty_array_2_235 = 1'h0;
-        dirty_array_2_236 = 1'h0;
-        dirty_array_2_237 = 1'h0;
-        dirty_array_2_238 = 1'h0;
-        dirty_array_2_239 = 1'h0;
-        dirty_array_2_240 = 1'h0;
-        dirty_array_2_241 = 1'h0;
-        dirty_array_2_242 = 1'h0;
-        dirty_array_2_243 = 1'h0;
-        dirty_array_2_244 = 1'h0;
-        dirty_array_2_245 = 1'h0;
-        dirty_array_2_246 = 1'h0;
-        dirty_array_2_247 = 1'h0;
-        dirty_array_2_248 = 1'h0;
-        dirty_array_2_249 = 1'h0;
-        dirty_array_2_250 = 1'h0;
-        dirty_array_2_251 = 1'h0;
-        dirty_array_2_252 = 1'h0;
-        dirty_array_2_253 = 1'h0;
-        dirty_array_2_254 = 1'h0;
-        dirty_array_2_255 = 1'h0;
-        dirty_array_3_0 = 1'h0;
-        dirty_array_3_1 = 1'h0;
-        dirty_array_3_2 = 1'h0;
-        dirty_array_3_3 = 1'h0;
-        dirty_array_3_4 = 1'h0;
-        dirty_array_3_5 = 1'h0;
-        dirty_array_3_6 = 1'h0;
-        dirty_array_3_7 = 1'h0;
-        dirty_array_3_8 = 1'h0;
-        dirty_array_3_9 = 1'h0;
-        dirty_array_3_10 = 1'h0;
-        dirty_array_3_11 = 1'h0;
-        dirty_array_3_12 = 1'h0;
-        dirty_array_3_13 = 1'h0;
-        dirty_array_3_14 = 1'h0;
-        dirty_array_3_15 = 1'h0;
-        dirty_array_3_16 = 1'h0;
-        dirty_array_3_17 = 1'h0;
-        dirty_array_3_18 = 1'h0;
-        dirty_array_3_19 = 1'h0;
-        dirty_array_3_20 = 1'h0;
-        dirty_array_3_21 = 1'h0;
-        dirty_array_3_22 = 1'h0;
-        dirty_array_3_23 = 1'h0;
-        dirty_array_3_24 = 1'h0;
-        dirty_array_3_25 = 1'h0;
-        dirty_array_3_26 = 1'h0;
-        dirty_array_3_27 = 1'h0;
-        dirty_array_3_28 = 1'h0;
-        dirty_array_3_29 = 1'h0;
-        dirty_array_3_30 = 1'h0;
-        dirty_array_3_31 = 1'h0;
-        dirty_array_3_32 = 1'h0;
-        dirty_array_3_33 = 1'h0;
-        dirty_array_3_34 = 1'h0;
-        dirty_array_3_35 = 1'h0;
-        dirty_array_3_36 = 1'h0;
-        dirty_array_3_37 = 1'h0;
-        dirty_array_3_38 = 1'h0;
-        dirty_array_3_39 = 1'h0;
-        dirty_array_3_40 = 1'h0;
-        dirty_array_3_41 = 1'h0;
-        dirty_array_3_42 = 1'h0;
-        dirty_array_3_43 = 1'h0;
-        dirty_array_3_44 = 1'h0;
-        dirty_array_3_45 = 1'h0;
-        dirty_array_3_46 = 1'h0;
-        dirty_array_3_47 = 1'h0;
-        dirty_array_3_48 = 1'h0;
-        dirty_array_3_49 = 1'h0;
-        dirty_array_3_50 = 1'h0;
-        dirty_array_3_51 = 1'h0;
-        dirty_array_3_52 = 1'h0;
-        dirty_array_3_53 = 1'h0;
-        dirty_array_3_54 = 1'h0;
-        dirty_array_3_55 = 1'h0;
-        dirty_array_3_56 = 1'h0;
-        dirty_array_3_57 = 1'h0;
-        dirty_array_3_58 = 1'h0;
-        dirty_array_3_59 = 1'h0;
-        dirty_array_3_60 = 1'h0;
-        dirty_array_3_61 = 1'h0;
-        dirty_array_3_62 = 1'h0;
-        dirty_array_3_63 = 1'h0;
-        dirty_array_3_64 = 1'h0;
-        dirty_array_3_65 = 1'h0;
-        dirty_array_3_66 = 1'h0;
-        dirty_array_3_67 = 1'h0;
-        dirty_array_3_68 = 1'h0;
-        dirty_array_3_69 = 1'h0;
-        dirty_array_3_70 = 1'h0;
-        dirty_array_3_71 = 1'h0;
-        dirty_array_3_72 = 1'h0;
-        dirty_array_3_73 = 1'h0;
-        dirty_array_3_74 = 1'h0;
-        dirty_array_3_75 = 1'h0;
-        dirty_array_3_76 = 1'h0;
-        dirty_array_3_77 = 1'h0;
-        dirty_array_3_78 = 1'h0;
-        dirty_array_3_79 = 1'h0;
-        dirty_array_3_80 = 1'h0;
-        dirty_array_3_81 = 1'h0;
-        dirty_array_3_82 = 1'h0;
-        dirty_array_3_83 = 1'h0;
-        dirty_array_3_84 = 1'h0;
-        dirty_array_3_85 = 1'h0;
-        dirty_array_3_86 = 1'h0;
-        dirty_array_3_87 = 1'h0;
-        dirty_array_3_88 = 1'h0;
-        dirty_array_3_89 = 1'h0;
-        dirty_array_3_90 = 1'h0;
-        dirty_array_3_91 = 1'h0;
-        dirty_array_3_92 = 1'h0;
-        dirty_array_3_93 = 1'h0;
-        dirty_array_3_94 = 1'h0;
-        dirty_array_3_95 = 1'h0;
-        dirty_array_3_96 = 1'h0;
-        dirty_array_3_97 = 1'h0;
-        dirty_array_3_98 = 1'h0;
-        dirty_array_3_99 = 1'h0;
-        dirty_array_3_100 = 1'h0;
-        dirty_array_3_101 = 1'h0;
-        dirty_array_3_102 = 1'h0;
-        dirty_array_3_103 = 1'h0;
-        dirty_array_3_104 = 1'h0;
-        dirty_array_3_105 = 1'h0;
-        dirty_array_3_106 = 1'h0;
-        dirty_array_3_107 = 1'h0;
-        dirty_array_3_108 = 1'h0;
-        dirty_array_3_109 = 1'h0;
-        dirty_array_3_110 = 1'h0;
-        dirty_array_3_111 = 1'h0;
-        dirty_array_3_112 = 1'h0;
-        dirty_array_3_113 = 1'h0;
-        dirty_array_3_114 = 1'h0;
-        dirty_array_3_115 = 1'h0;
-        dirty_array_3_116 = 1'h0;
-        dirty_array_3_117 = 1'h0;
-        dirty_array_3_118 = 1'h0;
-        dirty_array_3_119 = 1'h0;
-        dirty_array_3_120 = 1'h0;
-        dirty_array_3_121 = 1'h0;
-        dirty_array_3_122 = 1'h0;
-        dirty_array_3_123 = 1'h0;
-        dirty_array_3_124 = 1'h0;
-        dirty_array_3_125 = 1'h0;
-        dirty_array_3_126 = 1'h0;
-        dirty_array_3_127 = 1'h0;
-        dirty_array_3_128 = 1'h0;
-        dirty_array_3_129 = 1'h0;
-        dirty_array_3_130 = 1'h0;
-        dirty_array_3_131 = 1'h0;
-        dirty_array_3_132 = 1'h0;
-        dirty_array_3_133 = 1'h0;
-        dirty_array_3_134 = 1'h0;
-        dirty_array_3_135 = 1'h0;
-        dirty_array_3_136 = 1'h0;
-        dirty_array_3_137 = 1'h0;
-        dirty_array_3_138 = 1'h0;
-        dirty_array_3_139 = 1'h0;
-        dirty_array_3_140 = 1'h0;
-        dirty_array_3_141 = 1'h0;
-        dirty_array_3_142 = 1'h0;
-        dirty_array_3_143 = 1'h0;
-        dirty_array_3_144 = 1'h0;
-        dirty_array_3_145 = 1'h0;
-        dirty_array_3_146 = 1'h0;
-        dirty_array_3_147 = 1'h0;
-        dirty_array_3_148 = 1'h0;
-        dirty_array_3_149 = 1'h0;
-        dirty_array_3_150 = 1'h0;
-        dirty_array_3_151 = 1'h0;
-        dirty_array_3_152 = 1'h0;
-        dirty_array_3_153 = 1'h0;
-        dirty_array_3_154 = 1'h0;
-        dirty_array_3_155 = 1'h0;
-        dirty_array_3_156 = 1'h0;
-        dirty_array_3_157 = 1'h0;
-        dirty_array_3_158 = 1'h0;
-        dirty_array_3_159 = 1'h0;
-        dirty_array_3_160 = 1'h0;
-        dirty_array_3_161 = 1'h0;
-        dirty_array_3_162 = 1'h0;
-        dirty_array_3_163 = 1'h0;
-        dirty_array_3_164 = 1'h0;
-        dirty_array_3_165 = 1'h0;
-        dirty_array_3_166 = 1'h0;
-        dirty_array_3_167 = 1'h0;
-        dirty_array_3_168 = 1'h0;
-        dirty_array_3_169 = 1'h0;
-        dirty_array_3_170 = 1'h0;
-        dirty_array_3_171 = 1'h0;
-        dirty_array_3_172 = 1'h0;
-        dirty_array_3_173 = 1'h0;
-        dirty_array_3_174 = 1'h0;
-        dirty_array_3_175 = 1'h0;
-        dirty_array_3_176 = 1'h0;
-        dirty_array_3_177 = 1'h0;
-        dirty_array_3_178 = 1'h0;
-        dirty_array_3_179 = 1'h0;
-        dirty_array_3_180 = 1'h0;
-        dirty_array_3_181 = 1'h0;
-        dirty_array_3_182 = 1'h0;
-        dirty_array_3_183 = 1'h0;
-        dirty_array_3_184 = 1'h0;
-        dirty_array_3_185 = 1'h0;
-        dirty_array_3_186 = 1'h0;
-        dirty_array_3_187 = 1'h0;
-        dirty_array_3_188 = 1'h0;
-        dirty_array_3_189 = 1'h0;
-        dirty_array_3_190 = 1'h0;
-        dirty_array_3_191 = 1'h0;
-        dirty_array_3_192 = 1'h0;
-        dirty_array_3_193 = 1'h0;
-        dirty_array_3_194 = 1'h0;
-        dirty_array_3_195 = 1'h0;
-        dirty_array_3_196 = 1'h0;
-        dirty_array_3_197 = 1'h0;
-        dirty_array_3_198 = 1'h0;
-        dirty_array_3_199 = 1'h0;
-        dirty_array_3_200 = 1'h0;
-        dirty_array_3_201 = 1'h0;
-        dirty_array_3_202 = 1'h0;
-        dirty_array_3_203 = 1'h0;
-        dirty_array_3_204 = 1'h0;
-        dirty_array_3_205 = 1'h0;
-        dirty_array_3_206 = 1'h0;
-        dirty_array_3_207 = 1'h0;
-        dirty_array_3_208 = 1'h0;
-        dirty_array_3_209 = 1'h0;
-        dirty_array_3_210 = 1'h0;
-        dirty_array_3_211 = 1'h0;
-        dirty_array_3_212 = 1'h0;
-        dirty_array_3_213 = 1'h0;
-        dirty_array_3_214 = 1'h0;
-        dirty_array_3_215 = 1'h0;
-        dirty_array_3_216 = 1'h0;
-        dirty_array_3_217 = 1'h0;
-        dirty_array_3_218 = 1'h0;
-        dirty_array_3_219 = 1'h0;
-        dirty_array_3_220 = 1'h0;
-        dirty_array_3_221 = 1'h0;
-        dirty_array_3_222 = 1'h0;
-        dirty_array_3_223 = 1'h0;
-        dirty_array_3_224 = 1'h0;
-        dirty_array_3_225 = 1'h0;
-        dirty_array_3_226 = 1'h0;
-        dirty_array_3_227 = 1'h0;
-        dirty_array_3_228 = 1'h0;
-        dirty_array_3_229 = 1'h0;
-        dirty_array_3_230 = 1'h0;
-        dirty_array_3_231 = 1'h0;
-        dirty_array_3_232 = 1'h0;
-        dirty_array_3_233 = 1'h0;
-        dirty_array_3_234 = 1'h0;
-        dirty_array_3_235 = 1'h0;
-        dirty_array_3_236 = 1'h0;
-        dirty_array_3_237 = 1'h0;
-        dirty_array_3_238 = 1'h0;
-        dirty_array_3_239 = 1'h0;
-        dirty_array_3_240 = 1'h0;
-        dirty_array_3_241 = 1'h0;
-        dirty_array_3_242 = 1'h0;
-        dirty_array_3_243 = 1'h0;
-        dirty_array_3_244 = 1'h0;
-        dirty_array_3_245 = 1'h0;
-        dirty_array_3_246 = 1'h0;
-        dirty_array_3_247 = 1'h0;
-        dirty_array_3_248 = 1'h0;
-        dirty_array_3_249 = 1'h0;
-        dirty_array_3_250 = 1'h0;
-        dirty_array_3_251 = 1'h0;
-        dirty_array_3_252 = 1'h0;
-        dirty_array_3_253 = 1'h0;
-        dirty_array_3_254 = 1'h0;
-        dirty_array_3_255 = 1'h0;
-        req_is_pf = 1'h0;
-        req_req_id = 9'h0;
-        req_index = 8'h0;
-        req_tag = 19'h0;
-        req_offset = 5'h0;
-        req_uncached = 1'h0;
-        req_cacop_en = 1'h0;
-        req_cacop_op = 3'h0;
-        plru_array_0 = 3'h0;
-        plru_array_1 = 3'h0;
-        plru_array_2 = 3'h0;
-        plru_array_3 = 3'h0;
-        plru_array_4 = 3'h0;
-        plru_array_5 = 3'h0;
-        plru_array_6 = 3'h0;
-        plru_array_7 = 3'h0;
-        plru_array_8 = 3'h0;
-        plru_array_9 = 3'h0;
-        plru_array_10 = 3'h0;
-        plru_array_11 = 3'h0;
-        plru_array_12 = 3'h0;
-        plru_array_13 = 3'h0;
-        plru_array_14 = 3'h0;
-        plru_array_15 = 3'h0;
-        plru_array_16 = 3'h0;
-        plru_array_17 = 3'h0;
-        plru_array_18 = 3'h0;
-        plru_array_19 = 3'h0;
-        plru_array_20 = 3'h0;
-        plru_array_21 = 3'h0;
-        plru_array_22 = 3'h0;
-        plru_array_23 = 3'h0;
-        plru_array_24 = 3'h0;
-        plru_array_25 = 3'h0;
-        plru_array_26 = 3'h0;
-        plru_array_27 = 3'h0;
-        plru_array_28 = 3'h0;
-        plru_array_29 = 3'h0;
-        plru_array_30 = 3'h0;
-        plru_array_31 = 3'h0;
-        plru_array_32 = 3'h0;
-        plru_array_33 = 3'h0;
-        plru_array_34 = 3'h0;
-        plru_array_35 = 3'h0;
-        plru_array_36 = 3'h0;
-        plru_array_37 = 3'h0;
-        plru_array_38 = 3'h0;
-        plru_array_39 = 3'h0;
-        plru_array_40 = 3'h0;
-        plru_array_41 = 3'h0;
-        plru_array_42 = 3'h0;
-        plru_array_43 = 3'h0;
-        plru_array_44 = 3'h0;
-        plru_array_45 = 3'h0;
-        plru_array_46 = 3'h0;
-        plru_array_47 = 3'h0;
-        plru_array_48 = 3'h0;
-        plru_array_49 = 3'h0;
-        plru_array_50 = 3'h0;
-        plru_array_51 = 3'h0;
-        plru_array_52 = 3'h0;
-        plru_array_53 = 3'h0;
-        plru_array_54 = 3'h0;
-        plru_array_55 = 3'h0;
-        plru_array_56 = 3'h0;
-        plru_array_57 = 3'h0;
-        plru_array_58 = 3'h0;
-        plru_array_59 = 3'h0;
-        plru_array_60 = 3'h0;
-        plru_array_61 = 3'h0;
-        plru_array_62 = 3'h0;
-        plru_array_63 = 3'h0;
-        plru_array_64 = 3'h0;
-        plru_array_65 = 3'h0;
-        plru_array_66 = 3'h0;
-        plru_array_67 = 3'h0;
-        plru_array_68 = 3'h0;
-        plru_array_69 = 3'h0;
-        plru_array_70 = 3'h0;
-        plru_array_71 = 3'h0;
-        plru_array_72 = 3'h0;
-        plru_array_73 = 3'h0;
-        plru_array_74 = 3'h0;
-        plru_array_75 = 3'h0;
-        plru_array_76 = 3'h0;
-        plru_array_77 = 3'h0;
-        plru_array_78 = 3'h0;
-        plru_array_79 = 3'h0;
-        plru_array_80 = 3'h0;
-        plru_array_81 = 3'h0;
-        plru_array_82 = 3'h0;
-        plru_array_83 = 3'h0;
-        plru_array_84 = 3'h0;
-        plru_array_85 = 3'h0;
-        plru_array_86 = 3'h0;
-        plru_array_87 = 3'h0;
-        plru_array_88 = 3'h0;
-        plru_array_89 = 3'h0;
-        plru_array_90 = 3'h0;
-        plru_array_91 = 3'h0;
-        plru_array_92 = 3'h0;
-        plru_array_93 = 3'h0;
-        plru_array_94 = 3'h0;
-        plru_array_95 = 3'h0;
-        plru_array_96 = 3'h0;
-        plru_array_97 = 3'h0;
-        plru_array_98 = 3'h0;
-        plru_array_99 = 3'h0;
-        plru_array_100 = 3'h0;
-        plru_array_101 = 3'h0;
-        plru_array_102 = 3'h0;
-        plru_array_103 = 3'h0;
-        plru_array_104 = 3'h0;
-        plru_array_105 = 3'h0;
-        plru_array_106 = 3'h0;
-        plru_array_107 = 3'h0;
-        plru_array_108 = 3'h0;
-        plru_array_109 = 3'h0;
-        plru_array_110 = 3'h0;
-        plru_array_111 = 3'h0;
-        plru_array_112 = 3'h0;
-        plru_array_113 = 3'h0;
-        plru_array_114 = 3'h0;
-        plru_array_115 = 3'h0;
-        plru_array_116 = 3'h0;
-        plru_array_117 = 3'h0;
-        plru_array_118 = 3'h0;
-        plru_array_119 = 3'h0;
-        plru_array_120 = 3'h0;
-        plru_array_121 = 3'h0;
-        plru_array_122 = 3'h0;
-        plru_array_123 = 3'h0;
-        plru_array_124 = 3'h0;
-        plru_array_125 = 3'h0;
-        plru_array_126 = 3'h0;
-        plru_array_127 = 3'h0;
-        plru_array_128 = 3'h0;
-        plru_array_129 = 3'h0;
-        plru_array_130 = 3'h0;
-        plru_array_131 = 3'h0;
-        plru_array_132 = 3'h0;
-        plru_array_133 = 3'h0;
-        plru_array_134 = 3'h0;
-        plru_array_135 = 3'h0;
-        plru_array_136 = 3'h0;
-        plru_array_137 = 3'h0;
-        plru_array_138 = 3'h0;
-        plru_array_139 = 3'h0;
-        plru_array_140 = 3'h0;
-        plru_array_141 = 3'h0;
-        plru_array_142 = 3'h0;
-        plru_array_143 = 3'h0;
-        plru_array_144 = 3'h0;
-        plru_array_145 = 3'h0;
-        plru_array_146 = 3'h0;
-        plru_array_147 = 3'h0;
-        plru_array_148 = 3'h0;
-        plru_array_149 = 3'h0;
-        plru_array_150 = 3'h0;
-        plru_array_151 = 3'h0;
-        plru_array_152 = 3'h0;
-        plru_array_153 = 3'h0;
-        plru_array_154 = 3'h0;
-        plru_array_155 = 3'h0;
-        plru_array_156 = 3'h0;
-        plru_array_157 = 3'h0;
-        plru_array_158 = 3'h0;
-        plru_array_159 = 3'h0;
-        plru_array_160 = 3'h0;
-        plru_array_161 = 3'h0;
-        plru_array_162 = 3'h0;
-        plru_array_163 = 3'h0;
-        plru_array_164 = 3'h0;
-        plru_array_165 = 3'h0;
-        plru_array_166 = 3'h0;
-        plru_array_167 = 3'h0;
-        plru_array_168 = 3'h0;
-        plru_array_169 = 3'h0;
-        plru_array_170 = 3'h0;
-        plru_array_171 = 3'h0;
-        plru_array_172 = 3'h0;
-        plru_array_173 = 3'h0;
-        plru_array_174 = 3'h0;
-        plru_array_175 = 3'h0;
-        plru_array_176 = 3'h0;
-        plru_array_177 = 3'h0;
-        plru_array_178 = 3'h0;
-        plru_array_179 = 3'h0;
-        plru_array_180 = 3'h0;
-        plru_array_181 = 3'h0;
-        plru_array_182 = 3'h0;
-        plru_array_183 = 3'h0;
-        plru_array_184 = 3'h0;
-        plru_array_185 = 3'h0;
-        plru_array_186 = 3'h0;
-        plru_array_187 = 3'h0;
-        plru_array_188 = 3'h0;
-        plru_array_189 = 3'h0;
-        plru_array_190 = 3'h0;
-        plru_array_191 = 3'h0;
-        plru_array_192 = 3'h0;
-        plru_array_193 = 3'h0;
-        plru_array_194 = 3'h0;
-        plru_array_195 = 3'h0;
-        plru_array_196 = 3'h0;
-        plru_array_197 = 3'h0;
-        plru_array_198 = 3'h0;
-        plru_array_199 = 3'h0;
-        plru_array_200 = 3'h0;
-        plru_array_201 = 3'h0;
-        plru_array_202 = 3'h0;
-        plru_array_203 = 3'h0;
-        plru_array_204 = 3'h0;
-        plru_array_205 = 3'h0;
-        plru_array_206 = 3'h0;
-        plru_array_207 = 3'h0;
-        plru_array_208 = 3'h0;
-        plru_array_209 = 3'h0;
-        plru_array_210 = 3'h0;
-        plru_array_211 = 3'h0;
-        plru_array_212 = 3'h0;
-        plru_array_213 = 3'h0;
-        plru_array_214 = 3'h0;
-        plru_array_215 = 3'h0;
-        plru_array_216 = 3'h0;
-        plru_array_217 = 3'h0;
-        plru_array_218 = 3'h0;
-        plru_array_219 = 3'h0;
-        plru_array_220 = 3'h0;
-        plru_array_221 = 3'h0;
-        plru_array_222 = 3'h0;
-        plru_array_223 = 3'h0;
-        plru_array_224 = 3'h0;
-        plru_array_225 = 3'h0;
-        plru_array_226 = 3'h0;
-        plru_array_227 = 3'h0;
-        plru_array_228 = 3'h0;
-        plru_array_229 = 3'h0;
-        plru_array_230 = 3'h0;
-        plru_array_231 = 3'h0;
-        plru_array_232 = 3'h0;
-        plru_array_233 = 3'h0;
-        plru_array_234 = 3'h0;
-        plru_array_235 = 3'h0;
-        plru_array_236 = 3'h0;
-        plru_array_237 = 3'h0;
-        plru_array_238 = 3'h0;
-        plru_array_239 = 3'h0;
-        plru_array_240 = 3'h0;
-        plru_array_241 = 3'h0;
-        plru_array_242 = 3'h0;
-        plru_array_243 = 3'h0;
-        plru_array_244 = 3'h0;
-        plru_array_245 = 3'h0;
-        plru_array_246 = 3'h0;
-        plru_array_247 = 3'h0;
-        plru_array_248 = 3'h0;
-        plru_array_249 = 3'h0;
-        plru_array_250 = 3'h0;
-        plru_array_251 = 3'h0;
-        plru_array_252 = 3'h0;
-        plru_array_253 = 3'h0;
-        plru_array_254 = 3'h0;
-        plru_array_255 = 3'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   CacheArray1R1W array (
     .clock           (clock),
     .reset           (reset),

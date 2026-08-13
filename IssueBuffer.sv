@@ -163,7 +163,7 @@ module IssueBuffer(
     & (|(_clear_mask_T_1[3:0] & data_reg_branch_mask));
   wire        allow_in = ~valid_reg | current_is_killed | io_deq_ready;
   wire        _GEN = io_br_resolve_valid & ~io_br_resolve_mispredict;
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset) begin
       valid_reg <= 1'h0;
       data_reg_pc <= 32'h0;
@@ -281,68 +281,7 @@ module IssueBuffer(
       else if (_data_reg_branch_mask_T)
         data_reg_branch_mask <= io_enq_bits_branch_mask;
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        valid_reg = 1'h0;
-        data_reg_pc = 32'h0;
-        data_reg_inst = 32'h0;
-        data_reg_aluOp = 13'h0;
-        data_reg_mduOp = 7'h0;
-        data_reg_brType = 9'h0;
-        data_reg_imm = 32'h0;
-        data_reg_src1IsPC = 1'h0;
-        data_reg_src2IsImm = 1'h0;
-        data_reg_src2IsFour = 1'h0;
-        data_reg_src1_addr = 5'h0;
-        data_reg_resFromMulDiv = 1'h0;
-        data_reg_memWe = 1'h0;
-        data_reg_lsOp = 8'h0;
-        data_reg_resFromMem = 1'h0;
-        data_reg_regWriteEn = 1'h0;
-        data_reg_aux_data = 32'h0;
-        data_reg_hasException = 1'h0;
-        data_reg_ecode = 6'h0;
-        data_reg_isCsr = 1'h0;
-        data_reg_csrWe = 1'h0;
-        data_reg_csrNum = 14'h0;
-        data_reg_inst_ertn = 1'h0;
-        data_reg_rdtimel = 1'h0;
-        data_reg_rdtimeh = 1'h0;
-        data_reg_tlbOp = 5'h0;
-        data_reg_invtlb_op = 5'h0;
-        data_reg_is_refetch = 1'h0;
-        data_reg_is_cacop = 1'h0;
-        data_reg_cacop_op = 5'h0;
-        data_reg_rob_idx = 5'h0;
-        data_reg_src1_read = 1'h0;
-        data_reg_src2_read = 1'h0;
-        data_reg_pdest = 6'h0;
-        data_reg_psrc1 = 6'h0;
-        data_reg_psrc2 = 6'h0;
-        data_reg_is_branch = 1'h0;
-        data_reg_branch_tag = 2'h0;
-        data_reg_branch_mask = 4'h0;
-        data_reg_lsq_idx = 4'h0;
-        data_reg_pred_taken = 1'h0;
-        data_reg_pred_target = 32'h0;
-        data_reg_bpu_type = 2'h0;
-        data_reg_ghr = 10'h0;
-        data_reg_ras_tos = 4'h0;
-        data_reg_br_actual_taken = 1'h0;
-        data_reg_br_type = 2'h0;
-        data_reg_bimodal_pred = 1'h0;
-        data_reg_gshare_pred = 1'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   assign io_enq_ready = allow_in;
   assign io_deq_valid = valid_reg & ~current_is_killed;
   assign io_deq_bits_pc = data_reg_pc;

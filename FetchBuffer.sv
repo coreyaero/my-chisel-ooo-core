@@ -272,8 +272,8 @@ module FetchBuffer(
      {buffer_0_gshare_pred}};
   wire [2:0]       _io_out_inst1_sum_T = head + 3'h1;
   always @(posedge clock) begin
-    automatic logic [7:0] t0_oh;
-    automatic logic [7:0] t1_oh;
+    automatic logic [7:0] t0_oh = 8'h1 << tail;
+    automatic logic [7:0] t1_oh = 8'h1 << tail + 3'h1;
     automatic logic       we0;
     automatic logic       we1;
     automatic logic       we0_1;
@@ -290,8 +290,6 @@ module FetchBuffer(
     automatic logic       we1_6;
     automatic logic       we0_7;
     automatic logic       we1_7;
-    t0_oh = 8'h1 << tail;
-    t1_oh = 8'h1 << tail + 3'h1;
     we0 = in_ready & t0_oh[0];
     we1 = in_ready & t1_oh[0];
     we0_1 = in_ready & t0_oh[1];
@@ -528,8 +526,6 @@ module FetchBuffer(
     buffer_5_br_actual_taken <= (io_flush | ~(we0_5 | we1_5)) & buffer_5_br_actual_taken;
     buffer_6_br_actual_taken <= (io_flush | ~(we0_6 | we1_6)) & buffer_6_br_actual_taken;
     buffer_7_br_actual_taken <= (io_flush | ~(we0_7 | we1_7)) & buffer_7_br_actual_taken;
-  end // always @(posedge)
-  always @(posedge clock or posedge reset) begin
     if (reset) begin
       head <= 3'h0;
       tail <= 3'h0;
@@ -542,22 +538,7 @@ module FetchBuffer(
       tail <= io_flush ? 3'h0 : tail + {1'h0, do_enq_cnt};
       count <= io_flush ? 4'h0 : count + {2'h0, do_enq_cnt} - {2'h0, io_out_pop};
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        head = 3'h0;
-        tail = 3'h0;
-        count = 4'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   assign io_in0_ready = in_ready;
   assign io_in1_ready = in_ready;
   assign io_out_valid0 = |count;

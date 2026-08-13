@@ -71,7 +71,8 @@ class SramToAxiBridge(implicit p: CacheConfig) extends Module {
 
     io.axi.arvalid := (ar_state === ar_wait_ready) 
     io.axi.arid    := ar_grant_id
-    io.axi.araddr  := ar_addr_reg
+    // 强制截断低两位，绝对保证 AXI 4字节对齐规范
+    io.axi.araddr  := Cat(ar_addr_reg(31, 2), 0.U(2.W))
     // 4.U 代表 16 字节缓存行(Burst)，需要 4 拍 (arlen=3)。否则单拍 (arlen=0)
     // ★ 核心修改：读突发长度跟随 CacheConfig 动态变化
     io.axi.arlen   := Mux(ar_size_reg === 4.U, (p.lineWords - 1).U, 0.U)
@@ -149,7 +150,7 @@ class SramToAxiBridge(implicit p: CacheConfig) extends Module {
 
     io.axi.awvalid := (w_state === w_wait_all) || (w_state === w_wait_aw)
     io.axi.awid    := 1.U      // 写通道 ID 固定
-    io.axi.awaddr  := aw_addr_reg
+    io.axi.awaddr  := Cat(aw_addr_reg(31, 2), 0.U(2.W))
     io.axi.awsize  := 2.U
     // ★ 核心修改：写突发长度跟随 CacheConfig 动态变化
     io.axi.awlen   := Mux(is_burst_write, (p.lineWords - 1).U, 0.U)

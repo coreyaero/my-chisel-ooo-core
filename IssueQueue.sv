@@ -2750,7 +2750,7 @@ module IssueQueue(
      {iq_2_data_gshare_pred},
      {iq_1_data_gshare_pred},
      {iq_0_data_gshare_pred}};
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset) begin
       prf_ready_0 <= 1'h1;
       prf_ready_1 <= 1'h1;
@@ -3666,7 +3666,71 @@ module IssueQueue(
       iq_15_data_gshare_pred <= 1'h0;
     end
     else begin
-      automatic logic [63:0] _GEN_80;
+      automatic logic [63:0] _GEN_80 =
+        {{prf_ready_63},
+         {prf_ready_62},
+         {prf_ready_61},
+         {prf_ready_60},
+         {prf_ready_59},
+         {prf_ready_58},
+         {prf_ready_57},
+         {prf_ready_56},
+         {prf_ready_55},
+         {prf_ready_54},
+         {prf_ready_53},
+         {prf_ready_52},
+         {prf_ready_51},
+         {prf_ready_50},
+         {prf_ready_49},
+         {prf_ready_48},
+         {prf_ready_47},
+         {prf_ready_46},
+         {prf_ready_45},
+         {prf_ready_44},
+         {prf_ready_43},
+         {prf_ready_42},
+         {prf_ready_41},
+         {prf_ready_40},
+         {prf_ready_39},
+         {prf_ready_38},
+         {prf_ready_37},
+         {prf_ready_36},
+         {prf_ready_35},
+         {prf_ready_34},
+         {prf_ready_33},
+         {prf_ready_32},
+         {prf_ready_31},
+         {prf_ready_30},
+         {prf_ready_29},
+         {prf_ready_28},
+         {prf_ready_27},
+         {prf_ready_26},
+         {prf_ready_25},
+         {prf_ready_24},
+         {prf_ready_23},
+         {prf_ready_22},
+         {prf_ready_21},
+         {prf_ready_20},
+         {prf_ready_19},
+         {prf_ready_18},
+         {prf_ready_17},
+         {prf_ready_16},
+         {prf_ready_15},
+         {prf_ready_14},
+         {prf_ready_13},
+         {prf_ready_12},
+         {prf_ready_11},
+         {prf_ready_10},
+         {prf_ready_9},
+         {prf_ready_8},
+         {prf_ready_7},
+         {prf_ready_6},
+         {prf_ready_5},
+         {prf_ready_4},
+         {prf_ready_3},
+         {prf_ready_2},
+         {prf_ready_1},
+         {prf_ready_0}};
       automatic logic [3:0]  _alloc_idx1_T_60 =
         _GEN[0]
           ? 4'h0
@@ -3720,8 +3784,18 @@ module IssueQueue(
       automatic logic        _GEN_94;
       automatic logic        _GEN_95;
       automatic logic        _GEN_96;
-      automatic logic        _iq_psrc1_rdy_T_3;
-      automatic logic        _iq_psrc2_rdy_T_3;
+      automatic logic        _iq_psrc1_rdy_T_3 =
+        ~io_disp_data_src1_read | io_disp_data_psrc1 == 6'h0 | _GEN_80[io_psrc1]
+        | io_cdb0_valid & io_psrc1 == io_cdb0_pdest | io_cdb1_valid
+        & io_psrc1 == io_cdb1_pdest | ew_valid & io_psrc1 == io_early_wakeup_bits
+        | ew0_valid & io_psrc1 == io_alu0_wakeup_bits | ew1_valid
+        & io_psrc1 == io_alu1_wakeup_bits;
+      automatic logic        _iq_psrc2_rdy_T_3 =
+        ~io_disp_data_src2_read | io_disp_data_psrc2 == 6'h0 | _GEN_80[io_psrc2]
+        | io_cdb0_valid & io_psrc2 == io_cdb0_pdest | io_cdb1_valid
+        & io_psrc2 == io_cdb1_pdest | ew_valid & io_psrc2 == io_early_wakeup_bits
+        | ew0_valid & io_psrc2 == io_alu0_wakeup_bits | ew1_valid
+        & io_psrc2 == io_alu1_wakeup_bits;
       automatic logic        _GEN_97 = io_disp_data_regWriteEn & (|io_disp_data_pdest);
       automatic logic        _GEN_98 = fire0 & _GEN_97 & ~(|io_disp_data_pdest);
       automatic logic        _GEN_99 = fire0 & _GEN_97 & io_disp_data_pdest == 6'h1;
@@ -3834,107 +3908,331 @@ module IssueQueue(
       automatic logic        _GEN_206;
       automatic logic        _GEN_207;
       automatic logic        _GEN_208;
-      automatic logic        _iq_psrc1_rdy_T_9;
-      automatic logic        _iq_psrc2_rdy_T_9;
+      automatic logic        _iq_psrc1_rdy_T_9 =
+        ~io_disp1_data_src1_read | io_disp1_data_psrc1 == 6'h0
+        | (_GEN_80[io_psrc1_1] | io_cdb0_valid & io_psrc1_1 == io_cdb0_pdest
+           | io_cdb1_valid & io_psrc1_1 == io_cdb1_pdest | ew_valid
+           & io_psrc1_1 == io_early_wakeup_bits | ew0_valid
+           & io_psrc1_1 == io_alu0_wakeup_bits | ew1_valid
+           & io_psrc1_1 == io_alu1_wakeup_bits)
+        & ~(io_disp_data_regWriteEn & io_disp_data_pdest == io_disp1_data_psrc1
+            & (|io_disp_data_pdest));
+      automatic logic        _iq_psrc2_rdy_T_9 =
+        ~io_disp1_data_src2_read | io_disp1_data_psrc2 == 6'h0
+        | (_GEN_80[io_psrc2_1] | io_cdb0_valid & io_psrc2_1 == io_cdb0_pdest
+           | io_cdb1_valid & io_psrc2_1 == io_cdb1_pdest | ew_valid
+           & io_psrc2_1 == io_early_wakeup_bits | ew0_valid
+           & io_psrc2_1 == io_alu0_wakeup_bits | ew1_valid
+           & io_psrc2_1 == io_alu1_wakeup_bits)
+        & ~(io_disp_data_regWriteEn & io_disp_data_pdest == io_disp1_data_psrc2
+            & (|io_disp_data_pdest));
       automatic logic        _GEN_209 =
         fire1 & io_disp1_data_regWriteEn & (|io_disp1_data_pdest);
-      automatic logic        _GEN_210;
-      automatic logic        _GEN_211;
-      automatic logic        _GEN_212;
-      automatic logic        _GEN_213;
-      automatic logic        _GEN_214;
-      automatic logic        _GEN_215;
-      automatic logic        _GEN_216;
-      automatic logic        _GEN_217;
-      automatic logic        _GEN_218;
-      automatic logic        _GEN_219;
-      automatic logic        _GEN_220;
-      automatic logic        _GEN_221;
-      automatic logic        _GEN_222;
-      automatic logic        _GEN_223;
-      automatic logic        _GEN_224;
-      automatic logic        _GEN_225;
-      automatic logic        _GEN_226;
-      automatic logic        _GEN_227;
-      automatic logic        _GEN_228;
-      automatic logic        _GEN_229;
-      automatic logic        _GEN_230;
-      automatic logic        _GEN_231;
-      automatic logic        _GEN_232;
-      automatic logic        _GEN_233;
-      automatic logic        _GEN_234;
-      automatic logic        _GEN_235;
-      automatic logic        _GEN_236;
-      automatic logic        _GEN_237;
-      automatic logic        _GEN_238;
-      automatic logic        _GEN_239;
-      automatic logic        _GEN_240;
-      automatic logic        _GEN_241;
-      automatic logic        _GEN_242;
-      automatic logic        _GEN_243;
-      automatic logic        _GEN_244;
-      automatic logic        _GEN_245;
-      automatic logic        _GEN_246;
-      automatic logic        _GEN_247;
-      automatic logic        _GEN_248;
-      automatic logic        _GEN_249;
-      automatic logic        _GEN_250;
-      automatic logic        _GEN_251;
-      automatic logic        _GEN_252;
-      automatic logic        _GEN_253;
-      automatic logic        _GEN_254;
-      automatic logic        _GEN_255;
-      automatic logic        _GEN_256;
-      automatic logic        _GEN_257;
-      automatic logic        _GEN_258;
-      automatic logic        _GEN_259;
-      automatic logic        _GEN_260;
-      automatic logic        _GEN_261;
-      automatic logic        _GEN_262;
-      automatic logic        _GEN_263;
-      automatic logic        _GEN_264;
-      automatic logic        _GEN_265;
-      automatic logic        _GEN_266;
-      automatic logic        _GEN_267;
-      automatic logic        _GEN_268;
-      automatic logic        _GEN_269;
-      automatic logic        _GEN_270;
-      automatic logic        _GEN_271;
-      automatic logic        _GEN_272;
-      automatic logic        _GEN_273;
+      automatic logic        _GEN_210 =
+        _GEN_209
+          ? ~(~(|io_disp1_data_pdest) | _GEN_98) & prf_ready_0
+          : ~_GEN_98 & prf_ready_0;
+      automatic logic        _GEN_211 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h1 | _GEN_99) & prf_ready_1
+          : ~_GEN_99 & prf_ready_1;
+      automatic logic        _GEN_212 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h2 | _GEN_100) & prf_ready_2
+          : ~_GEN_100 & prf_ready_2;
+      automatic logic        _GEN_213 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h3 | _GEN_101) & prf_ready_3
+          : ~_GEN_101 & prf_ready_3;
+      automatic logic        _GEN_214 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h4 | _GEN_102) & prf_ready_4
+          : ~_GEN_102 & prf_ready_4;
+      automatic logic        _GEN_215 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h5 | _GEN_103) & prf_ready_5
+          : ~_GEN_103 & prf_ready_5;
+      automatic logic        _GEN_216 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h6 | _GEN_104) & prf_ready_6
+          : ~_GEN_104 & prf_ready_6;
+      automatic logic        _GEN_217 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h7 | _GEN_105) & prf_ready_7
+          : ~_GEN_105 & prf_ready_7;
+      automatic logic        _GEN_218 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h8 | _GEN_106) & prf_ready_8
+          : ~_GEN_106 & prf_ready_8;
+      automatic logic        _GEN_219 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h9 | _GEN_107) & prf_ready_9
+          : ~_GEN_107 & prf_ready_9;
+      automatic logic        _GEN_220 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'hA | _GEN_108) & prf_ready_10
+          : ~_GEN_108 & prf_ready_10;
+      automatic logic        _GEN_221 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'hB | _GEN_109) & prf_ready_11
+          : ~_GEN_109 & prf_ready_11;
+      automatic logic        _GEN_222 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'hC | _GEN_110) & prf_ready_12
+          : ~_GEN_110 & prf_ready_12;
+      automatic logic        _GEN_223 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'hD | _GEN_111) & prf_ready_13
+          : ~_GEN_111 & prf_ready_13;
+      automatic logic        _GEN_224 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'hE | _GEN_112) & prf_ready_14
+          : ~_GEN_112 & prf_ready_14;
+      automatic logic        _GEN_225 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'hF | _GEN_113) & prf_ready_15
+          : ~_GEN_113 & prf_ready_15;
+      automatic logic        _GEN_226 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h10 | _GEN_114) & prf_ready_16
+          : ~_GEN_114 & prf_ready_16;
+      automatic logic        _GEN_227 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h11 | _GEN_115) & prf_ready_17
+          : ~_GEN_115 & prf_ready_17;
+      automatic logic        _GEN_228 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h12 | _GEN_116) & prf_ready_18
+          : ~_GEN_116 & prf_ready_18;
+      automatic logic        _GEN_229 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h13 | _GEN_117) & prf_ready_19
+          : ~_GEN_117 & prf_ready_19;
+      automatic logic        _GEN_230 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h14 | _GEN_118) & prf_ready_20
+          : ~_GEN_118 & prf_ready_20;
+      automatic logic        _GEN_231 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h15 | _GEN_119) & prf_ready_21
+          : ~_GEN_119 & prf_ready_21;
+      automatic logic        _GEN_232 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h16 | _GEN_120) & prf_ready_22
+          : ~_GEN_120 & prf_ready_22;
+      automatic logic        _GEN_233 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h17 | _GEN_121) & prf_ready_23
+          : ~_GEN_121 & prf_ready_23;
+      automatic logic        _GEN_234 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h18 | _GEN_122) & prf_ready_24
+          : ~_GEN_122 & prf_ready_24;
+      automatic logic        _GEN_235 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h19 | _GEN_123) & prf_ready_25
+          : ~_GEN_123 & prf_ready_25;
+      automatic logic        _GEN_236 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h1A | _GEN_124) & prf_ready_26
+          : ~_GEN_124 & prf_ready_26;
+      automatic logic        _GEN_237 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h1B | _GEN_125) & prf_ready_27
+          : ~_GEN_125 & prf_ready_27;
+      automatic logic        _GEN_238 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h1C | _GEN_126) & prf_ready_28
+          : ~_GEN_126 & prf_ready_28;
+      automatic logic        _GEN_239 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h1D | _GEN_127) & prf_ready_29
+          : ~_GEN_127 & prf_ready_29;
+      automatic logic        _GEN_240 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h1E | _GEN_128) & prf_ready_30
+          : ~_GEN_128 & prf_ready_30;
+      automatic logic        _GEN_241 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h1F | _GEN_129) & prf_ready_31
+          : ~_GEN_129 & prf_ready_31;
+      automatic logic        _GEN_242 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h20 | _GEN_130) & prf_ready_32
+          : ~_GEN_130 & prf_ready_32;
+      automatic logic        _GEN_243 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h21 | _GEN_131) & prf_ready_33
+          : ~_GEN_131 & prf_ready_33;
+      automatic logic        _GEN_244 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h22 | _GEN_132) & prf_ready_34
+          : ~_GEN_132 & prf_ready_34;
+      automatic logic        _GEN_245 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h23 | _GEN_133) & prf_ready_35
+          : ~_GEN_133 & prf_ready_35;
+      automatic logic        _GEN_246 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h24 | _GEN_134) & prf_ready_36
+          : ~_GEN_134 & prf_ready_36;
+      automatic logic        _GEN_247 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h25 | _GEN_135) & prf_ready_37
+          : ~_GEN_135 & prf_ready_37;
+      automatic logic        _GEN_248 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h26 | _GEN_136) & prf_ready_38
+          : ~_GEN_136 & prf_ready_38;
+      automatic logic        _GEN_249 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h27 | _GEN_137) & prf_ready_39
+          : ~_GEN_137 & prf_ready_39;
+      automatic logic        _GEN_250 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h28 | _GEN_138) & prf_ready_40
+          : ~_GEN_138 & prf_ready_40;
+      automatic logic        _GEN_251 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h29 | _GEN_139) & prf_ready_41
+          : ~_GEN_139 & prf_ready_41;
+      automatic logic        _GEN_252 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h2A | _GEN_140) & prf_ready_42
+          : ~_GEN_140 & prf_ready_42;
+      automatic logic        _GEN_253 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h2B | _GEN_141) & prf_ready_43
+          : ~_GEN_141 & prf_ready_43;
+      automatic logic        _GEN_254 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h2C | _GEN_142) & prf_ready_44
+          : ~_GEN_142 & prf_ready_44;
+      automatic logic        _GEN_255 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h2D | _GEN_143) & prf_ready_45
+          : ~_GEN_143 & prf_ready_45;
+      automatic logic        _GEN_256 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h2E | _GEN_144) & prf_ready_46
+          : ~_GEN_144 & prf_ready_46;
+      automatic logic        _GEN_257 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h2F | _GEN_145) & prf_ready_47
+          : ~_GEN_145 & prf_ready_47;
+      automatic logic        _GEN_258 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h30 | _GEN_146) & prf_ready_48
+          : ~_GEN_146 & prf_ready_48;
+      automatic logic        _GEN_259 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h31 | _GEN_147) & prf_ready_49
+          : ~_GEN_147 & prf_ready_49;
+      automatic logic        _GEN_260 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h32 | _GEN_148) & prf_ready_50
+          : ~_GEN_148 & prf_ready_50;
+      automatic logic        _GEN_261 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h33 | _GEN_149) & prf_ready_51
+          : ~_GEN_149 & prf_ready_51;
+      automatic logic        _GEN_262 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h34 | _GEN_150) & prf_ready_52
+          : ~_GEN_150 & prf_ready_52;
+      automatic logic        _GEN_263 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h35 | _GEN_151) & prf_ready_53
+          : ~_GEN_151 & prf_ready_53;
+      automatic logic        _GEN_264 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h36 | _GEN_152) & prf_ready_54
+          : ~_GEN_152 & prf_ready_54;
+      automatic logic        _GEN_265 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h37 | _GEN_153) & prf_ready_55
+          : ~_GEN_153 & prf_ready_55;
+      automatic logic        _GEN_266 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h38 | _GEN_154) & prf_ready_56
+          : ~_GEN_154 & prf_ready_56;
+      automatic logic        _GEN_267 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h39 | _GEN_155) & prf_ready_57
+          : ~_GEN_155 & prf_ready_57;
+      automatic logic        _GEN_268 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h3A | _GEN_156) & prf_ready_58
+          : ~_GEN_156 & prf_ready_58;
+      automatic logic        _GEN_269 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h3B | _GEN_157) & prf_ready_59
+          : ~_GEN_157 & prf_ready_59;
+      automatic logic        _GEN_270 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h3C | _GEN_158) & prf_ready_60
+          : ~_GEN_158 & prf_ready_60;
+      automatic logic        _GEN_271 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h3D | _GEN_159) & prf_ready_61
+          : ~_GEN_159 & prf_ready_61;
+      automatic logic        _GEN_272 =
+        _GEN_209
+          ? ~(io_disp1_data_pdest == 6'h3E | _GEN_160) & prf_ready_62
+          : ~_GEN_160 & prf_ready_62;
+      automatic logic        _GEN_273 =
+        _GEN_209
+          ? ~((&io_disp1_data_pdest) | _GEN_161) & prf_ready_63
+          : ~_GEN_161 & prf_ready_63;
       automatic logic [6:0]  tag_bit = 7'h1 << io_br_resolve_tag;
-      automatic logic [3:0]  _GEN_274;
-      automatic logic        _GEN_275;
-      automatic logic [3:0]  _GEN_276;
-      automatic logic        _GEN_277;
-      automatic logic [3:0]  _GEN_278;
-      automatic logic        _GEN_279;
-      automatic logic [3:0]  _GEN_280;
-      automatic logic        _GEN_281;
-      automatic logic [3:0]  _GEN_282;
-      automatic logic        _GEN_283;
-      automatic logic [3:0]  _GEN_284;
-      automatic logic        _GEN_285;
-      automatic logic [3:0]  _GEN_286;
-      automatic logic        _GEN_287;
-      automatic logic [3:0]  _GEN_288;
-      automatic logic        _GEN_289;
-      automatic logic [3:0]  _GEN_290;
-      automatic logic        _GEN_291;
-      automatic logic [3:0]  _GEN_292;
-      automatic logic        _GEN_293;
-      automatic logic [3:0]  _GEN_294;
-      automatic logic        _GEN_295;
-      automatic logic [3:0]  _GEN_296;
-      automatic logic        _GEN_297;
-      automatic logic [3:0]  _GEN_298;
-      automatic logic        _GEN_299;
-      automatic logic [3:0]  _GEN_300;
-      automatic logic        _GEN_301;
-      automatic logic [3:0]  _GEN_302;
-      automatic logic        _GEN_303;
-      automatic logic [3:0]  _GEN_304;
-      automatic logic        _GEN_305;
+      automatic logic [3:0]  _GEN_274 = tag_bit[3:0] & iq_0_data_branch_mask;
+      automatic logic        _GEN_275 =
+        io_br_resolve_valid & iq_0_valid & io_br_resolve_mispredict & (|_GEN_274);
+      automatic logic [3:0]  _GEN_276 = tag_bit[3:0] & iq_1_data_branch_mask;
+      automatic logic        _GEN_277 =
+        io_br_resolve_valid & iq_1_valid & io_br_resolve_mispredict & (|_GEN_276);
+      automatic logic [3:0]  _GEN_278 = tag_bit[3:0] & iq_2_data_branch_mask;
+      automatic logic        _GEN_279 =
+        io_br_resolve_valid & iq_2_valid & io_br_resolve_mispredict & (|_GEN_278);
+      automatic logic [3:0]  _GEN_280 = tag_bit[3:0] & iq_3_data_branch_mask;
+      automatic logic        _GEN_281 =
+        io_br_resolve_valid & iq_3_valid & io_br_resolve_mispredict & (|_GEN_280);
+      automatic logic [3:0]  _GEN_282 = tag_bit[3:0] & iq_4_data_branch_mask;
+      automatic logic        _GEN_283 =
+        io_br_resolve_valid & iq_4_valid & io_br_resolve_mispredict & (|_GEN_282);
+      automatic logic [3:0]  _GEN_284 = tag_bit[3:0] & iq_5_data_branch_mask;
+      automatic logic        _GEN_285 =
+        io_br_resolve_valid & iq_5_valid & io_br_resolve_mispredict & (|_GEN_284);
+      automatic logic [3:0]  _GEN_286 = tag_bit[3:0] & iq_6_data_branch_mask;
+      automatic logic        _GEN_287 =
+        io_br_resolve_valid & iq_6_valid & io_br_resolve_mispredict & (|_GEN_286);
+      automatic logic [3:0]  _GEN_288 = tag_bit[3:0] & iq_7_data_branch_mask;
+      automatic logic        _GEN_289 =
+        io_br_resolve_valid & iq_7_valid & io_br_resolve_mispredict & (|_GEN_288);
+      automatic logic [3:0]  _GEN_290 = tag_bit[3:0] & iq_8_data_branch_mask;
+      automatic logic        _GEN_291 =
+        io_br_resolve_valid & iq_8_valid & io_br_resolve_mispredict & (|_GEN_290);
+      automatic logic [3:0]  _GEN_292 = tag_bit[3:0] & iq_9_data_branch_mask;
+      automatic logic        _GEN_293 =
+        io_br_resolve_valid & iq_9_valid & io_br_resolve_mispredict & (|_GEN_292);
+      automatic logic [3:0]  _GEN_294 = tag_bit[3:0] & iq_10_data_branch_mask;
+      automatic logic        _GEN_295 =
+        io_br_resolve_valid & iq_10_valid & io_br_resolve_mispredict & (|_GEN_294);
+      automatic logic [3:0]  _GEN_296 = tag_bit[3:0] & iq_11_data_branch_mask;
+      automatic logic        _GEN_297 =
+        io_br_resolve_valid & iq_11_valid & io_br_resolve_mispredict & (|_GEN_296);
+      automatic logic [3:0]  _GEN_298 = tag_bit[3:0] & iq_12_data_branch_mask;
+      automatic logic        _GEN_299 =
+        io_br_resolve_valid & iq_12_valid & io_br_resolve_mispredict & (|_GEN_298);
+      automatic logic [3:0]  _GEN_300 = tag_bit[3:0] & iq_13_data_branch_mask;
+      automatic logic        _GEN_301 =
+        io_br_resolve_valid & iq_13_valid & io_br_resolve_mispredict & (|_GEN_300);
+      automatic logic [3:0]  _GEN_302 = tag_bit[3:0] & iq_14_data_branch_mask;
+      automatic logic        _GEN_303 =
+        io_br_resolve_valid & iq_14_valid & io_br_resolve_mispredict & (|_GEN_302);
+      automatic logic [3:0]  _GEN_304 = tag_bit[3:0] & iq_15_data_branch_mask;
+      automatic logic        _GEN_305 =
+        io_br_resolve_valid & iq_15_valid & io_br_resolve_mispredict & (|_GEN_304);
       automatic logic        cdb0_write = io_cdb0_valid & (|io_cdb0_pdest);
       automatic logic        cdb1_write = io_cdb1_valid & (|io_cdb1_pdest);
       automatic logic        _GEN_306 = cdb0_write & io_cdb0_pdest == 6'h0;
@@ -4037,71 +4335,6 @@ module IssueQueue(
       automatic logic        _GEN_403 = _GEN_387 & (&alu1_idx);
       automatic logic        _GEN_404 = (|mdu_cands) & io_issue_mdu_ready;
       automatic logic        _GEN_405 = (|agu_cands) & io_issue_agu_ready;
-      _GEN_80 =
-        {{prf_ready_63},
-         {prf_ready_62},
-         {prf_ready_61},
-         {prf_ready_60},
-         {prf_ready_59},
-         {prf_ready_58},
-         {prf_ready_57},
-         {prf_ready_56},
-         {prf_ready_55},
-         {prf_ready_54},
-         {prf_ready_53},
-         {prf_ready_52},
-         {prf_ready_51},
-         {prf_ready_50},
-         {prf_ready_49},
-         {prf_ready_48},
-         {prf_ready_47},
-         {prf_ready_46},
-         {prf_ready_45},
-         {prf_ready_44},
-         {prf_ready_43},
-         {prf_ready_42},
-         {prf_ready_41},
-         {prf_ready_40},
-         {prf_ready_39},
-         {prf_ready_38},
-         {prf_ready_37},
-         {prf_ready_36},
-         {prf_ready_35},
-         {prf_ready_34},
-         {prf_ready_33},
-         {prf_ready_32},
-         {prf_ready_31},
-         {prf_ready_30},
-         {prf_ready_29},
-         {prf_ready_28},
-         {prf_ready_27},
-         {prf_ready_26},
-         {prf_ready_25},
-         {prf_ready_24},
-         {prf_ready_23},
-         {prf_ready_22},
-         {prf_ready_21},
-         {prf_ready_20},
-         {prf_ready_19},
-         {prf_ready_18},
-         {prf_ready_17},
-         {prf_ready_16},
-         {prf_ready_15},
-         {prf_ready_14},
-         {prf_ready_13},
-         {prf_ready_12},
-         {prf_ready_11},
-         {prf_ready_10},
-         {prf_ready_9},
-         {prf_ready_8},
-         {prf_ready_7},
-         {prf_ready_6},
-         {prf_ready_5},
-         {prf_ready_4},
-         {prf_ready_3},
-         {prf_ready_2},
-         {prf_ready_1},
-         {prf_ready_0}};
       _GEN_81 = fire0 & alloc_idx0 == 4'h0;
       _GEN_82 = fire0 & alloc_idx0 == 4'h1;
       _GEN_83 = fire0 & alloc_idx0 == 4'h2;
@@ -4118,18 +4351,6 @@ module IssueQueue(
       _GEN_94 = fire0 & alloc_idx0 == 4'hD;
       _GEN_95 = fire0 & alloc_idx0 == 4'hE;
       _GEN_96 = fire0 & (&alloc_idx0);
-      _iq_psrc1_rdy_T_3 =
-        ~io_disp_data_src1_read | io_disp_data_psrc1 == 6'h0 | _GEN_80[io_psrc1]
-        | io_cdb0_valid & io_psrc1 == io_cdb0_pdest | io_cdb1_valid
-        & io_psrc1 == io_cdb1_pdest | ew_valid & io_psrc1 == io_early_wakeup_bits
-        | ew0_valid & io_psrc1 == io_alu0_wakeup_bits | ew1_valid
-        & io_psrc1 == io_alu1_wakeup_bits;
-      _iq_psrc2_rdy_T_3 =
-        ~io_disp_data_src2_read | io_disp_data_psrc2 == 6'h0 | _GEN_80[io_psrc2]
-        | io_cdb0_valid & io_psrc2 == io_cdb0_pdest | io_cdb1_valid
-        & io_psrc2 == io_cdb1_pdest | ew_valid & io_psrc2 == io_early_wakeup_bits
-        | ew0_valid & io_psrc2 == io_alu0_wakeup_bits | ew1_valid
-        & io_psrc2 == io_alu1_wakeup_bits;
       _GEN_163 = fire1 ? _GEN_162 | _GEN_81 | iq_0_valid : _GEN_81 | iq_0_valid;
       _GEN_165 = fire1 ? _GEN_164 | _GEN_82 | iq_1_valid : _GEN_82 | iq_1_valid;
       _GEN_167 = fire1 ? _GEN_166 | _GEN_83 | iq_2_valid : _GEN_83 | iq_2_valid;
@@ -4163,328 +4384,6 @@ module IssueQueue(
       _GEN_206 = fire1 & _GEN_188;
       _GEN_207 = fire1 & _GEN_190;
       _GEN_208 = fire1 & (&_alloc_idx1_T_60);
-      _iq_psrc1_rdy_T_9 =
-        ~io_disp1_data_src1_read | io_disp1_data_psrc1 == 6'h0
-        | (_GEN_80[io_psrc1_1] | io_cdb0_valid & io_psrc1_1 == io_cdb0_pdest
-           | io_cdb1_valid & io_psrc1_1 == io_cdb1_pdest | ew_valid
-           & io_psrc1_1 == io_early_wakeup_bits | ew0_valid
-           & io_psrc1_1 == io_alu0_wakeup_bits | ew1_valid
-           & io_psrc1_1 == io_alu1_wakeup_bits)
-        & ~(io_disp_data_regWriteEn & io_disp_data_pdest == io_disp1_data_psrc1
-            & (|io_disp_data_pdest));
-      _iq_psrc2_rdy_T_9 =
-        ~io_disp1_data_src2_read | io_disp1_data_psrc2 == 6'h0
-        | (_GEN_80[io_psrc2_1] | io_cdb0_valid & io_psrc2_1 == io_cdb0_pdest
-           | io_cdb1_valid & io_psrc2_1 == io_cdb1_pdest | ew_valid
-           & io_psrc2_1 == io_early_wakeup_bits | ew0_valid
-           & io_psrc2_1 == io_alu0_wakeup_bits | ew1_valid
-           & io_psrc2_1 == io_alu1_wakeup_bits)
-        & ~(io_disp_data_regWriteEn & io_disp_data_pdest == io_disp1_data_psrc2
-            & (|io_disp_data_pdest));
-      _GEN_210 =
-        _GEN_209
-          ? ~(~(|io_disp1_data_pdest) | _GEN_98) & prf_ready_0
-          : ~_GEN_98 & prf_ready_0;
-      _GEN_211 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h1 | _GEN_99) & prf_ready_1
-          : ~_GEN_99 & prf_ready_1;
-      _GEN_212 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h2 | _GEN_100) & prf_ready_2
-          : ~_GEN_100 & prf_ready_2;
-      _GEN_213 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h3 | _GEN_101) & prf_ready_3
-          : ~_GEN_101 & prf_ready_3;
-      _GEN_214 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h4 | _GEN_102) & prf_ready_4
-          : ~_GEN_102 & prf_ready_4;
-      _GEN_215 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h5 | _GEN_103) & prf_ready_5
-          : ~_GEN_103 & prf_ready_5;
-      _GEN_216 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h6 | _GEN_104) & prf_ready_6
-          : ~_GEN_104 & prf_ready_6;
-      _GEN_217 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h7 | _GEN_105) & prf_ready_7
-          : ~_GEN_105 & prf_ready_7;
-      _GEN_218 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h8 | _GEN_106) & prf_ready_8
-          : ~_GEN_106 & prf_ready_8;
-      _GEN_219 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h9 | _GEN_107) & prf_ready_9
-          : ~_GEN_107 & prf_ready_9;
-      _GEN_220 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'hA | _GEN_108) & prf_ready_10
-          : ~_GEN_108 & prf_ready_10;
-      _GEN_221 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'hB | _GEN_109) & prf_ready_11
-          : ~_GEN_109 & prf_ready_11;
-      _GEN_222 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'hC | _GEN_110) & prf_ready_12
-          : ~_GEN_110 & prf_ready_12;
-      _GEN_223 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'hD | _GEN_111) & prf_ready_13
-          : ~_GEN_111 & prf_ready_13;
-      _GEN_224 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'hE | _GEN_112) & prf_ready_14
-          : ~_GEN_112 & prf_ready_14;
-      _GEN_225 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'hF | _GEN_113) & prf_ready_15
-          : ~_GEN_113 & prf_ready_15;
-      _GEN_226 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h10 | _GEN_114) & prf_ready_16
-          : ~_GEN_114 & prf_ready_16;
-      _GEN_227 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h11 | _GEN_115) & prf_ready_17
-          : ~_GEN_115 & prf_ready_17;
-      _GEN_228 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h12 | _GEN_116) & prf_ready_18
-          : ~_GEN_116 & prf_ready_18;
-      _GEN_229 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h13 | _GEN_117) & prf_ready_19
-          : ~_GEN_117 & prf_ready_19;
-      _GEN_230 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h14 | _GEN_118) & prf_ready_20
-          : ~_GEN_118 & prf_ready_20;
-      _GEN_231 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h15 | _GEN_119) & prf_ready_21
-          : ~_GEN_119 & prf_ready_21;
-      _GEN_232 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h16 | _GEN_120) & prf_ready_22
-          : ~_GEN_120 & prf_ready_22;
-      _GEN_233 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h17 | _GEN_121) & prf_ready_23
-          : ~_GEN_121 & prf_ready_23;
-      _GEN_234 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h18 | _GEN_122) & prf_ready_24
-          : ~_GEN_122 & prf_ready_24;
-      _GEN_235 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h19 | _GEN_123) & prf_ready_25
-          : ~_GEN_123 & prf_ready_25;
-      _GEN_236 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h1A | _GEN_124) & prf_ready_26
-          : ~_GEN_124 & prf_ready_26;
-      _GEN_237 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h1B | _GEN_125) & prf_ready_27
-          : ~_GEN_125 & prf_ready_27;
-      _GEN_238 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h1C | _GEN_126) & prf_ready_28
-          : ~_GEN_126 & prf_ready_28;
-      _GEN_239 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h1D | _GEN_127) & prf_ready_29
-          : ~_GEN_127 & prf_ready_29;
-      _GEN_240 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h1E | _GEN_128) & prf_ready_30
-          : ~_GEN_128 & prf_ready_30;
-      _GEN_241 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h1F | _GEN_129) & prf_ready_31
-          : ~_GEN_129 & prf_ready_31;
-      _GEN_242 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h20 | _GEN_130) & prf_ready_32
-          : ~_GEN_130 & prf_ready_32;
-      _GEN_243 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h21 | _GEN_131) & prf_ready_33
-          : ~_GEN_131 & prf_ready_33;
-      _GEN_244 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h22 | _GEN_132) & prf_ready_34
-          : ~_GEN_132 & prf_ready_34;
-      _GEN_245 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h23 | _GEN_133) & prf_ready_35
-          : ~_GEN_133 & prf_ready_35;
-      _GEN_246 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h24 | _GEN_134) & prf_ready_36
-          : ~_GEN_134 & prf_ready_36;
-      _GEN_247 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h25 | _GEN_135) & prf_ready_37
-          : ~_GEN_135 & prf_ready_37;
-      _GEN_248 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h26 | _GEN_136) & prf_ready_38
-          : ~_GEN_136 & prf_ready_38;
-      _GEN_249 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h27 | _GEN_137) & prf_ready_39
-          : ~_GEN_137 & prf_ready_39;
-      _GEN_250 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h28 | _GEN_138) & prf_ready_40
-          : ~_GEN_138 & prf_ready_40;
-      _GEN_251 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h29 | _GEN_139) & prf_ready_41
-          : ~_GEN_139 & prf_ready_41;
-      _GEN_252 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h2A | _GEN_140) & prf_ready_42
-          : ~_GEN_140 & prf_ready_42;
-      _GEN_253 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h2B | _GEN_141) & prf_ready_43
-          : ~_GEN_141 & prf_ready_43;
-      _GEN_254 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h2C | _GEN_142) & prf_ready_44
-          : ~_GEN_142 & prf_ready_44;
-      _GEN_255 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h2D | _GEN_143) & prf_ready_45
-          : ~_GEN_143 & prf_ready_45;
-      _GEN_256 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h2E | _GEN_144) & prf_ready_46
-          : ~_GEN_144 & prf_ready_46;
-      _GEN_257 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h2F | _GEN_145) & prf_ready_47
-          : ~_GEN_145 & prf_ready_47;
-      _GEN_258 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h30 | _GEN_146) & prf_ready_48
-          : ~_GEN_146 & prf_ready_48;
-      _GEN_259 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h31 | _GEN_147) & prf_ready_49
-          : ~_GEN_147 & prf_ready_49;
-      _GEN_260 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h32 | _GEN_148) & prf_ready_50
-          : ~_GEN_148 & prf_ready_50;
-      _GEN_261 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h33 | _GEN_149) & prf_ready_51
-          : ~_GEN_149 & prf_ready_51;
-      _GEN_262 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h34 | _GEN_150) & prf_ready_52
-          : ~_GEN_150 & prf_ready_52;
-      _GEN_263 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h35 | _GEN_151) & prf_ready_53
-          : ~_GEN_151 & prf_ready_53;
-      _GEN_264 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h36 | _GEN_152) & prf_ready_54
-          : ~_GEN_152 & prf_ready_54;
-      _GEN_265 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h37 | _GEN_153) & prf_ready_55
-          : ~_GEN_153 & prf_ready_55;
-      _GEN_266 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h38 | _GEN_154) & prf_ready_56
-          : ~_GEN_154 & prf_ready_56;
-      _GEN_267 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h39 | _GEN_155) & prf_ready_57
-          : ~_GEN_155 & prf_ready_57;
-      _GEN_268 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h3A | _GEN_156) & prf_ready_58
-          : ~_GEN_156 & prf_ready_58;
-      _GEN_269 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h3B | _GEN_157) & prf_ready_59
-          : ~_GEN_157 & prf_ready_59;
-      _GEN_270 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h3C | _GEN_158) & prf_ready_60
-          : ~_GEN_158 & prf_ready_60;
-      _GEN_271 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h3D | _GEN_159) & prf_ready_61
-          : ~_GEN_159 & prf_ready_61;
-      _GEN_272 =
-        _GEN_209
-          ? ~(io_disp1_data_pdest == 6'h3E | _GEN_160) & prf_ready_62
-          : ~_GEN_160 & prf_ready_62;
-      _GEN_273 =
-        _GEN_209
-          ? ~((&io_disp1_data_pdest) | _GEN_161) & prf_ready_63
-          : ~_GEN_161 & prf_ready_63;
-      _GEN_274 = tag_bit[3:0] & iq_0_data_branch_mask;
-      _GEN_275 =
-        io_br_resolve_valid & iq_0_valid & io_br_resolve_mispredict & (|_GEN_274);
-      _GEN_276 = tag_bit[3:0] & iq_1_data_branch_mask;
-      _GEN_277 =
-        io_br_resolve_valid & iq_1_valid & io_br_resolve_mispredict & (|_GEN_276);
-      _GEN_278 = tag_bit[3:0] & iq_2_data_branch_mask;
-      _GEN_279 =
-        io_br_resolve_valid & iq_2_valid & io_br_resolve_mispredict & (|_GEN_278);
-      _GEN_280 = tag_bit[3:0] & iq_3_data_branch_mask;
-      _GEN_281 =
-        io_br_resolve_valid & iq_3_valid & io_br_resolve_mispredict & (|_GEN_280);
-      _GEN_282 = tag_bit[3:0] & iq_4_data_branch_mask;
-      _GEN_283 =
-        io_br_resolve_valid & iq_4_valid & io_br_resolve_mispredict & (|_GEN_282);
-      _GEN_284 = tag_bit[3:0] & iq_5_data_branch_mask;
-      _GEN_285 =
-        io_br_resolve_valid & iq_5_valid & io_br_resolve_mispredict & (|_GEN_284);
-      _GEN_286 = tag_bit[3:0] & iq_6_data_branch_mask;
-      _GEN_287 =
-        io_br_resolve_valid & iq_6_valid & io_br_resolve_mispredict & (|_GEN_286);
-      _GEN_288 = tag_bit[3:0] & iq_7_data_branch_mask;
-      _GEN_289 =
-        io_br_resolve_valid & iq_7_valid & io_br_resolve_mispredict & (|_GEN_288);
-      _GEN_290 = tag_bit[3:0] & iq_8_data_branch_mask;
-      _GEN_291 =
-        io_br_resolve_valid & iq_8_valid & io_br_resolve_mispredict & (|_GEN_290);
-      _GEN_292 = tag_bit[3:0] & iq_9_data_branch_mask;
-      _GEN_293 =
-        io_br_resolve_valid & iq_9_valid & io_br_resolve_mispredict & (|_GEN_292);
-      _GEN_294 = tag_bit[3:0] & iq_10_data_branch_mask;
-      _GEN_295 =
-        io_br_resolve_valid & iq_10_valid & io_br_resolve_mispredict & (|_GEN_294);
-      _GEN_296 = tag_bit[3:0] & iq_11_data_branch_mask;
-      _GEN_297 =
-        io_br_resolve_valid & iq_11_valid & io_br_resolve_mispredict & (|_GEN_296);
-      _GEN_298 = tag_bit[3:0] & iq_12_data_branch_mask;
-      _GEN_299 =
-        io_br_resolve_valid & iq_12_valid & io_br_resolve_mispredict & (|_GEN_298);
-      _GEN_300 = tag_bit[3:0] & iq_13_data_branch_mask;
-      _GEN_301 =
-        io_br_resolve_valid & iq_13_valid & io_br_resolve_mispredict & (|_GEN_300);
-      _GEN_302 = tag_bit[3:0] & iq_14_data_branch_mask;
-      _GEN_303 =
-        io_br_resolve_valid & iq_14_valid & io_br_resolve_mispredict & (|_GEN_302);
-      _GEN_304 = tag_bit[3:0] & iq_15_data_branch_mask;
-      _GEN_305 =
-        io_br_resolve_valid & iq_15_valid & io_br_resolve_mispredict & (|_GEN_304);
       _GEN_371 =
         _GEN_370 ? ~(alu0_idx == 4'h0 | _GEN_275) & _GEN_163 : ~_GEN_275 & _GEN_163;
       _GEN_372 =
@@ -6883,931 +6782,7 @@ module IssueQueue(
       else
         iq_15_data_branch_mask <= ~(tag_bit[3:0]) & iq_15_data_branch_mask;
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        prf_ready_0 = 1'h1;
-        prf_ready_1 = 1'h1;
-        prf_ready_2 = 1'h1;
-        prf_ready_3 = 1'h1;
-        prf_ready_4 = 1'h1;
-        prf_ready_5 = 1'h1;
-        prf_ready_6 = 1'h1;
-        prf_ready_7 = 1'h1;
-        prf_ready_8 = 1'h1;
-        prf_ready_9 = 1'h1;
-        prf_ready_10 = 1'h1;
-        prf_ready_11 = 1'h1;
-        prf_ready_12 = 1'h1;
-        prf_ready_13 = 1'h1;
-        prf_ready_14 = 1'h1;
-        prf_ready_15 = 1'h1;
-        prf_ready_16 = 1'h1;
-        prf_ready_17 = 1'h1;
-        prf_ready_18 = 1'h1;
-        prf_ready_19 = 1'h1;
-        prf_ready_20 = 1'h1;
-        prf_ready_21 = 1'h1;
-        prf_ready_22 = 1'h1;
-        prf_ready_23 = 1'h1;
-        prf_ready_24 = 1'h1;
-        prf_ready_25 = 1'h1;
-        prf_ready_26 = 1'h1;
-        prf_ready_27 = 1'h1;
-        prf_ready_28 = 1'h1;
-        prf_ready_29 = 1'h1;
-        prf_ready_30 = 1'h1;
-        prf_ready_31 = 1'h1;
-        prf_ready_32 = 1'h1;
-        prf_ready_33 = 1'h1;
-        prf_ready_34 = 1'h1;
-        prf_ready_35 = 1'h1;
-        prf_ready_36 = 1'h1;
-        prf_ready_37 = 1'h1;
-        prf_ready_38 = 1'h1;
-        prf_ready_39 = 1'h1;
-        prf_ready_40 = 1'h1;
-        prf_ready_41 = 1'h1;
-        prf_ready_42 = 1'h1;
-        prf_ready_43 = 1'h1;
-        prf_ready_44 = 1'h1;
-        prf_ready_45 = 1'h1;
-        prf_ready_46 = 1'h1;
-        prf_ready_47 = 1'h1;
-        prf_ready_48 = 1'h1;
-        prf_ready_49 = 1'h1;
-        prf_ready_50 = 1'h1;
-        prf_ready_51 = 1'h1;
-        prf_ready_52 = 1'h1;
-        prf_ready_53 = 1'h1;
-        prf_ready_54 = 1'h1;
-        prf_ready_55 = 1'h1;
-        prf_ready_56 = 1'h1;
-        prf_ready_57 = 1'h1;
-        prf_ready_58 = 1'h1;
-        prf_ready_59 = 1'h1;
-        prf_ready_60 = 1'h1;
-        prf_ready_61 = 1'h1;
-        prf_ready_62 = 1'h1;
-        prf_ready_63 = 1'h1;
-        iq_0_valid = 1'h0;
-        iq_0_psrc1 = 6'h0;
-        iq_0_psrc1_rdy = 1'h0;
-        iq_0_psrc2 = 6'h0;
-        iq_0_psrc2_rdy = 1'h0;
-        iq_0_data_pc = 32'h0;
-        iq_0_data_inst = 32'h0;
-        iq_0_data_aluOp = 13'h0;
-        iq_0_data_mduOp = 7'h0;
-        iq_0_data_brType = 9'h0;
-        iq_0_data_imm = 32'h0;
-        iq_0_data_src1IsPC = 1'h0;
-        iq_0_data_src2IsImm = 1'h0;
-        iq_0_data_src2IsFour = 1'h0;
-        iq_0_data_src1_addr = 5'h0;
-        iq_0_data_resFromMulDiv = 1'h0;
-        iq_0_data_memWe = 1'h0;
-        iq_0_data_lsOp = 8'h0;
-        iq_0_data_resFromMem = 1'h0;
-        iq_0_data_regWriteEn = 1'h0;
-        iq_0_data_aux_data = 32'h0;
-        iq_0_data_hasException = 1'h0;
-        iq_0_data_ecode = 6'h0;
-        iq_0_data_isCsr = 1'h0;
-        iq_0_data_csrWe = 1'h0;
-        iq_0_data_csrNum = 14'h0;
-        iq_0_data_inst_ertn = 1'h0;
-        iq_0_data_rdtimel = 1'h0;
-        iq_0_data_rdtimeh = 1'h0;
-        iq_0_data_tlbOp = 5'h0;
-        iq_0_data_invtlb_op = 5'h0;
-        iq_0_data_is_refetch = 1'h0;
-        iq_0_data_is_cacop = 1'h0;
-        iq_0_data_cacop_op = 5'h0;
-        iq_0_data_rob_idx = 5'h0;
-        iq_0_data_src1_read = 1'h0;
-        iq_0_data_src2_read = 1'h0;
-        iq_0_data_pdest = 6'h0;
-        iq_0_data_psrc1 = 6'h0;
-        iq_0_data_psrc2 = 6'h0;
-        iq_0_data_is_branch = 1'h0;
-        iq_0_data_branch_tag = 2'h0;
-        iq_0_data_branch_mask = 4'h0;
-        iq_0_data_lsq_idx = 4'h0;
-        iq_0_data_pred_taken = 1'h0;
-        iq_0_data_pred_target = 32'h0;
-        iq_0_data_bpu_type = 2'h0;
-        iq_0_data_ghr = 10'h0;
-        iq_0_data_ras_tos = 4'h0;
-        iq_0_data_br_actual_taken = 1'h0;
-        iq_0_data_br_type = 2'h0;
-        iq_0_data_bimodal_pred = 1'h0;
-        iq_0_data_gshare_pred = 1'h0;
-        iq_1_valid = 1'h0;
-        iq_1_psrc1 = 6'h0;
-        iq_1_psrc1_rdy = 1'h0;
-        iq_1_psrc2 = 6'h0;
-        iq_1_psrc2_rdy = 1'h0;
-        iq_1_data_pc = 32'h0;
-        iq_1_data_inst = 32'h0;
-        iq_1_data_aluOp = 13'h0;
-        iq_1_data_mduOp = 7'h0;
-        iq_1_data_brType = 9'h0;
-        iq_1_data_imm = 32'h0;
-        iq_1_data_src1IsPC = 1'h0;
-        iq_1_data_src2IsImm = 1'h0;
-        iq_1_data_src2IsFour = 1'h0;
-        iq_1_data_src1_addr = 5'h0;
-        iq_1_data_resFromMulDiv = 1'h0;
-        iq_1_data_memWe = 1'h0;
-        iq_1_data_lsOp = 8'h0;
-        iq_1_data_resFromMem = 1'h0;
-        iq_1_data_regWriteEn = 1'h0;
-        iq_1_data_aux_data = 32'h0;
-        iq_1_data_hasException = 1'h0;
-        iq_1_data_ecode = 6'h0;
-        iq_1_data_isCsr = 1'h0;
-        iq_1_data_csrWe = 1'h0;
-        iq_1_data_csrNum = 14'h0;
-        iq_1_data_inst_ertn = 1'h0;
-        iq_1_data_rdtimel = 1'h0;
-        iq_1_data_rdtimeh = 1'h0;
-        iq_1_data_tlbOp = 5'h0;
-        iq_1_data_invtlb_op = 5'h0;
-        iq_1_data_is_refetch = 1'h0;
-        iq_1_data_is_cacop = 1'h0;
-        iq_1_data_cacop_op = 5'h0;
-        iq_1_data_rob_idx = 5'h0;
-        iq_1_data_src1_read = 1'h0;
-        iq_1_data_src2_read = 1'h0;
-        iq_1_data_pdest = 6'h0;
-        iq_1_data_psrc1 = 6'h0;
-        iq_1_data_psrc2 = 6'h0;
-        iq_1_data_is_branch = 1'h0;
-        iq_1_data_branch_tag = 2'h0;
-        iq_1_data_branch_mask = 4'h0;
-        iq_1_data_lsq_idx = 4'h0;
-        iq_1_data_pred_taken = 1'h0;
-        iq_1_data_pred_target = 32'h0;
-        iq_1_data_bpu_type = 2'h0;
-        iq_1_data_ghr = 10'h0;
-        iq_1_data_ras_tos = 4'h0;
-        iq_1_data_br_actual_taken = 1'h0;
-        iq_1_data_br_type = 2'h0;
-        iq_1_data_bimodal_pred = 1'h0;
-        iq_1_data_gshare_pred = 1'h0;
-        iq_2_valid = 1'h0;
-        iq_2_psrc1 = 6'h0;
-        iq_2_psrc1_rdy = 1'h0;
-        iq_2_psrc2 = 6'h0;
-        iq_2_psrc2_rdy = 1'h0;
-        iq_2_data_pc = 32'h0;
-        iq_2_data_inst = 32'h0;
-        iq_2_data_aluOp = 13'h0;
-        iq_2_data_mduOp = 7'h0;
-        iq_2_data_brType = 9'h0;
-        iq_2_data_imm = 32'h0;
-        iq_2_data_src1IsPC = 1'h0;
-        iq_2_data_src2IsImm = 1'h0;
-        iq_2_data_src2IsFour = 1'h0;
-        iq_2_data_src1_addr = 5'h0;
-        iq_2_data_resFromMulDiv = 1'h0;
-        iq_2_data_memWe = 1'h0;
-        iq_2_data_lsOp = 8'h0;
-        iq_2_data_resFromMem = 1'h0;
-        iq_2_data_regWriteEn = 1'h0;
-        iq_2_data_aux_data = 32'h0;
-        iq_2_data_hasException = 1'h0;
-        iq_2_data_ecode = 6'h0;
-        iq_2_data_isCsr = 1'h0;
-        iq_2_data_csrWe = 1'h0;
-        iq_2_data_csrNum = 14'h0;
-        iq_2_data_inst_ertn = 1'h0;
-        iq_2_data_rdtimel = 1'h0;
-        iq_2_data_rdtimeh = 1'h0;
-        iq_2_data_tlbOp = 5'h0;
-        iq_2_data_invtlb_op = 5'h0;
-        iq_2_data_is_refetch = 1'h0;
-        iq_2_data_is_cacop = 1'h0;
-        iq_2_data_cacop_op = 5'h0;
-        iq_2_data_rob_idx = 5'h0;
-        iq_2_data_src1_read = 1'h0;
-        iq_2_data_src2_read = 1'h0;
-        iq_2_data_pdest = 6'h0;
-        iq_2_data_psrc1 = 6'h0;
-        iq_2_data_psrc2 = 6'h0;
-        iq_2_data_is_branch = 1'h0;
-        iq_2_data_branch_tag = 2'h0;
-        iq_2_data_branch_mask = 4'h0;
-        iq_2_data_lsq_idx = 4'h0;
-        iq_2_data_pred_taken = 1'h0;
-        iq_2_data_pred_target = 32'h0;
-        iq_2_data_bpu_type = 2'h0;
-        iq_2_data_ghr = 10'h0;
-        iq_2_data_ras_tos = 4'h0;
-        iq_2_data_br_actual_taken = 1'h0;
-        iq_2_data_br_type = 2'h0;
-        iq_2_data_bimodal_pred = 1'h0;
-        iq_2_data_gshare_pred = 1'h0;
-        iq_3_valid = 1'h0;
-        iq_3_psrc1 = 6'h0;
-        iq_3_psrc1_rdy = 1'h0;
-        iq_3_psrc2 = 6'h0;
-        iq_3_psrc2_rdy = 1'h0;
-        iq_3_data_pc = 32'h0;
-        iq_3_data_inst = 32'h0;
-        iq_3_data_aluOp = 13'h0;
-        iq_3_data_mduOp = 7'h0;
-        iq_3_data_brType = 9'h0;
-        iq_3_data_imm = 32'h0;
-        iq_3_data_src1IsPC = 1'h0;
-        iq_3_data_src2IsImm = 1'h0;
-        iq_3_data_src2IsFour = 1'h0;
-        iq_3_data_src1_addr = 5'h0;
-        iq_3_data_resFromMulDiv = 1'h0;
-        iq_3_data_memWe = 1'h0;
-        iq_3_data_lsOp = 8'h0;
-        iq_3_data_resFromMem = 1'h0;
-        iq_3_data_regWriteEn = 1'h0;
-        iq_3_data_aux_data = 32'h0;
-        iq_3_data_hasException = 1'h0;
-        iq_3_data_ecode = 6'h0;
-        iq_3_data_isCsr = 1'h0;
-        iq_3_data_csrWe = 1'h0;
-        iq_3_data_csrNum = 14'h0;
-        iq_3_data_inst_ertn = 1'h0;
-        iq_3_data_rdtimel = 1'h0;
-        iq_3_data_rdtimeh = 1'h0;
-        iq_3_data_tlbOp = 5'h0;
-        iq_3_data_invtlb_op = 5'h0;
-        iq_3_data_is_refetch = 1'h0;
-        iq_3_data_is_cacop = 1'h0;
-        iq_3_data_cacop_op = 5'h0;
-        iq_3_data_rob_idx = 5'h0;
-        iq_3_data_src1_read = 1'h0;
-        iq_3_data_src2_read = 1'h0;
-        iq_3_data_pdest = 6'h0;
-        iq_3_data_psrc1 = 6'h0;
-        iq_3_data_psrc2 = 6'h0;
-        iq_3_data_is_branch = 1'h0;
-        iq_3_data_branch_tag = 2'h0;
-        iq_3_data_branch_mask = 4'h0;
-        iq_3_data_lsq_idx = 4'h0;
-        iq_3_data_pred_taken = 1'h0;
-        iq_3_data_pred_target = 32'h0;
-        iq_3_data_bpu_type = 2'h0;
-        iq_3_data_ghr = 10'h0;
-        iq_3_data_ras_tos = 4'h0;
-        iq_3_data_br_actual_taken = 1'h0;
-        iq_3_data_br_type = 2'h0;
-        iq_3_data_bimodal_pred = 1'h0;
-        iq_3_data_gshare_pred = 1'h0;
-        iq_4_valid = 1'h0;
-        iq_4_psrc1 = 6'h0;
-        iq_4_psrc1_rdy = 1'h0;
-        iq_4_psrc2 = 6'h0;
-        iq_4_psrc2_rdy = 1'h0;
-        iq_4_data_pc = 32'h0;
-        iq_4_data_inst = 32'h0;
-        iq_4_data_aluOp = 13'h0;
-        iq_4_data_mduOp = 7'h0;
-        iq_4_data_brType = 9'h0;
-        iq_4_data_imm = 32'h0;
-        iq_4_data_src1IsPC = 1'h0;
-        iq_4_data_src2IsImm = 1'h0;
-        iq_4_data_src2IsFour = 1'h0;
-        iq_4_data_src1_addr = 5'h0;
-        iq_4_data_resFromMulDiv = 1'h0;
-        iq_4_data_memWe = 1'h0;
-        iq_4_data_lsOp = 8'h0;
-        iq_4_data_resFromMem = 1'h0;
-        iq_4_data_regWriteEn = 1'h0;
-        iq_4_data_aux_data = 32'h0;
-        iq_4_data_hasException = 1'h0;
-        iq_4_data_ecode = 6'h0;
-        iq_4_data_isCsr = 1'h0;
-        iq_4_data_csrWe = 1'h0;
-        iq_4_data_csrNum = 14'h0;
-        iq_4_data_inst_ertn = 1'h0;
-        iq_4_data_rdtimel = 1'h0;
-        iq_4_data_rdtimeh = 1'h0;
-        iq_4_data_tlbOp = 5'h0;
-        iq_4_data_invtlb_op = 5'h0;
-        iq_4_data_is_refetch = 1'h0;
-        iq_4_data_is_cacop = 1'h0;
-        iq_4_data_cacop_op = 5'h0;
-        iq_4_data_rob_idx = 5'h0;
-        iq_4_data_src1_read = 1'h0;
-        iq_4_data_src2_read = 1'h0;
-        iq_4_data_pdest = 6'h0;
-        iq_4_data_psrc1 = 6'h0;
-        iq_4_data_psrc2 = 6'h0;
-        iq_4_data_is_branch = 1'h0;
-        iq_4_data_branch_tag = 2'h0;
-        iq_4_data_branch_mask = 4'h0;
-        iq_4_data_lsq_idx = 4'h0;
-        iq_4_data_pred_taken = 1'h0;
-        iq_4_data_pred_target = 32'h0;
-        iq_4_data_bpu_type = 2'h0;
-        iq_4_data_ghr = 10'h0;
-        iq_4_data_ras_tos = 4'h0;
-        iq_4_data_br_actual_taken = 1'h0;
-        iq_4_data_br_type = 2'h0;
-        iq_4_data_bimodal_pred = 1'h0;
-        iq_4_data_gshare_pred = 1'h0;
-        iq_5_valid = 1'h0;
-        iq_5_psrc1 = 6'h0;
-        iq_5_psrc1_rdy = 1'h0;
-        iq_5_psrc2 = 6'h0;
-        iq_5_psrc2_rdy = 1'h0;
-        iq_5_data_pc = 32'h0;
-        iq_5_data_inst = 32'h0;
-        iq_5_data_aluOp = 13'h0;
-        iq_5_data_mduOp = 7'h0;
-        iq_5_data_brType = 9'h0;
-        iq_5_data_imm = 32'h0;
-        iq_5_data_src1IsPC = 1'h0;
-        iq_5_data_src2IsImm = 1'h0;
-        iq_5_data_src2IsFour = 1'h0;
-        iq_5_data_src1_addr = 5'h0;
-        iq_5_data_resFromMulDiv = 1'h0;
-        iq_5_data_memWe = 1'h0;
-        iq_5_data_lsOp = 8'h0;
-        iq_5_data_resFromMem = 1'h0;
-        iq_5_data_regWriteEn = 1'h0;
-        iq_5_data_aux_data = 32'h0;
-        iq_5_data_hasException = 1'h0;
-        iq_5_data_ecode = 6'h0;
-        iq_5_data_isCsr = 1'h0;
-        iq_5_data_csrWe = 1'h0;
-        iq_5_data_csrNum = 14'h0;
-        iq_5_data_inst_ertn = 1'h0;
-        iq_5_data_rdtimel = 1'h0;
-        iq_5_data_rdtimeh = 1'h0;
-        iq_5_data_tlbOp = 5'h0;
-        iq_5_data_invtlb_op = 5'h0;
-        iq_5_data_is_refetch = 1'h0;
-        iq_5_data_is_cacop = 1'h0;
-        iq_5_data_cacop_op = 5'h0;
-        iq_5_data_rob_idx = 5'h0;
-        iq_5_data_src1_read = 1'h0;
-        iq_5_data_src2_read = 1'h0;
-        iq_5_data_pdest = 6'h0;
-        iq_5_data_psrc1 = 6'h0;
-        iq_5_data_psrc2 = 6'h0;
-        iq_5_data_is_branch = 1'h0;
-        iq_5_data_branch_tag = 2'h0;
-        iq_5_data_branch_mask = 4'h0;
-        iq_5_data_lsq_idx = 4'h0;
-        iq_5_data_pred_taken = 1'h0;
-        iq_5_data_pred_target = 32'h0;
-        iq_5_data_bpu_type = 2'h0;
-        iq_5_data_ghr = 10'h0;
-        iq_5_data_ras_tos = 4'h0;
-        iq_5_data_br_actual_taken = 1'h0;
-        iq_5_data_br_type = 2'h0;
-        iq_5_data_bimodal_pred = 1'h0;
-        iq_5_data_gshare_pred = 1'h0;
-        iq_6_valid = 1'h0;
-        iq_6_psrc1 = 6'h0;
-        iq_6_psrc1_rdy = 1'h0;
-        iq_6_psrc2 = 6'h0;
-        iq_6_psrc2_rdy = 1'h0;
-        iq_6_data_pc = 32'h0;
-        iq_6_data_inst = 32'h0;
-        iq_6_data_aluOp = 13'h0;
-        iq_6_data_mduOp = 7'h0;
-        iq_6_data_brType = 9'h0;
-        iq_6_data_imm = 32'h0;
-        iq_6_data_src1IsPC = 1'h0;
-        iq_6_data_src2IsImm = 1'h0;
-        iq_6_data_src2IsFour = 1'h0;
-        iq_6_data_src1_addr = 5'h0;
-        iq_6_data_resFromMulDiv = 1'h0;
-        iq_6_data_memWe = 1'h0;
-        iq_6_data_lsOp = 8'h0;
-        iq_6_data_resFromMem = 1'h0;
-        iq_6_data_regWriteEn = 1'h0;
-        iq_6_data_aux_data = 32'h0;
-        iq_6_data_hasException = 1'h0;
-        iq_6_data_ecode = 6'h0;
-        iq_6_data_isCsr = 1'h0;
-        iq_6_data_csrWe = 1'h0;
-        iq_6_data_csrNum = 14'h0;
-        iq_6_data_inst_ertn = 1'h0;
-        iq_6_data_rdtimel = 1'h0;
-        iq_6_data_rdtimeh = 1'h0;
-        iq_6_data_tlbOp = 5'h0;
-        iq_6_data_invtlb_op = 5'h0;
-        iq_6_data_is_refetch = 1'h0;
-        iq_6_data_is_cacop = 1'h0;
-        iq_6_data_cacop_op = 5'h0;
-        iq_6_data_rob_idx = 5'h0;
-        iq_6_data_src1_read = 1'h0;
-        iq_6_data_src2_read = 1'h0;
-        iq_6_data_pdest = 6'h0;
-        iq_6_data_psrc1 = 6'h0;
-        iq_6_data_psrc2 = 6'h0;
-        iq_6_data_is_branch = 1'h0;
-        iq_6_data_branch_tag = 2'h0;
-        iq_6_data_branch_mask = 4'h0;
-        iq_6_data_lsq_idx = 4'h0;
-        iq_6_data_pred_taken = 1'h0;
-        iq_6_data_pred_target = 32'h0;
-        iq_6_data_bpu_type = 2'h0;
-        iq_6_data_ghr = 10'h0;
-        iq_6_data_ras_tos = 4'h0;
-        iq_6_data_br_actual_taken = 1'h0;
-        iq_6_data_br_type = 2'h0;
-        iq_6_data_bimodal_pred = 1'h0;
-        iq_6_data_gshare_pred = 1'h0;
-        iq_7_valid = 1'h0;
-        iq_7_psrc1 = 6'h0;
-        iq_7_psrc1_rdy = 1'h0;
-        iq_7_psrc2 = 6'h0;
-        iq_7_psrc2_rdy = 1'h0;
-        iq_7_data_pc = 32'h0;
-        iq_7_data_inst = 32'h0;
-        iq_7_data_aluOp = 13'h0;
-        iq_7_data_mduOp = 7'h0;
-        iq_7_data_brType = 9'h0;
-        iq_7_data_imm = 32'h0;
-        iq_7_data_src1IsPC = 1'h0;
-        iq_7_data_src2IsImm = 1'h0;
-        iq_7_data_src2IsFour = 1'h0;
-        iq_7_data_src1_addr = 5'h0;
-        iq_7_data_resFromMulDiv = 1'h0;
-        iq_7_data_memWe = 1'h0;
-        iq_7_data_lsOp = 8'h0;
-        iq_7_data_resFromMem = 1'h0;
-        iq_7_data_regWriteEn = 1'h0;
-        iq_7_data_aux_data = 32'h0;
-        iq_7_data_hasException = 1'h0;
-        iq_7_data_ecode = 6'h0;
-        iq_7_data_isCsr = 1'h0;
-        iq_7_data_csrWe = 1'h0;
-        iq_7_data_csrNum = 14'h0;
-        iq_7_data_inst_ertn = 1'h0;
-        iq_7_data_rdtimel = 1'h0;
-        iq_7_data_rdtimeh = 1'h0;
-        iq_7_data_tlbOp = 5'h0;
-        iq_7_data_invtlb_op = 5'h0;
-        iq_7_data_is_refetch = 1'h0;
-        iq_7_data_is_cacop = 1'h0;
-        iq_7_data_cacop_op = 5'h0;
-        iq_7_data_rob_idx = 5'h0;
-        iq_7_data_src1_read = 1'h0;
-        iq_7_data_src2_read = 1'h0;
-        iq_7_data_pdest = 6'h0;
-        iq_7_data_psrc1 = 6'h0;
-        iq_7_data_psrc2 = 6'h0;
-        iq_7_data_is_branch = 1'h0;
-        iq_7_data_branch_tag = 2'h0;
-        iq_7_data_branch_mask = 4'h0;
-        iq_7_data_lsq_idx = 4'h0;
-        iq_7_data_pred_taken = 1'h0;
-        iq_7_data_pred_target = 32'h0;
-        iq_7_data_bpu_type = 2'h0;
-        iq_7_data_ghr = 10'h0;
-        iq_7_data_ras_tos = 4'h0;
-        iq_7_data_br_actual_taken = 1'h0;
-        iq_7_data_br_type = 2'h0;
-        iq_7_data_bimodal_pred = 1'h0;
-        iq_7_data_gshare_pred = 1'h0;
-        iq_8_valid = 1'h0;
-        iq_8_psrc1 = 6'h0;
-        iq_8_psrc1_rdy = 1'h0;
-        iq_8_psrc2 = 6'h0;
-        iq_8_psrc2_rdy = 1'h0;
-        iq_8_data_pc = 32'h0;
-        iq_8_data_inst = 32'h0;
-        iq_8_data_aluOp = 13'h0;
-        iq_8_data_mduOp = 7'h0;
-        iq_8_data_brType = 9'h0;
-        iq_8_data_imm = 32'h0;
-        iq_8_data_src1IsPC = 1'h0;
-        iq_8_data_src2IsImm = 1'h0;
-        iq_8_data_src2IsFour = 1'h0;
-        iq_8_data_src1_addr = 5'h0;
-        iq_8_data_resFromMulDiv = 1'h0;
-        iq_8_data_memWe = 1'h0;
-        iq_8_data_lsOp = 8'h0;
-        iq_8_data_resFromMem = 1'h0;
-        iq_8_data_regWriteEn = 1'h0;
-        iq_8_data_aux_data = 32'h0;
-        iq_8_data_hasException = 1'h0;
-        iq_8_data_ecode = 6'h0;
-        iq_8_data_isCsr = 1'h0;
-        iq_8_data_csrWe = 1'h0;
-        iq_8_data_csrNum = 14'h0;
-        iq_8_data_inst_ertn = 1'h0;
-        iq_8_data_rdtimel = 1'h0;
-        iq_8_data_rdtimeh = 1'h0;
-        iq_8_data_tlbOp = 5'h0;
-        iq_8_data_invtlb_op = 5'h0;
-        iq_8_data_is_refetch = 1'h0;
-        iq_8_data_is_cacop = 1'h0;
-        iq_8_data_cacop_op = 5'h0;
-        iq_8_data_rob_idx = 5'h0;
-        iq_8_data_src1_read = 1'h0;
-        iq_8_data_src2_read = 1'h0;
-        iq_8_data_pdest = 6'h0;
-        iq_8_data_psrc1 = 6'h0;
-        iq_8_data_psrc2 = 6'h0;
-        iq_8_data_is_branch = 1'h0;
-        iq_8_data_branch_tag = 2'h0;
-        iq_8_data_branch_mask = 4'h0;
-        iq_8_data_lsq_idx = 4'h0;
-        iq_8_data_pred_taken = 1'h0;
-        iq_8_data_pred_target = 32'h0;
-        iq_8_data_bpu_type = 2'h0;
-        iq_8_data_ghr = 10'h0;
-        iq_8_data_ras_tos = 4'h0;
-        iq_8_data_br_actual_taken = 1'h0;
-        iq_8_data_br_type = 2'h0;
-        iq_8_data_bimodal_pred = 1'h0;
-        iq_8_data_gshare_pred = 1'h0;
-        iq_9_valid = 1'h0;
-        iq_9_psrc1 = 6'h0;
-        iq_9_psrc1_rdy = 1'h0;
-        iq_9_psrc2 = 6'h0;
-        iq_9_psrc2_rdy = 1'h0;
-        iq_9_data_pc = 32'h0;
-        iq_9_data_inst = 32'h0;
-        iq_9_data_aluOp = 13'h0;
-        iq_9_data_mduOp = 7'h0;
-        iq_9_data_brType = 9'h0;
-        iq_9_data_imm = 32'h0;
-        iq_9_data_src1IsPC = 1'h0;
-        iq_9_data_src2IsImm = 1'h0;
-        iq_9_data_src2IsFour = 1'h0;
-        iq_9_data_src1_addr = 5'h0;
-        iq_9_data_resFromMulDiv = 1'h0;
-        iq_9_data_memWe = 1'h0;
-        iq_9_data_lsOp = 8'h0;
-        iq_9_data_resFromMem = 1'h0;
-        iq_9_data_regWriteEn = 1'h0;
-        iq_9_data_aux_data = 32'h0;
-        iq_9_data_hasException = 1'h0;
-        iq_9_data_ecode = 6'h0;
-        iq_9_data_isCsr = 1'h0;
-        iq_9_data_csrWe = 1'h0;
-        iq_9_data_csrNum = 14'h0;
-        iq_9_data_inst_ertn = 1'h0;
-        iq_9_data_rdtimel = 1'h0;
-        iq_9_data_rdtimeh = 1'h0;
-        iq_9_data_tlbOp = 5'h0;
-        iq_9_data_invtlb_op = 5'h0;
-        iq_9_data_is_refetch = 1'h0;
-        iq_9_data_is_cacop = 1'h0;
-        iq_9_data_cacop_op = 5'h0;
-        iq_9_data_rob_idx = 5'h0;
-        iq_9_data_src1_read = 1'h0;
-        iq_9_data_src2_read = 1'h0;
-        iq_9_data_pdest = 6'h0;
-        iq_9_data_psrc1 = 6'h0;
-        iq_9_data_psrc2 = 6'h0;
-        iq_9_data_is_branch = 1'h0;
-        iq_9_data_branch_tag = 2'h0;
-        iq_9_data_branch_mask = 4'h0;
-        iq_9_data_lsq_idx = 4'h0;
-        iq_9_data_pred_taken = 1'h0;
-        iq_9_data_pred_target = 32'h0;
-        iq_9_data_bpu_type = 2'h0;
-        iq_9_data_ghr = 10'h0;
-        iq_9_data_ras_tos = 4'h0;
-        iq_9_data_br_actual_taken = 1'h0;
-        iq_9_data_br_type = 2'h0;
-        iq_9_data_bimodal_pred = 1'h0;
-        iq_9_data_gshare_pred = 1'h0;
-        iq_10_valid = 1'h0;
-        iq_10_psrc1 = 6'h0;
-        iq_10_psrc1_rdy = 1'h0;
-        iq_10_psrc2 = 6'h0;
-        iq_10_psrc2_rdy = 1'h0;
-        iq_10_data_pc = 32'h0;
-        iq_10_data_inst = 32'h0;
-        iq_10_data_aluOp = 13'h0;
-        iq_10_data_mduOp = 7'h0;
-        iq_10_data_brType = 9'h0;
-        iq_10_data_imm = 32'h0;
-        iq_10_data_src1IsPC = 1'h0;
-        iq_10_data_src2IsImm = 1'h0;
-        iq_10_data_src2IsFour = 1'h0;
-        iq_10_data_src1_addr = 5'h0;
-        iq_10_data_resFromMulDiv = 1'h0;
-        iq_10_data_memWe = 1'h0;
-        iq_10_data_lsOp = 8'h0;
-        iq_10_data_resFromMem = 1'h0;
-        iq_10_data_regWriteEn = 1'h0;
-        iq_10_data_aux_data = 32'h0;
-        iq_10_data_hasException = 1'h0;
-        iq_10_data_ecode = 6'h0;
-        iq_10_data_isCsr = 1'h0;
-        iq_10_data_csrWe = 1'h0;
-        iq_10_data_csrNum = 14'h0;
-        iq_10_data_inst_ertn = 1'h0;
-        iq_10_data_rdtimel = 1'h0;
-        iq_10_data_rdtimeh = 1'h0;
-        iq_10_data_tlbOp = 5'h0;
-        iq_10_data_invtlb_op = 5'h0;
-        iq_10_data_is_refetch = 1'h0;
-        iq_10_data_is_cacop = 1'h0;
-        iq_10_data_cacop_op = 5'h0;
-        iq_10_data_rob_idx = 5'h0;
-        iq_10_data_src1_read = 1'h0;
-        iq_10_data_src2_read = 1'h0;
-        iq_10_data_pdest = 6'h0;
-        iq_10_data_psrc1 = 6'h0;
-        iq_10_data_psrc2 = 6'h0;
-        iq_10_data_is_branch = 1'h0;
-        iq_10_data_branch_tag = 2'h0;
-        iq_10_data_branch_mask = 4'h0;
-        iq_10_data_lsq_idx = 4'h0;
-        iq_10_data_pred_taken = 1'h0;
-        iq_10_data_pred_target = 32'h0;
-        iq_10_data_bpu_type = 2'h0;
-        iq_10_data_ghr = 10'h0;
-        iq_10_data_ras_tos = 4'h0;
-        iq_10_data_br_actual_taken = 1'h0;
-        iq_10_data_br_type = 2'h0;
-        iq_10_data_bimodal_pred = 1'h0;
-        iq_10_data_gshare_pred = 1'h0;
-        iq_11_valid = 1'h0;
-        iq_11_psrc1 = 6'h0;
-        iq_11_psrc1_rdy = 1'h0;
-        iq_11_psrc2 = 6'h0;
-        iq_11_psrc2_rdy = 1'h0;
-        iq_11_data_pc = 32'h0;
-        iq_11_data_inst = 32'h0;
-        iq_11_data_aluOp = 13'h0;
-        iq_11_data_mduOp = 7'h0;
-        iq_11_data_brType = 9'h0;
-        iq_11_data_imm = 32'h0;
-        iq_11_data_src1IsPC = 1'h0;
-        iq_11_data_src2IsImm = 1'h0;
-        iq_11_data_src2IsFour = 1'h0;
-        iq_11_data_src1_addr = 5'h0;
-        iq_11_data_resFromMulDiv = 1'h0;
-        iq_11_data_memWe = 1'h0;
-        iq_11_data_lsOp = 8'h0;
-        iq_11_data_resFromMem = 1'h0;
-        iq_11_data_regWriteEn = 1'h0;
-        iq_11_data_aux_data = 32'h0;
-        iq_11_data_hasException = 1'h0;
-        iq_11_data_ecode = 6'h0;
-        iq_11_data_isCsr = 1'h0;
-        iq_11_data_csrWe = 1'h0;
-        iq_11_data_csrNum = 14'h0;
-        iq_11_data_inst_ertn = 1'h0;
-        iq_11_data_rdtimel = 1'h0;
-        iq_11_data_rdtimeh = 1'h0;
-        iq_11_data_tlbOp = 5'h0;
-        iq_11_data_invtlb_op = 5'h0;
-        iq_11_data_is_refetch = 1'h0;
-        iq_11_data_is_cacop = 1'h0;
-        iq_11_data_cacop_op = 5'h0;
-        iq_11_data_rob_idx = 5'h0;
-        iq_11_data_src1_read = 1'h0;
-        iq_11_data_src2_read = 1'h0;
-        iq_11_data_pdest = 6'h0;
-        iq_11_data_psrc1 = 6'h0;
-        iq_11_data_psrc2 = 6'h0;
-        iq_11_data_is_branch = 1'h0;
-        iq_11_data_branch_tag = 2'h0;
-        iq_11_data_branch_mask = 4'h0;
-        iq_11_data_lsq_idx = 4'h0;
-        iq_11_data_pred_taken = 1'h0;
-        iq_11_data_pred_target = 32'h0;
-        iq_11_data_bpu_type = 2'h0;
-        iq_11_data_ghr = 10'h0;
-        iq_11_data_ras_tos = 4'h0;
-        iq_11_data_br_actual_taken = 1'h0;
-        iq_11_data_br_type = 2'h0;
-        iq_11_data_bimodal_pred = 1'h0;
-        iq_11_data_gshare_pred = 1'h0;
-        iq_12_valid = 1'h0;
-        iq_12_psrc1 = 6'h0;
-        iq_12_psrc1_rdy = 1'h0;
-        iq_12_psrc2 = 6'h0;
-        iq_12_psrc2_rdy = 1'h0;
-        iq_12_data_pc = 32'h0;
-        iq_12_data_inst = 32'h0;
-        iq_12_data_aluOp = 13'h0;
-        iq_12_data_mduOp = 7'h0;
-        iq_12_data_brType = 9'h0;
-        iq_12_data_imm = 32'h0;
-        iq_12_data_src1IsPC = 1'h0;
-        iq_12_data_src2IsImm = 1'h0;
-        iq_12_data_src2IsFour = 1'h0;
-        iq_12_data_src1_addr = 5'h0;
-        iq_12_data_resFromMulDiv = 1'h0;
-        iq_12_data_memWe = 1'h0;
-        iq_12_data_lsOp = 8'h0;
-        iq_12_data_resFromMem = 1'h0;
-        iq_12_data_regWriteEn = 1'h0;
-        iq_12_data_aux_data = 32'h0;
-        iq_12_data_hasException = 1'h0;
-        iq_12_data_ecode = 6'h0;
-        iq_12_data_isCsr = 1'h0;
-        iq_12_data_csrWe = 1'h0;
-        iq_12_data_csrNum = 14'h0;
-        iq_12_data_inst_ertn = 1'h0;
-        iq_12_data_rdtimel = 1'h0;
-        iq_12_data_rdtimeh = 1'h0;
-        iq_12_data_tlbOp = 5'h0;
-        iq_12_data_invtlb_op = 5'h0;
-        iq_12_data_is_refetch = 1'h0;
-        iq_12_data_is_cacop = 1'h0;
-        iq_12_data_cacop_op = 5'h0;
-        iq_12_data_rob_idx = 5'h0;
-        iq_12_data_src1_read = 1'h0;
-        iq_12_data_src2_read = 1'h0;
-        iq_12_data_pdest = 6'h0;
-        iq_12_data_psrc1 = 6'h0;
-        iq_12_data_psrc2 = 6'h0;
-        iq_12_data_is_branch = 1'h0;
-        iq_12_data_branch_tag = 2'h0;
-        iq_12_data_branch_mask = 4'h0;
-        iq_12_data_lsq_idx = 4'h0;
-        iq_12_data_pred_taken = 1'h0;
-        iq_12_data_pred_target = 32'h0;
-        iq_12_data_bpu_type = 2'h0;
-        iq_12_data_ghr = 10'h0;
-        iq_12_data_ras_tos = 4'h0;
-        iq_12_data_br_actual_taken = 1'h0;
-        iq_12_data_br_type = 2'h0;
-        iq_12_data_bimodal_pred = 1'h0;
-        iq_12_data_gshare_pred = 1'h0;
-        iq_13_valid = 1'h0;
-        iq_13_psrc1 = 6'h0;
-        iq_13_psrc1_rdy = 1'h0;
-        iq_13_psrc2 = 6'h0;
-        iq_13_psrc2_rdy = 1'h0;
-        iq_13_data_pc = 32'h0;
-        iq_13_data_inst = 32'h0;
-        iq_13_data_aluOp = 13'h0;
-        iq_13_data_mduOp = 7'h0;
-        iq_13_data_brType = 9'h0;
-        iq_13_data_imm = 32'h0;
-        iq_13_data_src1IsPC = 1'h0;
-        iq_13_data_src2IsImm = 1'h0;
-        iq_13_data_src2IsFour = 1'h0;
-        iq_13_data_src1_addr = 5'h0;
-        iq_13_data_resFromMulDiv = 1'h0;
-        iq_13_data_memWe = 1'h0;
-        iq_13_data_lsOp = 8'h0;
-        iq_13_data_resFromMem = 1'h0;
-        iq_13_data_regWriteEn = 1'h0;
-        iq_13_data_aux_data = 32'h0;
-        iq_13_data_hasException = 1'h0;
-        iq_13_data_ecode = 6'h0;
-        iq_13_data_isCsr = 1'h0;
-        iq_13_data_csrWe = 1'h0;
-        iq_13_data_csrNum = 14'h0;
-        iq_13_data_inst_ertn = 1'h0;
-        iq_13_data_rdtimel = 1'h0;
-        iq_13_data_rdtimeh = 1'h0;
-        iq_13_data_tlbOp = 5'h0;
-        iq_13_data_invtlb_op = 5'h0;
-        iq_13_data_is_refetch = 1'h0;
-        iq_13_data_is_cacop = 1'h0;
-        iq_13_data_cacop_op = 5'h0;
-        iq_13_data_rob_idx = 5'h0;
-        iq_13_data_src1_read = 1'h0;
-        iq_13_data_src2_read = 1'h0;
-        iq_13_data_pdest = 6'h0;
-        iq_13_data_psrc1 = 6'h0;
-        iq_13_data_psrc2 = 6'h0;
-        iq_13_data_is_branch = 1'h0;
-        iq_13_data_branch_tag = 2'h0;
-        iq_13_data_branch_mask = 4'h0;
-        iq_13_data_lsq_idx = 4'h0;
-        iq_13_data_pred_taken = 1'h0;
-        iq_13_data_pred_target = 32'h0;
-        iq_13_data_bpu_type = 2'h0;
-        iq_13_data_ghr = 10'h0;
-        iq_13_data_ras_tos = 4'h0;
-        iq_13_data_br_actual_taken = 1'h0;
-        iq_13_data_br_type = 2'h0;
-        iq_13_data_bimodal_pred = 1'h0;
-        iq_13_data_gshare_pred = 1'h0;
-        iq_14_valid = 1'h0;
-        iq_14_psrc1 = 6'h0;
-        iq_14_psrc1_rdy = 1'h0;
-        iq_14_psrc2 = 6'h0;
-        iq_14_psrc2_rdy = 1'h0;
-        iq_14_data_pc = 32'h0;
-        iq_14_data_inst = 32'h0;
-        iq_14_data_aluOp = 13'h0;
-        iq_14_data_mduOp = 7'h0;
-        iq_14_data_brType = 9'h0;
-        iq_14_data_imm = 32'h0;
-        iq_14_data_src1IsPC = 1'h0;
-        iq_14_data_src2IsImm = 1'h0;
-        iq_14_data_src2IsFour = 1'h0;
-        iq_14_data_src1_addr = 5'h0;
-        iq_14_data_resFromMulDiv = 1'h0;
-        iq_14_data_memWe = 1'h0;
-        iq_14_data_lsOp = 8'h0;
-        iq_14_data_resFromMem = 1'h0;
-        iq_14_data_regWriteEn = 1'h0;
-        iq_14_data_aux_data = 32'h0;
-        iq_14_data_hasException = 1'h0;
-        iq_14_data_ecode = 6'h0;
-        iq_14_data_isCsr = 1'h0;
-        iq_14_data_csrWe = 1'h0;
-        iq_14_data_csrNum = 14'h0;
-        iq_14_data_inst_ertn = 1'h0;
-        iq_14_data_rdtimel = 1'h0;
-        iq_14_data_rdtimeh = 1'h0;
-        iq_14_data_tlbOp = 5'h0;
-        iq_14_data_invtlb_op = 5'h0;
-        iq_14_data_is_refetch = 1'h0;
-        iq_14_data_is_cacop = 1'h0;
-        iq_14_data_cacop_op = 5'h0;
-        iq_14_data_rob_idx = 5'h0;
-        iq_14_data_src1_read = 1'h0;
-        iq_14_data_src2_read = 1'h0;
-        iq_14_data_pdest = 6'h0;
-        iq_14_data_psrc1 = 6'h0;
-        iq_14_data_psrc2 = 6'h0;
-        iq_14_data_is_branch = 1'h0;
-        iq_14_data_branch_tag = 2'h0;
-        iq_14_data_branch_mask = 4'h0;
-        iq_14_data_lsq_idx = 4'h0;
-        iq_14_data_pred_taken = 1'h0;
-        iq_14_data_pred_target = 32'h0;
-        iq_14_data_bpu_type = 2'h0;
-        iq_14_data_ghr = 10'h0;
-        iq_14_data_ras_tos = 4'h0;
-        iq_14_data_br_actual_taken = 1'h0;
-        iq_14_data_br_type = 2'h0;
-        iq_14_data_bimodal_pred = 1'h0;
-        iq_14_data_gshare_pred = 1'h0;
-        iq_15_valid = 1'h0;
-        iq_15_psrc1 = 6'h0;
-        iq_15_psrc1_rdy = 1'h0;
-        iq_15_psrc2 = 6'h0;
-        iq_15_psrc2_rdy = 1'h0;
-        iq_15_data_pc = 32'h0;
-        iq_15_data_inst = 32'h0;
-        iq_15_data_aluOp = 13'h0;
-        iq_15_data_mduOp = 7'h0;
-        iq_15_data_brType = 9'h0;
-        iq_15_data_imm = 32'h0;
-        iq_15_data_src1IsPC = 1'h0;
-        iq_15_data_src2IsImm = 1'h0;
-        iq_15_data_src2IsFour = 1'h0;
-        iq_15_data_src1_addr = 5'h0;
-        iq_15_data_resFromMulDiv = 1'h0;
-        iq_15_data_memWe = 1'h0;
-        iq_15_data_lsOp = 8'h0;
-        iq_15_data_resFromMem = 1'h0;
-        iq_15_data_regWriteEn = 1'h0;
-        iq_15_data_aux_data = 32'h0;
-        iq_15_data_hasException = 1'h0;
-        iq_15_data_ecode = 6'h0;
-        iq_15_data_isCsr = 1'h0;
-        iq_15_data_csrWe = 1'h0;
-        iq_15_data_csrNum = 14'h0;
-        iq_15_data_inst_ertn = 1'h0;
-        iq_15_data_rdtimel = 1'h0;
-        iq_15_data_rdtimeh = 1'h0;
-        iq_15_data_tlbOp = 5'h0;
-        iq_15_data_invtlb_op = 5'h0;
-        iq_15_data_is_refetch = 1'h0;
-        iq_15_data_is_cacop = 1'h0;
-        iq_15_data_cacop_op = 5'h0;
-        iq_15_data_rob_idx = 5'h0;
-        iq_15_data_src1_read = 1'h0;
-        iq_15_data_src2_read = 1'h0;
-        iq_15_data_pdest = 6'h0;
-        iq_15_data_psrc1 = 6'h0;
-        iq_15_data_psrc2 = 6'h0;
-        iq_15_data_is_branch = 1'h0;
-        iq_15_data_branch_tag = 2'h0;
-        iq_15_data_branch_mask = 4'h0;
-        iq_15_data_lsq_idx = 4'h0;
-        iq_15_data_pred_taken = 1'h0;
-        iq_15_data_pred_target = 32'h0;
-        iq_15_data_bpu_type = 2'h0;
-        iq_15_data_ghr = 10'h0;
-        iq_15_data_ras_tos = 4'h0;
-        iq_15_data_br_actual_taken = 1'h0;
-        iq_15_data_br_type = 2'h0;
-        iq_15_data_bimodal_pred = 1'h0;
-        iq_15_data_gshare_pred = 1'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   assign io_disp_ready = |_free_cands_no_0_T;
   assign io_disp1_ready = |_GEN;
   assign io_issue_alu0_valid = |_GEN_31;

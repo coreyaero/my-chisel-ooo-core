@@ -119,7 +119,7 @@ module MaskedQueue(
   wire        keep_1 = valid_1 & ~(br_fail & (|(br_tag_bit[3:0] & data_1_branch_mask)));
   wire        do_deq = io_deq_ready & keep_0;
   wire [1:0]  _slots_used_T_4 = {1'h0, keep_0 & ~do_deq} + {1'h0, keep_1};
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset) begin
       valid_0 <= 1'h0;
       data_0_pc <= 32'h0;
@@ -349,71 +349,7 @@ module MaskedQueue(
         data_1_gshare_pred <= io_enq_bits_gshare_pred;
       end
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        valid_0 = 1'h0;
-        data_0_pc = 32'h0;
-        data_0_src2_value = 32'h0;
-        data_0_memWe = 1'h0;
-        data_0_resFromMem = 1'h0;
-        data_0_regWriteEn = 1'h0;
-        data_0_ex_result = 32'h0;
-        data_0_aux_data = 32'h0;
-        data_0_hasException = 1'h0;
-        data_0_ecode = 6'h0;
-        data_0_isCsr = 1'h0;
-        data_0_csrWe = 1'h0;
-        data_0_csrNum = 14'h0;
-        data_0_inst_ertn = 1'h0;
-        data_0_tlbOp = 5'h0;
-        data_0_is_refetch = 1'h0;
-        data_0_is_cacop = 1'h0;
-        data_0_rob_idx = 5'h0;
-        data_0_pdest = 6'h0;
-        data_0_is_branch = 1'h0;
-        data_0_branch_mask = 4'h0;
-        data_0_ghr = 10'h0;
-        data_0_br_actual_taken = 1'h0;
-        data_0_br_type = 2'h0;
-        data_0_bimodal_pred = 1'h0;
-        data_0_gshare_pred = 1'h0;
-        valid_1 = 1'h0;
-        data_1_pc = 32'h0;
-        data_1_src2_value = 32'h0;
-        data_1_memWe = 1'h0;
-        data_1_resFromMem = 1'h0;
-        data_1_regWriteEn = 1'h0;
-        data_1_ex_result = 32'h0;
-        data_1_aux_data = 32'h0;
-        data_1_hasException = 1'h0;
-        data_1_ecode = 6'h0;
-        data_1_isCsr = 1'h0;
-        data_1_csrWe = 1'h0;
-        data_1_csrNum = 14'h0;
-        data_1_inst_ertn = 1'h0;
-        data_1_tlbOp = 5'h0;
-        data_1_is_refetch = 1'h0;
-        data_1_is_cacop = 1'h0;
-        data_1_rob_idx = 5'h0;
-        data_1_pdest = 6'h0;
-        data_1_is_branch = 1'h0;
-        data_1_branch_mask = 4'h0;
-        data_1_ghr = 10'h0;
-        data_1_br_actual_taken = 1'h0;
-        data_1_br_type = 2'h0;
-        data_1_bimodal_pred = 1'h0;
-        data_1_gshare_pred = 1'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   assign io_enq_ready = ~(_slots_used_T_4[1]);
   assign io_deq_valid = keep_0;
   assign io_deq_bits_pc = data_0_pc;

@@ -32,7 +32,7 @@ module Queue2_LsqDcacheReq(
   wire        empty = ptr_match & ~maybe_full;
   wire        full = ptr_match & maybe_full;
   wire        do_enq = ~full & io_enq_valid;
-  always @(posedge clock or posedge reset) begin
+  always @(posedge clock) begin
     if (reset) begin
       enq_ptr_value <= 1'h0;
       deq_ptr_value <= 1'h0;
@@ -47,22 +47,7 @@ module Queue2_LsqDcacheReq(
       if (do_enq != do_deq)
         maybe_full <= do_enq;
     end
-  end // always @(posedge, posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      if (reset) begin
-        enq_ptr_value = 1'h0;
-        deq_ptr_value = 1'h0;
-        maybe_full = 1'h0;
-      end
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
+  end // always @(posedge)
   ram_2x81 ram_ext (
     .R0_addr (deq_ptr_value),
     .R0_en   (1'h1),

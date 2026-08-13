@@ -413,7 +413,9 @@ class Cache(implicit p: CacheConfig) extends Module {
     // 必须让 Load 阻塞 1 拍。下一拍 Store 进入 wbWrite，Load 进入 SRAM 读取，完美触发 1R1W 旁路前递！
     val hazard_with_lookup = is_lookup_write && (int_index === req_index) // ★
     val hazard_with_wb = (wb_state === wbWrite) && ((int_index === wb_index) || int_cacop_en) // ★
-    val hit_write_hazard   = hazard_with_lookup || hazard_with_wb
+        // 将 Cache.scala 中的 hit_write_hazard 彻底改为：
+    // 相信你的 1R1W 旁路，只有 CACOP 这种核武器才需要全线避让！
+    val hit_write_hazard = int_cacop_en && (main_state === sLookup || wb_state === wbWrite)
 
     // 2. 前台阻塞逻辑
     val mshr_full_block = !has_match && !has_free_mshr

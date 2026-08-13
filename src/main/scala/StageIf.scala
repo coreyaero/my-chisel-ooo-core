@@ -76,23 +76,27 @@ class StageIF extends Module {
 
     val dmw_mat = Mux(dmw0_hit, io.mmu_config.dmw0.mat, io.mmu_config.dmw1.mat)
     val current_mat = Mux((io.mmu_config.crmd.da === 1.U) && (io.mmu_config.crmd.pg === 0.U), io.mmu_config.crmd.datf, Mux(dmw_hit, dmw_mat, io.tlb_port.mat))                       
-    io.inst_uncached := (current_mat === 0.U)
 
+    // ==============================================================
+    // ★ 修复顺序：先声明 mmu_exc_now 和 pc_alignment_error
+    // ==============================================================
     val is_mapped = (io.mmu_config.crmd.pg === 1.U) && (io.mmu_config.crmd.da === 0.U) && !dmw_hit
     val exc_tlb_refill_if = is_mapped && !io.tlb_port.found
     val exc_pif = is_mapped && io.tlb_port.found && !io.tlb_port.v
     val exc_ppi_if = is_mapped && io.tlb_port.found && io.tlb_port.v && (io.mmu_config.crmd.plv === 3.U) && (io.tlb_port.plv === 0.U)
+    
     val mmu_exc_now = exc_tlb_refill_if || exc_pif || exc_ppi_if
     val ecode_now = Mux(exc_tlb_refill_if, "h3F".U(6.W), Mux(exc_pif, "h03".U(6.W), Mux(exc_ppi_if, "h07".U(6.W), 0.U(6.W))))
-    // ==========================================
-    // ★ 智能双发核心逻辑
-    // ==========================================
-    // 跨行检测：如果取指令的起始地址是 0xC，下一个字就在新的 Cache 行里了，必须降级为单发！
-    // ★ 智能降级防线：跨行检测与 Uncached 拦截
-    // 1. 如果取指令是 0xC，下一个字在新的 Cache 行里，降级！
-    // 2. 如果是 Uncached 取指，AXI 每次只能拿回 32 位，高位是空的，绝对必须降级为单发！
+    
+    val pc_alignment_error = (pc_reg(1, 0) =/= 0.U)
+
+    // ==============================================================
+    // ★ 最后再安全赋值：异常时强行切为 Uncached，严禁向外设区爆读！
+    // ==============================================================
+    io.inst_uncached := (current_mat === 0.U) || mmu_exc_now || pc_alignment_error
+
+    // 后面的逻辑保持不变
     val is_uncached_fetch = io.inst_uncached
-    //// ★ 性能解封：适配 32 字节 Cache 行，仅在真实行尾 (0x1C) 时才触发跨行降级！
     val is_cross_line = (va(4, 2) === 7.U) || is_uncached_fetch
     val pc_step = Mux(is_cross_line, 4.U, 8.U)
 
@@ -165,13 +169,15 @@ class StageIF extends Module {
         val gsh_correct = (u.gshare_pred === u.taken)
         
         when(gsh_correct && !bim_correct) {
-            // GShare 对了而 Bimodal 错了，Meta 加 1 (倾向 GShare)
             meta_table(hash_meta) := Mux(old_met === 3.U, 3.U, old_met + 1.U)
         } .elsewhen(bim_correct && !gsh_correct) {
-            // Bimodal 对了而 GShare 错了，Meta 减 1 (倾向 Bimodal)
             meta_table(hash_meta) := Mux(old_met === 0.U, 0.U, old_met - 1.U)
+        } .otherwise {
+            // ★ 救命稻草：遇到平局时，必须把提取出来的旧值 (可能是带掩码的默认值 1) 写回内存！
+            // 彻底覆盖掉未初始化的 X 态！
+            meta_table(hash_meta) := old_met 
         }
-        // 若都对或都错，Meta 保持不动！
+        // 若都对或都错，Meta 保持不动！(现在真正做到了物理上的保持不动)
         meta_valid(hash_meta) := true.B
     }
 
@@ -380,9 +386,10 @@ class StageIF extends Module {
     val meta = meta_queue.io.deq.bits
     val head_ticket = meta.ticket
 
-    // 用队头的 ticket 去读表，完美拿到对应 PC 的数据
-    val final_rdata = rdata_table(head_ticket)
-    val head_data_ready = data_ready_table(head_ticket)
+   // ★ 新增旁路：如果当拍回来的数据正好是我等的，直接截胡！
+val is_arriving_now = real_data_ok && (io.inst_ret_id === head_ticket)
+val head_data_ready = data_ready_table(head_ticket) || is_arriving_now
+val final_rdata = Mux(is_arriving_now, io.cache_io.rdata, rdata_table(head_ticket))
 
     val pipe_ready = io.out0.ready && (meta.is_cross || meta.pred_taken0 || io.out1.ready)
     
@@ -400,7 +407,6 @@ class StageIF extends Module {
     // IF1 阶段：连接 Cache 请求与 PC 更新
     // ==========================================
     // ★ 安全护盾：防止取指未对齐导致 AXI 总线挂死
-    val pc_alignment_error = (pc_reg(1, 0) =/= 0.U)
     val safe_pa = Mux(pc_alignment_error || mmu_exc_now, "h1c000000".U(32.W), pa)
 
     io.cache_io.req   := can_req
